@@ -17,6 +17,7 @@ header b{font-size:17px}
 .menu-btn{background:#ffffff33;border:0;color:#fff;border-radius:10px;font-size:20px;padding:6px 12px;cursor:pointer;font-family:inherit}
 nav{display:none;background:var(--card);margin:8px 12px 0;border-radius:16px;padding:8px;box-shadow:0 6px 20px #7e57c233}
 nav.open{display:block}
+@media (max-width:899px){nav.open{position:fixed;top:calc(60px + env(safe-area-inset-top,0px));left:12px;right:12px;margin:0;max-height:calc(100vh - 90px);overflow-y:auto;z-index:6}}
 nav button{display:block;width:100%;text-align:right;border:0;background:none;color:var(--tx);font:700 15px Vazirmatn,Tahoma,sans-serif;padding:12px;border-radius:12px;cursor:pointer}
 nav button.on{background:linear-gradient(90deg,var(--p),var(--p2));color:#fff}
 main{padding:12px;max-width:640px;margin:auto}
@@ -210,6 +211,7 @@ h1{font-size:28px}
 <h2>🏅 تیم‌ها</h2>
 <button class="big" style="font-size:16px;padding:12px;margin-bottom:12px" id="shuf">چینش تصادفی تیم‌ها 🔀</button>
 <div class="card"><b>⚙️ تعداد تیم‌ها را خودتان تعیین کنید</b><div style="display:flex;gap:8px;margin-top:8px"><input id="tn" type="number" min="1" inputmode="numeric" placeholder="تعداد تیم" style="margin:0"><input id="ts" type="number" min="1" inputmode="numeric" placeholder="نفر در هر تیم" style="margin:0"></div><button class="big" id="tset" style="font-size:15px;padding:12px;margin-top:8px">اعمال و تقسیم چرخشی</button><p class="sub" id="tmsg" style="margin:8px 0 0">مثلاً ۵ تیم، یا ۳ نفر در هر تیم</p></div>
+<div class="card"><b>🏷️ نام تیم‌ها (دلخواه)</b><p class="sub" style="margin:6px 0">برای هر تیم نامی بنویسید، مثلاً بارسلونا، مسی، آرژانتین یا اسم یک شخصیت کارتونی. اگر خالی بگذارید، همان «تیم ۱، تیم ۲، …» می‌ماند. با نوشتن نام و رفتن به خانه‌ی بعد، ذخیره می‌شود.</p><div id="tnames"></div></div>
 <div id="teamList"></div>
 </section>
 
@@ -222,6 +224,7 @@ h1{font-size:28px}
 <input id="etl" placeholder="عنوان (اختیاری، مثلاً فصل ۲)">
 <label class="sum">تاریخ برگزاری (شمسی)</label><select id="ed_s" class="fs"></select><p class="sum" id="ed_l" style="margin:0 0 8px;white-space:normal"></p>
 <button class="big" style="font-size:15px;padding:12px" id="eadd">ثبت و ورود نمرات</button><p class="sub" id="emsg"></p></div>
+<div class="card"><b>🔍 جستجوی دانش‌آموز در آزمون‌ها</b><input id="ssq" placeholder="نام یا فامیل دانش‌آموز…" style="margin-top:8px"><div id="ssr"></div></div>
 <div id="crsList"></div>
 </section>
 <section id="mk"><h2>🔁 آزمون جبرانی</h2><div id="mkbody"></div></section>
@@ -236,7 +239,7 @@ h1{font-size:28px}
 <h2>🧾 گزارش‌های مدیر</h2>
 <div class="card"><div class="tb2" id="mtab"><button data-t="c">کلاس</button><button data-t="s">دانش‌آموز</button><button data-t="h">📚 تکالیف</button></div>
 <label class="sum">📅 بازه‌ی گزارش (از ماه ... تا ماه ...)</label><select id="mp" class="fs"></select><label class="sum">تا ماه</label><select id="mp2" class="fs"></select><select id="ms" class="fs"></select>
-<div id="hpw"><label class="sum">⏱️ بازه‌ی گزارش تکالیف</label><select id="hp" class="fs"><option value="w">هفته‌ی جاری</option><option value="m">ماه جاری</option><option value="y">کل سال تحصیلی</option><option value="r">بازه‌ی انتخابی (از ماه … تا ماه …)</option></select></div>
+<div id="hpw"><label class="sum">⏱️ بازه‌ی گزارش تکالیف</label><select id="hp" class="fs"><option value="w">هفته‌ی جاری</option><option value="m">ماه جاری</option><option value="y">کل سال تحصیلی</option><option value="r">بازه‌ی انتخابی (از ماه … تا ماه …)</option><option value="k">هفته‌ی دلخواه (انتخاب ماه و هفته)</option><option value="d">بازه‌ی دلخواه روزانه (از تاریخ … تا تاریخ …)</option></select><div id="hk0" style="display:none"><label class="sum">ماه</label><select id="hk1m" class="fs"></select><label class="sum">هفته</label><select id="hkw" class="fs"></select></div><div id="hdw" style="display:none"><label class="sum">از تاریخ</label><div style="display:flex;gap:8px"><select id="hd1m" class="fs"></select><select id="hd1d" class="fs"></select></div><label class="sum">تا تاریخ</label><div style="display:flex;gap:8px"><select id="hd2m" class="fs"></select><select id="hd2d" class="fs"></select></div></div></div>
 <div id="mb3"><button class="big" data-a="hp" style="font-size:15px;padding:12px;margin-bottom:8px">📄 گزارش تکالیف (PDF، A4)</button><button class="big" data-a="hx" style="font-size:15px;padding:12px">📊 گزارش تکالیف (اکسل)</button></div>
 <div id="mb1"><button class="big" data-a="pc" style="font-size:15px;padding:12px;margin-bottom:8px">📄 گزارش خلاصه کلاسی در یک صفحه</button><button class="big" data-a="pf" style="font-size:15px;padding:12px;margin-bottom:8px">📑 گزارش کامل کلاسی</button><button class="big" data-a="x" style="font-size:15px;padding:12px">📊 گزارش اکسل</button></div>
 <div id="mb2"><button class="big" data-a="pr" style="font-size:15px;padding:12px;margin-bottom:8px">👤 پرونده و اطلاعات فردی دانش‌آموز</button><button class="big" data-a="sx" style="font-size:15px;padding:12px;margin-bottom:8px">📊 اکسل این دانش‌آموز</button><button class="big" data-a="ps" style="font-size:15px;padding:12px;margin-bottom:8px">📄 کارنامه‌ی این دانش‌آموز (PDF، A4)</button><button class="big" data-a="pa" style="font-size:15px;padding:12px">📄 کارنامه‌ی همه‌ی دانش‌آموزان (PDF)</button></div>
@@ -274,7 +277,10 @@ html{-webkit-text-size-adjust:100%}body{min-height:100vh;min-height:100dvh}img,s
 <section id="edit">
 <h2>✏️ ویرایش دانش‌آموزان</h2><p class="sub">نام و تیم را تغییر بدهید یا دانش‌آموز را حذف کنید. امتیاز فقط از راه پرسش و پاسخ و آزمون ثبت می‌شود.</p>
 <input id="q" placeholder="🔍 جستجوی نام">
-<div class="card"><b>📥 وارد کردن لیست دانش‌آموزان</b><p class="sub" style="margin:6px 0">هر خط یک نفر: نام، (اختیاری) شماره‌ی پدر، شماره‌ی مادر. فایل اکسل یا متن هم قبول است.</p><textarea id="itx" rows="4" placeholder="علی رضایی&#10;سارا احمدی" style="width:100%;margin-bottom:8px"></textarea><button class="big" id="ipaste" style="font-size:15px;padding:12px;margin-bottom:8px">افزودن از متن</button><input type="file" id="ifile" accept=".xlsx,.csv,.txt"><p class="sub" id="imsg" style="margin:8px 0 0"></p></div>
+<div class="card"><b>📊 لیست و مشخصات دانش‌آموزان با اکسل</b><p class="sub" style="margin:6px 0">۱) فایل اکسل را بگیرید؛ لیست فعلی با همه‌ی مشخصات در آن است. ۲) در اکسل دانش‌آموز جدید را در انتهای جدول بنویسید، مشخصات را کامل یا اصلاح کنید و ردیف دانش‌آموزی که رفته را پاک کنید. ۳) همان فایل را همین‌جا با «انتخاب فایل» وارد کنید. موجودها به‌روز می‌شوند، تازه‌ها اضافه می‌شوند و برای نام‌هایی که در فایل نیستند از شما پرسیده می‌شود که حذف شوند یا نه. خانه‌ی خالی در اکسل، اطلاعات قبلی را پاک نمی‌کند.</p>
+<button class="big" id="xout" style="font-size:15px;padding:12px">📤 ۱) دریافت فایل اکسل دانش‌آموزان</button>
+<label style="display:block;margin:12px 0 4px;font-weight:700">📥 ۲) انتخاب فایل اکسل ویرایش‌شده</label><input type="file" id="ifile" accept=".xlsx,.csv,.txt"><p class="sub imsg" style="margin:8px 0 0"></p></div>
+<div class="card"><b>✍️ افزودن سریع از متن</b><p class="sub" style="margin:6px 0">هر خط یک نفر: نام، و (اختیاری) شماره‌ی پدر و شماره‌ی مادر.</p><textarea id="itx" rows="4" placeholder="علی رضایی&#10;سارا احمدی" style="width:100%;margin-bottom:8px"></textarea><button class="big" id="ipaste" style="font-size:15px;padding:12px">افزودن از متن</button><p class="sub imsg" style="margin:8px 0 0"></p></div>
 <div id="editList"></div>
 </section>
 </main>
@@ -299,7 +305,7 @@ html{-webkit-text-size-adjust:100%}body{min-height:100vh;min-height:100dvh}img,s
 const $=id=>document.getElementById(id);
 const pages=[['home','🏠 خانه'],['att','📋 حضور و غیاب'],['draw','🎯 قرعه‌کشی'],['teams','🏅 تیم‌ها'],['crs','📚 درس‌ها و آزمون‌ها'],['mk','🔁 آزمون جبرانی'],['rep','📈 گزارش نمرات'],['mgr','🧾 گزارش‌های مدیر'],['prof','🏫 اطلاعات مدرسه و پایه'],['edit','✏️ ویرایش دانش‌آموزان']];
 const names=['دانش‌آموز ۱','دانش‌آموز ۲','دانش‌آموز ۳','دانش‌آموز ۴','دانش‌آموز ۵','دانش‌آموز ۶','دانش‌آموز ۷','دانش‌آموز ۸','دانش‌آموز ۹','دانش‌آموز ۱۰','دانش‌آموز ۱۱','دانش‌آموز ۱۲'];
-let NT=3;
+let NT=3;function tname(n,d){const v=((S&&S.tnm)||[])[n-1];return v&&String(v).trim()?String(v).trim():d}
 let S={students:names.map((n,i)=>({id:i+1,name:n,score:1000,team:i%NT+1,att:''})),drawn:[]};
 try{const r=localStorage.getItem('cl1');if(r)S=JSON.parse(r)}catch(e){}NT=Math.max(1,S.nt||3);
 const save=()=>{try{const had=localStorage.getItem('cl1');window.binChk&&window.binChk(had);const j=JSON.stringify(S);if(j===had)return;window.histPush&&window.histPush(had);localStorage.setItem('cl1',j);if(had!==null){localStorage.setItem('cl1_ts',Date.now());window.cloudPush&&window.cloudPush()}}catch(e){}};
@@ -307,7 +313,7 @@ const today=new Date().toLocaleDateString('fa-IR-u-ca-persian',{year:'numeric',m
 $('d2').textContent='امروز: '+today;
 const nav=$('nav');
 pages.forEach(([id,t])=>{const b=document.createElement('button');b.textContent=t;b.dataset.p=id;b.onclick=()=>show(id);nav.appendChild(b)});
-$('mb').onclick=()=>nav.classList.toggle('open');
+$('mb').onclick=()=>nav.classList.toggle('open');document.addEventListener('click',e=>{if(nav.classList.contains('open')&&!nav.contains(e.target)&&!$('mb').contains(e.target))nav.classList.remove('open')});
 function show(id){document.querySelectorAll('section').forEach(s=>s.classList.toggle('on',s.id===id));nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));nav.classList.remove('open');if(id==='mgr'&&window.renderMgr)renderMgr();if(id==='mk'&&window.renderMk)renderMk();{const q=pages.find(x=>x[0]===id);if($('ptl'))$('ptl').textContent=q?q[1]:''}window.scrollTo(0,0)}
 function render(){
  const st=S.students,TA=S.att[iso(tdy())]||{},c=k=>st.filter(s=>TA[s.id]===k).length;
@@ -315,14 +321,17 @@ function render(){
  $('stats').innerHTML=[['✅',c('p')+c('l'),'حاضر امروز','#2eaf6b','p'],['👥',st.length,'دانش‌آموز','#3b6fd8','all'],['⏰',c('l'),'تأخیر امروز','#f59e0b','l'],['❌',c('a'),'غایب امروز','#e5484d','a'],['🏅',NT,'تیم','#7e57c2','teams'],['📊',avg,'میانگین ارزیابی (از ۴)','#9b6fd0','rep']].map(x=>`<div class="st" data-k="${x[4]}" style="--c:${x[3]};cursor:pointer"><div style="font-size:22px">${x[0]}</div><b>${x[1]}</b><span>${x[2]}</span></div>`).join('');
  renderAtt();renderCrs();renderRep();
  $('chips').innerHTML=st.map(s=>`<div class="chip${S.drawn.includes(s.id)?' done':''}">${s.name}</div>`).join('');
- $('teamList').innerHTML=Array.from({length:NT},(_,i)=>i+1).map(t=>{const m=st.filter(s=>s.team===t);return `<div class="card team"><h3>🏅 تیم ${t}<span class="badge">${m.length} عضو</span></h3>${m.map(s=>`<div class="row"><span>${s.name}</span><span class="sc">${fa(ptsOf(s.id))}</span></div>`).join('')}</div>`}).join('');
+ tnEd();$('teamList').innerHTML=Array.from({length:NT},(_,i)=>i+1).map(t=>{const m=st.filter(s=>s.team===t);return `<div class="card team"><h3>🏅 ${esc2(tname(t,'تیم '+t))}<span class="badge">${m.length} عضو</span></h3>${m.map(s=>`<div class="row"><span>${s.name}</span><span class="sc">${fa(ptsOf(s.id))}</span></div>`).join('')}</div>`}).join('');
  renderRank();
  const q=$('q').value.trim(),esc=t=>String(t).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
  const el=st.filter(s=>s.name.includes(q));
- $('editList').innerHTML=el.length?el.map(s=>`<div class="ed"><div class="top"><div><label>نام</label><input value="${esc(s.name)}" onchange="upd(${s.id},'name',this.value)"></div><button class="del${delId===s.id?' sure':''}" onclick="del(${s.id})">${delId===s.id?'مطمئنید؟':'🗑 حذف'}</button></div><div class="f"><div><label>تیم</label><select onchange="upd(${s.id},'team',this.value)">${Array.from({length:NT},(_,i)=>`<option value="${i+1}"${s.team===i+1?' selected':''}>تیم ${i+1}</option>`).join('')}</select></div><div><label>امتیاز (فقط نمایش)</label><div class="chip" style="padding:9px">${fa(ptsOf(s.id))}</div></div></div></div>`).join(''):'<p class="sub">موردی پیدا نشد</p>';
+ $('editList').innerHTML=el.length?el.map(s=>`<div class="ed"><div class="top"><div><label>نام</label><input value="${esc(s.name)}" onchange="upd(${s.id},'name',this.value)"></div><button class="del${delId===s.id?' sure':''}" onclick="del(${s.id})">${delId===s.id?'مطمئنید؟':'🗑 حذف'}</button></div><div class="f"><div><label>تیم</label><select onchange="upd(${s.id},'team',this.value)">${Array.from({length:NT},(_,i)=>`<option value="${i+1}"${s.team===i+1?' selected':''}>${esc(tname(i+1,'تیم '+(i+1)))}</option>`).join('')}</select></div><div><label>امتیاز (فقط نمایش)</label><div class="chip" style="padding:9px">${fa(ptsOf(s.id))}</div></div></div></div>`).join(''):'<p class="sub">موردی پیدا نشد</p>';
  save();
 }
 let delId=null;
+function tnEd(){const b=$('tnames');if(!b)return;const v=i=>String((S.tnm||[])[i]||'');if(b.querySelectorAll('input').length===NT){b.querySelectorAll('input').forEach((x,i)=>{if(document.activeElement!==x&&x.value.trim()!==v(i))x.value=v(i)});return}
+ b.innerHTML=Array.from({length:NT},(_,i)=>`<div style="display:flex;gap:8px;align-items:center;margin-top:6px"><span style="min-width:62px;font-size:13px;color:var(--mut)">تیم ${fa(i+1)}</span><input data-tn="${i}" value="${esc2(v(i)).replace(/"/g,'&quot;')}" placeholder="مثلاً بارسلونا" maxlength="30" style="margin:0;flex:1"></div>`).join('')}
+document.addEventListener('change',e=>{const t=e.target,i=t&&t.dataset&&t.dataset.tn;if(i==null||!t.closest('#tnames'))return;S.tnm=S.tnm||[];while(S.tnm.length<NT)S.tnm.push('');S.tnm[+i]=t.value.trim();render()});
 window.upd=(id,k,v)=>{const s=S.students.find(x=>x.id===id);if(k==='name'){v=v.trim();if(!v)return render();s.name=v}else s[k]=Number(v)||0;render()};
 window.del=id=>{if(delId===id){S.students=S.students.filter(x=>x.id!==id);S.drawn=S.drawn.filter(x=>x!==id);delId=null}else{delId=id;setTimeout(()=>{if(delId===id){delId=null;render()}},3000)}render()};
 $('q').oninput=()=>render();
@@ -486,8 +495,128 @@ Promise.all([ld(B+'firebase-app-compat.js'),0]).then(()=>Promise.all([ld(B+'fire
 /* export */
 const XL='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',H2C='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',JSP='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
 const msg=t=>{$('exmsg').textContent=t;const r=$('rmsg');if(r)r.textContent=t};
-const loadJS=src=>new Promise((r,j)=>{if(document.querySelector(`script[src="${src}"]`))return r();const e=document.createElement('script');e.src=src;e.onload=r;e.onerror=j;document.head.appendChild(e)});
-async function dl(name,data){try{const D=window.claude?await window.claude.use('downloads'):null;if(!D){const u=URL.createObjectURL(new Blob([data])),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);msg('✅ فایل آماده شد');return}await D.save({filename:name,data});msg('✅ فایل آماده شد')}catch(e){msg(e&&e.code==='declined'?'':'ساخت یا ذخیره‌ی فایل ناموفق بود')}}
+const MIR={};MIR[H2C]=['https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js','https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'];MIR[JSP]=['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js'];MIR['https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js']=['https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js','https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js'];
+const loadJS=src=>new Promise((res,rej)=>{window.__ok=window.__ok||{};window.__bad=window.__bad||{};if(window.__ok[src])return res();if(window.__bad[src])return rej(new Error('load'));const L=[src].concat(MIR[src]||[]);let i=0;(function nx(){if(i>=L.length){window.__bad[src]=1;return rej(new Error('load'))}const e=document.createElement('script');let done=0;const t=setTimeout(()=>{if(!done){done=1;e.remove();nx()}},6000);e.src=L[i++];e.onload=()=>{if(done)return;done=1;clearTimeout(t);window.__ok[src]=1;res()};e.onerror=()=>{if(done)return;done=1;clearTimeout(t);e.remove();nx()};document.head.appendChild(e)})()});
+async function pdfLibs(){if(window.html2canvas&&window.jspdf)return;try{await Promise.all([loadJS(H2C),loadJS(JSP)])}catch(e){}}
+const rast=el=>window.html2canvas?window.html2canvas(el,{scale:2,backgroundColor:'#ffffff'}):fobj(el,{scale:2});
+const errT=x=>'ساخت فایل ناموفق بود'+(x&&x.message?' ('+x.message+')':'');
+function dlLink(u,name,data,box){let b=document.getElementById('dlbar');if(!b){b=document.createElement('div');b.id='dlbar';b.style.cssText='position:fixed;left:10px;right:10px;bottom:12px;z-index:99999;background:#2d1f4d;color:#fff;border-radius:14px;padding:10px 14px;font:700 13px Vazirmatn,Tahoma,sans-serif;display:flex;gap:10px;align-items:center;justify-content:space-between;box-shadow:0 6px 20px #0006;line-height:1.8';document.body.appendChild(b)}
+ const F=data?new File([data],name):null,sh=F&&navigator.canShare&&(()=>{try{return navigator.canShare({files:[F]})}catch(e){return false}})();
+ b.innerHTML='<span>'+(box?'⚠️ این پیش‌نمایش اجازه‌ی دانلود مستقیم نمی‌دهد. گزینه‌های زیر را امتحان کنید؛ اگر نشد، برنامه را از آدرس سایت در Chrome باز کنید.':'✅ فایل آماده شد. اگر دانلود شروع نشد، لینک را بزنید.')+' <a id="dla" style="color:#ffd54f;text-decoration:underline"></a>'+(sh?' <button id="dls" style="border:0;border-radius:10px;padding:6px 10px;background:#ffd54f;color:#2d1f4d;cursor:pointer;font:inherit">📤 ارسال / ذخیره</button>':'')+'</span><button id="dlx" style="border:0;border-radius:10px;padding:6px 10px;background:#ffffff26;color:#fff;cursor:pointer">✕</button>';
+ const a=b.querySelector('#dla');a.href=u;a.download=name;a.textContent='دانلود با لینک';b.querySelector('#dlx').onclick=()=>b.remove();
+ const bs=b.querySelector('#dls');if(bs)bs.onclick=async()=>{try{await navigator.share({files:[F],title:name})}catch(e){}};
+ clearTimeout(b._t);b._t=setTimeout(()=>b.remove(),120000)}
+/* --- ساخت اکسل بدون نیاز به اینترنت (شبیه‌ساز بخشی از ExcelJS) --- */
+const ExcelLite=(()=>{
+const X=t=>String(t).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const colL=c=>{let t='';while(c>0){const m=(c-1)%26;t=String.fromCharCode(65+m)+t;c=Math.floor((c-1)/26)}return t};
+const addr=a=>{const m=/^([A-Z]+)(\d+)$/.exec(a);let c=0;for(const ch of m[1])c=c*26+ch.charCodeAt(0)-64;return[+m[2],c]};
+const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+const crc=b=>{let c=0xFFFFFFFF;for(let i=0;i<b.length;i++)c=CT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};
+const zip=files=>{const E=new TextEncoder(),parts=[],cen=[];let off=0;
+ files.forEach(f=>{const nm=E.encode(f.n),cr=crc(f.d),h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true);h.setUint16(4,20,true);h.setUint16(6,0x0800,true);h.setUint16(12,0x21,true);h.setUint32(14,cr,true);h.setUint32(18,f.d.length,true);h.setUint32(22,f.d.length,true);h.setUint16(26,nm.length,true);
+  parts.push(new Uint8Array(h.buffer),nm,f.d);
+  const c=new DataView(new ArrayBuffer(46));c.setUint32(0,0x02014b50,true);c.setUint16(4,20,true);c.setUint16(6,20,true);c.setUint16(8,0x0800,true);c.setUint16(14,0x21,true);c.setUint32(16,cr,true);c.setUint32(20,f.d.length,true);c.setUint32(24,f.d.length,true);c.setUint16(28,nm.length,true);c.setUint32(42,off,true);
+  cen.push(new Uint8Array(c.buffer),nm);off+=30+nm.length+f.d.length});
+ let cs=0;cen.forEach(q=>cs+=q.length);const e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);
+ const all=[...parts,...cen,new Uint8Array(e.buffer)];let n=0;all.forEach(q=>n+=q.length);const out=new Uint8Array(n);let o=0;all.forEach(q=>{out.set(q,o);o+=q.length});return out};
+class Cell{constructor(){this.value=null}}
+class Row{constructor(ws,n){this.ws=ws;this.n=n;this.cells=new Map();this.height=null}
+ getCell(c){if(typeof c==='string')c=addr(c+'1')[1];let x=this.cells.get(c);if(!x){x=new Cell();this.cells.set(c,x)}return x}
+ eachCell(o,f){if(typeof o==='function'){f=o;o={}}const ks=[...this.cells.keys()].sort((a,b)=>a-b);
+  if(o&&o.includeEmpty){const mx=ks.length?ks[ks.length-1]:0;for(let c=1;c<=mx;c++)f(this.getCell(c),c)}else ks.forEach(c=>{const x=this.cells.get(c);if(x.value!=null)f(x,c)})}}
+class WS{constructor(wb,name,o){this.wb=wb;this.name=String(name).replace(/[\\\/?*\[\]:]/g,' ').slice(0,31)||'Sheet';this.o=o||{};this.views=this.o.views;this.pageSetup=this.o.pageSetup;this.headerFooter=null;this.rows=new Map();this.merges=[];this._cols=[];this._last=0}
+ set columns(a){this._cols=a.map(c=>Object.assign({},c));if(a.some(c=>c.header!=null)){const r=this.getRow(1);a.forEach((c,i)=>{if(c.header!=null)r.getCell(i+1).value=c.header})}}
+ get columns(){return this._cols}
+ getColumn(n){return this._cols[n-1]=this._cols[n-1]||{}}
+ getRow(n){let r=this.rows.get(n);if(!r){r=new Row(this,n);this.rows.set(n,r)}if(n>this._last)this._last=n;return r}
+ addRow(a){const r=this.getRow(this._last+1);a.forEach((v,i)=>{r.getCell(i+1).value=v});return r}
+ getCell(a){const[rn,c]=addr(a);return this.getRow(rn).getCell(c)}
+ mergeCells(a){this.merges.push(a)}
+ eachRow(o,f){if(typeof o==='function')f=o;[...this.rows.keys()].sort((a,b)=>a-b).forEach(n=>{const r=this.rows.get(n);if([...r.cells.values()].some(c=>c.value!=null))f(r,n)})}}
+class WB{constructor(){this.sheets=[];this.xlsx={writeBuffer:async()=>this._build()}}
+ addWorksheet(n,o){const w=new WS(this,n,o);this.sheets.push(w);return w}
+ get worksheets(){return this.sheets}
+ _build(){const E=new TextEncoder(),F=[],Fi=[],Bo=[],XF=[],FM={},fk={},lk={},bk={},xk={};let nf=164;
+  const reg=(m,a,k,v)=>{if(m[k]==null){m[k]=a.length;a.push(v)}return m[k]};
+  const font=f=>{f=f||{};return`<font>${f.bold?'<b/>':''}<sz val="${f.size||11}"/><color rgb="${f.color&&f.color.argb||'FF222222'}"/><name val="${X(f.name||'Tahoma')}"/></font>`};
+  reg(fk,F,JSON.stringify({}),font());reg(lk,Fi,'n','<fill><patternFill patternType="none"/></fill>');reg(lk,Fi,'g','<fill><patternFill patternType="gray125"/></fill>');reg(bk,Bo,'n','<border><left/><right/><top/><bottom/><diagonal/></border>');
+  const xf=c=>{const f=c.font?reg(fk,F,JSON.stringify(c.font),font(c.font)):0,
+   fl=c.fill&&c.fill.fgColor?reg(lk,Fi,'f'+c.fill.fgColor.argb,`<fill><patternFill patternType="solid"><fgColor rgb="${c.fill.fgColor.argb}"/><bgColor indexed="64"/></patternFill></fill>`):0,
+   bd=c.border?reg(bk,Bo,JSON.stringify(c.border),'<border>'+['left','right','top','bottom'].map(k=>{const q=c.border[k];return q&&q.style?`<${k} style="${q.style}"><color rgb="${q.color&&q.color.argb||'FF000000'}"/></${k}>`:`<${k}/>`}).join('')+'<diagonal/></border>'):0,
+   nm=c.numFmt==='@'?49:0,a=c.alignment,key=[f,fl,bd,nm,a?JSON.stringify(a):''].join('|');
+   if(!f&&!fl&&!bd&&!nm&&!a)return 0;
+   return reg(xk,XF,key,`<xf numFmtId="${nm}" fontId="${f}" fillId="${fl}" borderId="${bd}" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyNumberFormat="1"${a?' applyAlignment="1"><alignment'+(a.horizontal?` horizontal="${a.horizontal}"`:'')+(a.vertical?` vertical="${a.vertical==='middle'?'center':a.vertical}"`:'')+(a.wrapText?' wrapText="1"':'')+(a.readingOrder==='rtl'?' readingOrder="2"':'')+'/></xf>':'/>'}`)+1};
+  const sheets=this.sheets.map((w,si)=>{const rows=[...w.rows.keys()].sort((a,b)=>a-b);let mxc=1,mxr=1;const dv={};
+   const rx=rows.map(rn=>{const r=w.rows.get(rn),ks=[...r.cells.keys()].sort((a,b)=>a-b);mxr=Math.max(mxr,rn);
+    const cx=ks.map(cn=>{const c=r.cells.get(cn);mxc=Math.max(mxc,cn);const s=xf(c),ref=colL(cn)+rn,sa=s?` s="${s}"`:'';let v=c.value;if(v&&typeof v==='object'&&!(v instanceof Date)&&'text' in v)v=v.text;
+     if(c.dataValidation){const q=c.dataValidation,k=JSON.stringify(q);(dv[k]=dv[k]||{q,refs:[]}).refs.push([cn,rn])}
+     if(v==null||v==='')return`<c r="${ref}"${sa}/>`;if(typeof v==='number'&&isFinite(v))return`<c r="${ref}"${sa}><v>${v}</v></c>`;if(typeof v==='boolean')return`<c r="${ref}"${sa} t="b"><v>${v?1:0}</v></c>`;
+     return`<c r="${ref}"${sa} t="inlineStr"><is><t xml:space="preserve">${X(v)}</t></is></c>`}).join('');
+    return`<row r="${rn}"${r.height?` ht="${r.height}" customHeight="1"`:''}>${cx}</row>`}).join('');
+   const vw=(w.views||[])[0]||{},fz=vw.state==='frozen'&&(vw.xSplit||vw.ySplit),xs=vw.xSplit||0,ys=vw.ySplit||0,ap=xs&&ys?'bottomRight':ys?'bottomLeft':'topRight',tl=colL(xs+1)+(ys+1);
+   const ps=w.pageSetup||{},cols=w._cols.map((c,i)=>c&&(c.width||c.hidden)?`<col min="${i+1}" max="${i+1}" width="${c.width||10}" customWidth="1"${c.hidden?' hidden="1"':''}/>`:'').join('');
+   const dvx=Object.values(dv).map(({q,refs})=>{refs.sort((a,b)=>a[0]-b[0]||a[1]-b[1]);const runs=[];refs.forEach(([c,r])=>{const l=runs[runs.length-1];if(l&&l.c===c&&l.b===r-1)l.b=r;else runs.push({c,a:r,b:r})});
+    return`<dataValidation type="${q.type||'list'}" allowBlank="${q.allowBlank?1:0}" showErrorMessage="1" sqref="${runs.map(u=>colL(u.c)+u.a+(u.b>u.a?':'+colL(u.c)+u.b:'')).join(' ')}"><formula1>${X((q.formulae||[''])[0])}</formula1></dataValidation>`});
+   const mg=w.merges.length?`<mergeCells count="${w.merges.length}">${w.merges.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:'';
+   const mp=ps.margins||{},hf=w.headerFooter&&w.headerFooter.oddFooter;
+   return'<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+(ps.fitToPage?'<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr>':'')+`<dimension ref="A1:${colL(mxc)}${mxr}"/><sheetViews><sheetView workbookViewId="0"${si===0?' tabSelected="1"':''}${vw.rightToLeft?' rightToLeft="1"':''}${vw.showGridLines===false?' showGridLines="0"':''}>${fz?`<pane${xs?` xSplit="${xs}"`:''}${ys?` ySplit="${ys}"`:''} topLeftCell="${tl}" activePane="${ap}" state="frozen"/><selection pane="${ap}" activeCell="${tl}" sqref="${tl}"/>`:''}</sheetView></sheetViews><sheetFormatPr defaultRowHeight="18"/>${cols?`<cols>${cols}</cols>`:''}<sheetData>${rx}</sheetData>${mg}${dvx.length?`<dataValidations count="${dvx.length}">${dvx.join('')}</dataValidations>`:''}<pageMargins left="${mp.left||.7}" right="${mp.right||.7}" top="${mp.top||.75}" bottom="${mp.bottom||.75}" header="${mp.header||.3}" footer="${mp.footer||.3}"/><pageSetup paperSize="${ps.paperSize||9}" orientation="${ps.orientation||'portrait'}"${ps.fitToPage?` fitToWidth="${ps.fitToWidth||1}" fitToHeight="${ps.fitToHeight==null?1:ps.fitToHeight}"`:''}/>${hf?`<headerFooter><oddFooter>${X(hf)}</oddFooter></headerFooter>`:''}</worksheet>`});
+  const styles='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+`<fonts count="${F.length}">${F.join('')}</fonts><fills count="${Fi.length}">${Fi.join('')}</fills><borders count="${Bo.length}">${Bo.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${XF.length+1}"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>${XF.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const R='http://schemas.openxmlformats.org/officeDocument/2006/relationships',H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const files=[{n:'[Content_Types].xml',d:H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map((_,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')+'</Types>'},
+   {n:'_rels/.rels',d:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${R}/officeDocument" Target="xl/workbook.xml"/></Relationships>`},
+   {n:'xl/workbook.xml',d:H+`<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="${R}"><bookViews><workbookView/></bookViews><sheets>${this.sheets.map((w,i)=>`<sheet name="${X(w.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`},
+   {n:'xl/_rels/workbook.xml.rels',d:H+`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${sheets.map((_,i)=>`<Relationship Id="rId${i+1}" Type="${R}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="${R}/styles" Target="styles.xml"/></Relationships>`},
+   {n:'xl/styles.xml',d:styles}].concat(sheets.map((x,i)=>({n:`xl/worksheets/sheet${i+1}.xml`,d:x})));
+  files.forEach(f=>{f.d=E.encode(f.d)});return zip(files).buffer}}
+return{Workbook:WB}})();
+/* --- خواندن xlsx بدون نیاز به اینترنت --- */
+async function xread(buf){const u=new Uint8Array(buf),dv=new DataView(buf),D=new TextDecoder(),P=t=>new DOMParser().parseFromString(t,'application/xml');
+ let e=u.length-22;while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--;if(e<0)throw new Error('zip');
+ const n=dv.getUint16(e+10,true);let p=dv.getUint32(e+16,true);const ent={};
+ for(let i=0;i<n;i++){if(dv.getUint32(p,true)!==0x02014b50)throw new Error('zip');const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),nl=dv.getUint16(p+28,true),el=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);ent[D.decode(u.subarray(p+46,p+46+nl))]={m,cs,lo};p+=46+nl+el+cl}
+ const get=async nm=>{const f=ent[nm];if(!f)return null;const nl=dv.getUint16(f.lo+26,true),el=dv.getUint16(f.lo+28,true),st=f.lo+30+nl+el,raw=u.subarray(st,st+f.cs);if(f.m===0)return D.decode(raw);if(f.m!==8)throw new Error('zip');
+  return D.decode(await new Response(new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer())};
+ const wbx=await get('xl/workbook.xml');if(!wbx)throw new Error('xlsx');
+ const sh=P(wbx).getElementsByTagName('sheet')[0],rid=sh&&(sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'));
+ let path='xl/worksheets/sheet1.xml';const rl=await get('xl/_rels/workbook.xml.rels');
+ if(rl&&rid)[...P(rl).getElementsByTagName('Relationship')].forEach(r=>{if(r.getAttribute('Id')===rid){let t=r.getAttribute('Target');path=t[0]==='/'?t.slice(1):'xl/'+t}});
+ const ssx=await get('xl/sharedStrings.xml'),tx=el=>{let t='';Array.from(el.children).forEach(c=>{if(c.localName==='t')t+=c.textContent;else if(c.localName==='r'){const q=c.getElementsByTagName('t')[0];if(q)t+=q.textContent}});return t};
+ const ss=ssx?[...P(ssx).getElementsByTagName('si')].map(tx):[];
+ const stx=await get('xl/styles.xml'),dfm=new Set();
+ if(stx){const sd=P(stx),cf={};[...sd.getElementsByTagName('numFmt')].forEach(f=>{cf[f.getAttribute('numFmtId')]=f.getAttribute('formatCode')||''});
+  const isD=id=>(id>=14&&id<=22)||(id>=45&&id<=47)||(cf[id]!=null&&/[dmy]/i.test(cf[id].replace(/"[^"]*"|\[[^\]]*\]/g,'')));
+  const xs=sd.getElementsByTagName('cellXfs')[0];if(xs)Array.from(xs.children).forEach((x,i)=>{if(isD(+x.getAttribute('numFmtId')))dfm.add(i)})}
+ const sx=await get(path);if(!sx)throw new Error('sheet');
+ const idx=r=>{let c=0;for(const ch of r.replace(/\d+/g,''))c=c*26+ch.charCodeAt(0)-64;return c-1};
+ const rows=[];[...P(sx).getElementsByTagName('row')].forEach(r=>{const a=[];let k=0;Array.from(r.children).forEach(c=>{if(c.localName!=='c')return;const ref=c.getAttribute('r'),ci=ref?idx(ref):k;k=ci+1;const t=c.getAttribute('t'),v=c.getElementsByTagName('v')[0],vt=v?v.textContent:'';let val='';
+  if(t==='s')val=ss[+vt]||'';else if(t==='inlineStr'){const is=c.getElementsByTagName('is')[0];val=is?tx(is):''}else if(t==='str')val=vt;else if(t==='b')val=vt==='1'?'TRUE':'FALSE';else if(t==='e')val='';
+  else if(vt!==''){if(dfm.has(+c.getAttribute('s'))&&isFinite(+vt)){const d=new Date(Math.round((+vt-25569)*864e5)),q=jp(new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate(),12)));val=q.y+'/'+z2(q.m)+'/'+z2(q.d)}else val=/e/i.test(vt)?Number(vt).toLocaleString('en-US',{useGrouping:false,maximumFractionDigits:15}):vt}
+  a[ci]=val});for(let i=0;i<a.length;i++)if(a[i]==null)a[i]='';if(a.some(x=>x!==''))rows.push(a)});
+ return rows}
+/* --- PDF بدون نیاز به اینترنت: تصویر صفحه + فایل PDF ساده --- */
+async function fobj(el,o){const sc=(o&&o.scale)||2,w=el.offsetWidth||parseFloat(el.style.width),h=el.offsetHeight||parseFloat(el.style.height),c=el.cloneNode(true);c.style.position='relative';c.style.left='0';c.style.top='0';c.style.margin='0';
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject x="0" y="0" width="${w}" height="${h}">${new XMLSerializer().serializeToString(c)}</foreignObject></svg>`,img=new Image();
+ await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('render'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+ const cv=document.createElement('canvas');cv.width=w*sc;cv.height=h*sc;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.drawImage(img,0,0,cv.width,cv.height);return cv}
+function MiniPDF(o){const L=o&&o.orientation==='landscape',k=72/25.4,W=(L?297:210)*k,H=(L?210:297)*k,pg=[[]];
+ this.addPage=()=>{pg.push([])};
+ this.addImage=(url,f,x,y,w,h)=>{const b=atob(url.split(',')[1]),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);let i=2,iw=0,ih=0,nc=3;
+  while(i<u.length){if(u[i]!==0xFF){i++;continue}const m=u[i+1];if(m>=0xC0&&m<=0xCF&&m!==0xC4&&m!==0xC8&&m!==0xCC){ih=u[i+5]<<8|u[i+6];iw=u[i+7]<<8|u[i+8];nc=u[i+9];break}i+=2+(u[i+2]<<8|u[i+3])}
+  pg[pg.length-1].push({u,iw,ih,nc,x,y,w,h})};
+ this.output=()=>{const E=new TextEncoder(),parts=[],off=[];let len=0,id=2;const push=x=>{const b=typeof x==='string'?E.encode(x):x;parts.push(b);len+=b.length},ob=(n,h,st)=>{off[n]=len;push(`${n} 0 obj\n${h}`);if(st){push('\nstream\n');push(st);push('\nendstream')}push('\nendobj\n')};
+  push('%PDF-1.4\n');const kids=[],pobj=[];pg.forEach(im=>{const pid=++id,cid=++id,ids=im.map(()=>++id);pobj.push({pid,cid,ids,im});kids.push(pid+' 0 R')});
+  ob(1,'<< /Type /Catalog /Pages 2 0 R >>');ob(2,`<< /Type /Pages /Kids [${kids.join(' ')}] /Count ${pg.length} >>`);
+  pobj.forEach(({pid,cid,ids,im})=>{ob(pid,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W.toFixed(2)} ${H.toFixed(2)}] /Resources << /XObject << ${im.map((_,i)=>`/Im${i} ${ids[i]} 0 R`).join(' ')} >> >> /Contents ${cid} 0 R >>`);
+   const c=im.map((q,i)=>`q ${(q.w*k).toFixed(2)} 0 0 ${(q.h*k).toFixed(2)} ${(q.x*k).toFixed(2)} ${(H-(q.y+q.h)*k).toFixed(2)} cm /Im${i} Do Q`).join('\n');ob(cid,`<< /Length ${c.length} >>`,E.encode(c));
+   im.forEach((q,i)=>ob(ids[i],`<< /Type /XObject /Subtype /Image /Width ${q.iw} /Height ${q.ih} /ColorSpace /${q.nc===1?'DeviceGray':'DeviceRGB'} /BitsPerComponent 8 /Filter /DCTDecode /Length ${q.u.length} >>`,q.u))});
+  const xr=len,n=id+1;push(`xref\n0 ${n}\n0000000000 65535 f \n`);for(let i=1;i<n;i++)push(String(off[i]).padStart(10,'0')+' 00000 n \n');push(`trailer\n<< /Size ${n} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
+  const out=new Uint8Array(len);let o2=0;parts.forEach(b=>{out.set(b,o2);o2+=b.length});return out.buffer}}
+async function dl(name,data){window.__dlok=false;const box=window.self!==window.top||!!window.claude;let ok=false;
+ try{const D=window.claude?await window.claude.use('downloads'):null;if(D){await D.save({filename:name,data});ok=true}}catch(e){if(e&&e.code==='declined'){msg('');return false}}
+ if(!ok){try{const u=URL.createObjectURL(new Blob([data])),l=document.createElement('a');l.href=u;l.download=name;document.body.appendChild(l);l.click();l.remove();dlLink(u,name,data,box);ok=!box}catch(e){}}
+ window.__dlok=ok;msg(ok?'✅ فایل آماده شد':'⚠️ فایل ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد. برنامه را از آدرس سایت در مرورگر Chrome باز کنید.');return ok}
 const z2=n=>String(n).padStart(2,'0'),jstamp=d=>{const q=jp(d);return q.y+'-'+z2(q.m)+'-'+z2(q.d)};
 function fname(ext){const D=days(),d=D[0]||cur,q=jp(d);return 'attendance-'+{d:'daily',w:'weekly',m:'monthly'}[mode]+'-'+(mode==='m'?q.y+'-'+z2(q.m):jstamp(d))+'.'+ext}
 const ORD=['اول','دوم','سوم','چهارم','پنجم','ششم'];
@@ -497,8 +626,8 @@ function exTitle(){const rg=rangeY(),a=iso(rg.a),b=iso(rg.b),R=allRange();
  const md=monthDays(cur).filter(d=>iso(d)>=a&&iso(d)<=b);return MN[jp(cur).m-1]+' ماه | '+fmt(md[0])+' تا '+fmt(md[md.length-1])}
 function matrix(){const D=days();return{title:exTitle(),head:D.map(d=>mode==='m'?fa(jp(d).d):wd(d)),rows:S.students.map(s=>{const k=D.map(iso),c=cnt(s.id,k);return[s.name,...k.map(x=>SYM[(S.att[x]||{})[s.id]]||''),c.p,c.a,c.l]})}}
 const EXJ='https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
-async function xbook(o){await loadJS(EXJ);
- const wb=new ExcelJS.Workbook();wb.views=[{x:0,y:0,width:10000,height:20000,firstSheet:0,activeTab:0,visibility:'visible'}];const ws=wb.addWorksheet(o.sheet,{views:[{rightToLeft:true,showGridLines:false}],pageSetup:{paperSize:9,orientation:o.land?'landscape':'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});
+async function xbook(o){
+ const wb=new ExcelLite.Workbook();wb.views=[{x:0,y:0,width:10000,height:20000,firstSheet:0,activeTab:0,visibility:'visible'}];const ws=wb.addWorksheet(o.sheet,{views:[{rightToLeft:true,showGridLines:false}],pageSetup:{paperSize:9,orientation:o.land?'landscape':'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});
  const n=o.head.length,L=c=>{let t='';while(c>0){const m=(c-1)%26;t=String.fromCharCode(65+m)+t;c=Math.floor((c-1)/26)}return t};
  const ctr={horizontal:'center',vertical:'middle',readingOrder:'rtl'},bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};
  ws.views=[{state:'normal',rightToLeft:true,showGridLines:false}];
@@ -514,9 +643,9 @@ async function xbook(o){await loadJS(EXJ);
  return await wb.xlsx.writeBuffer()}
 $('xb').onclick=async()=>{try{const M=matrix();msg('در حال ساخت فایل…');const w0=mode==='m'?4.6:mode==='w'?11:12;
  const buf=await xbook({sheet:'حضور و غیاب',title:'دفتر حضور و غیاب کلاس',sub:M.title,info:profLine(),head:['ردیف','اسامی دانش‌آموزان',...M.head,'ح','غ','ت'],rows:M.rows.map((r,i)=>[i+1,r[0],...r.slice(1,-3).map(m=>m||'·'),...r.slice(-3)]),nameCol:1,widths:[6,24,...M.head.map(()=>w0),7,7,7],legend:'ح = حاضر | غ = غایب | ت = تأخیر',sign:true});
- await dl(fname('xlsx'),buf)}catch(e){msg('ساخت فایل اکسل ناموفق بود')}};
-$('pb').onclick=async()=>{try{const M=matrix();msg('در حال ساخت PDF…');await loadJS(H2C);await loadJS(JSP);try{await document.fonts.ready}catch(e){}
- const per=32,pages=Math.max(1,Math.ceil(M.rows.length/per)),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:'portrait'}),fs=M.head.length>10?9:13;
+ await dl(fname('xlsx'),buf)}catch(e){msg('ساخت فایل اکسل ناموفق بود: '+(e&&e.message||e))}};
+$('pb').onclick=async()=>{try{const M=matrix();msg('در حال ساخت PDF…');await pdfLibs();try{await document.fonts.ready}catch(e){}
+ const per=32,pages=Math.max(1,Math.ceil(M.rows.length/per)),doc=new (window.jspdf?window.jspdf.jsPDF:MiniPDF)({unit:'mm',format:'a4',orientation:'portrait'}),fs=M.head.length>10?9:13;
  const th='border:1px solid #9a86c9;background:#7e57c2;color:#fff;padding:5px 2px;text-align:center;vertical-align:middle;',td='border:1px solid #c9bde6;padding:5px 2px;text-align:center;vertical-align:middle;';
  for(let i=0;i<pages;i++){
   const el=document.createElement('div');
@@ -524,9 +653,9 @@ $('pb').onclick=async()=>{try{const M=matrix();msg('در حال ساخت PDF…'
   const rows=M.rows.slice(i*per,(i+1)*per).map((r,j)=>`<tr><td style="${td}">${fa(i*per+j+1)}</td><td style="${td}text-align:right;padding-right:6px;white-space:nowrap">${esc2(r[0])}</td>${r.slice(1,-3).map(m=>`<td style="${td}font-weight:800;color:${COL[m]||'#999'}">${m||'·'}</td>`).join('')}${r.slice(-3).map(n=>`<td style="${td}font-weight:700">${fa(n)}</td>`).join('')}</tr>`).join('');
   el.innerHTML=`<div style="text-align:center;font-weight:800;font-size:22px">دفتر حضور و غیاب کلاس</div>${profLine()?`<div style="text-align:center;font-size:13px;color:#444;margin-top:4px">${esc2(profLine())}</div>`:''}<div style="text-align:center;font-size:14px;margin:6px 0 14px;color:#555">${M.title}</div><table style="width:100%;border-collapse:collapse;font-size:${fs}px;text-align:center"><tr><th style="${th}">ردیف</th><th style="${th}text-align:right;padding-right:6px;white-space:nowrap">اسامی دانش‌آموزان</th>${M.head.map(h=>`<th style="${th}">${h}</th>`).join('')}<th style="${th}">ح</th><th style="${th}">غ</th><th style="${th}">ت</th></tr>${rows}</table>${i===pages-1?'<div style="position:absolute;bottom:80px;left:30px;right:30px;font-size:13px;display:flex;justify-content:space-between"><span>امضای آموزگار: '+esc2(S.prof.teacher||'................')+'</span><span>مهر و امضای مدیر: '+esc2(S.prof.principal||'................')+'</span></div>':''}<div style="position:absolute;bottom:34px;left:30px;right:30px;font-size:12px;color:#555;display:flex;justify-content:space-between"><span>ح = حاضر | غ = غایب | ت = تأخیر</span><span>صفحه ${fa(i+1)} از ${fa(pages)}</span></div>`;
   document.body.appendChild(el);
-  const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'});el.remove();
+  const cv=await rast(el);el.remove();
   if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
- await dl(fname('pdf'),doc.output('arraybuffer'))}catch(e){msg('ساخت PDF ناموفق بود')}};
+ await dl(fname('pdf'),doc.output('arraybuffer'))}catch(e){msg('ساخت PDF ناموفق بود: '+(e&&e.message||e))}};
 
 S.courses=S.courses||[];S.exams=S.exams||[];S.closed=S.closed||{};
 let pend=null;
@@ -575,6 +704,15 @@ window.delCourse=id=>{if(!ask('c'+id))return;S.courses=S.courses.filter(c=>c.id!
 window.delExam=id=>{if(!ask('e'+id))return;S.exams=S.exams.filter(e=>e.id!==id);render()};
 $('cadd').onclick=()=>{const n=$('cn').value.trim();if(!n)return;S.courses.push({id:Date.now(),name:n,book:$('cb').value.trim()});$('cn').value=$('cb').value='';render()};
 $('eadd').onclick=()=>{const c=+$('ec').value;if(!c){$('emsg').textContent='ابتدا یک درس اضافه کنید';return}const dsel=$('ed_s').value;if(!dsel||dsel>iso(tdy())){$('emsg').textContent='تاریخی انتخاب کنید که کلاس برگزار شده و حضور و غیابش ثبت شده است (تاریخ آینده مجاز نیست)';return}$('emsg').textContent='';const e={id:Date.now(),course:c,type:$('et').value,title:$('etl').value.trim(),date:dsel,max:4,scores:{}};S.exams.push(e);$('etl').value='';openEx=e.id;render()};
+const nz=t=>String(t||'').replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\s]+/g,'').toLowerCase();
+function stuSearch(){const q=nz($('ssq').value),box=$('ssr');if(!q){box.innerHTML='';return}
+ const M=S.students.filter(s=>nz(s.name).includes(q));
+ if(!M.length){box.innerHTML='<p class="sub">دانش‌آموزی با این نام پیدا نشد</p>';return}
+ if(M.length>3){box.innerHTML='<p class="sub">'+fa(M.length)+' نفر پیدا شد؛ یکی را انتخاب کنید:</p>'+M.slice(0,30).map(s=>`<button class="sm" data-sq="${s.id}" style="margin:3px">${esc2(s.name)}</button>`).join('');return}
+ const cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'',E=S.exams.slice().sort((a,b)=>b.date.localeCompare(a.date));
+ box.innerHTML=M.map(s=>`<div class="card" style="background:var(--bg2);box-shadow:none;margin:8px 0"><b>👤 ${esc2(s.name)}</b><div class="sum">${fa(E.length)} آزمون و ارزیابی ثبت شده است؛ برای تغییر نمره، سطح تازه را بزنید</div>${E.map(e=>{const ab=absent(e,s.id),v=lvl(nrm(e,s.id));return `<div style="margin-top:10px"><span class="xb">${esc2(e.type||'')}</span><b>${esc2(cn(e.course))}${e.title?': '+esc2(e.title):''}</b><div class="sum">${fmt(new Date(e.date+'T12:00:00Z'))}</div>${ab?'<span class="xb" style="background:#e5484d;color:#fff">غایب</span> <span class="sum">در این روز غایب بوده و قابل ارزیابی نیست</span>':`<div class="lv">${[4,3,2,1].map(k=>`<button class="${v===k?'on'+k:''}" onclick="setLv(${e.id},${s.id},${k})">${fa(k)}<br>${LVW[k]}</button>`).join('')}</div>`}</div>`}).join('')||'<p class="sub">آزمونی ثبت نشده</p>'}</div>`).join('')}
+$('ssq').oninput=stuSearch;$('ssr').onclick=e=>{const b=e.target.closest('[data-sq]');if(b){const s=S.students.find(x=>x.id==b.dataset.sq);if(s){$('ssq').value=s.name;stuSearch()}}};
+const _rc0=renderCrs;renderCrs=function(){_rc0();stuSearch()};
 function renderCrs(){
  const ds=examDates(),pv=$('ed_s').value;
  $('ed_s').innerHTML=ds.length?ds.map(k=>{const d=new Date(k+'T12:00:00Z');return `<option value="${k}">${wd(d)} ${fmt(d)}</option>`}).join(''):'<option value="">— حضور و غیابی ثبت نشده —</option>';
@@ -596,15 +734,15 @@ function trend(a,b){const W=320,H=130,n=a.length,x=i=>n===1?W/2:20+i*(W-40)/(n-1
 function renderRep(){
  const st=S.students,sv=$('rs').value,cv=$('rc').value,EX=EXf();
  $('rs').innerHTML=st.map(s=>`<option value="${s.id}">${esc2(s.name)}</option>`).join('');if(sv)$('rs').value=sv;
- $('rc').innerHTML=S.courses.map(c=>`<option value="${c.id}">${esc2(c.name)}</option>`).join('');if(cv)$('rc').value=cv;
+ $('rc').innerHTML='<option value="0">همه‌ی درس‌ها (یک‌جا)</option>'+S.courses.map(c=>`<option value="${c.id}">${esc2(c.name)}</option>`).join('');if(cv)$('rc').value=cv;
  $('rs').style.display=repTab==='s'?'':'none';
  document.querySelectorAll('.tb2 button').forEach(b=>b.classList.toggle('on',b.dataset.t===repTab));
  if(!EX.some(e=>Object.keys(e.scores).length)){$('repBody').innerHTML='<div class="card"><p class="sub">هنوز ارزیابی‌ای ثبت نشده. از صفحه‌ی «درس‌ها و آزمون‌ها» آزمون بسازید و ارزیابی هر دانش‌آموز را وارد کنید.</p></div>';return}
- const T=classTable(),cid=+$('rc').value,cEx=EX.filter(e=>e.course===cid).sort((a,b)=>a.date.localeCompare(b.date));
+ const T=classTable(),cid=+$('rc').value||0,cEx=EX.filter(e=>!cid||e.course===cid).sort((a,b)=>a.date.localeCompare(b.date));
  let h='';
  if(repTab==='c'){
   h+=`<div class="card"><b>📊 میانگین کلاس در هر درس (از ۴)</b>${S.courses.map(c=>bar(c.name,clsAvg(c.id))).join('')}</div>`;
-  h+=`<div class="card"><b>📈 آزمون‌های درس انتخاب‌شده (میانگین کلاس)</b>${cEx.map(e=>bar((e.title||e.type),mean(st.map(s=>nrm(e,s.id)).filter(nn)))).join('')||'<p class="sub">آزمونی نیست</p>'}</div>`;
+  h+=`<div class="card"><b>📈 آزمون‌های درس انتخاب‌شده یا همه‌ی درس‌ها (میانگین کلاس)</b>${cEx.map(e=>bar((cid?'':((S.courses.find(c=>c.id===e.course)||{}).name||'')+': ')+(e.title||e.type),mean(st.map(s=>nrm(e,s.id)).filter(nn)))).join('')||'<p class="sub">آزمونی نیست</p>'}</div>`;
   h+=`<div class="card wrap"><b>🏆 جدول نتایج کلاس</b><table class="at" style="margin-top:8px"><tr><th>رتبه</th><th class="nm">نام</th>${S.courses.map(c=>`<th>${esc2(c.name)}</th>`).join('')}<th>میانگین</th></tr>${T.rows.map(r=>`<tr><td>${fa(r[0])}</td><td class="nm">${esc2(r[1])}</td>${r.slice(2).map(v=>`<td style="color:${col(v)};font-weight:700">${f1(v)}</td>`).join('')}</tr>`).join('')}</table><div class="grid2" style="margin-top:10px"><button class="sm" onclick="expRes()">📊 اکسل نتایج (A4 افقی)</button><button class="sm" onclick="expResPdf()">📄 PDF نتایج (A4 افقی)</button></div><button class="sm" style="margin-top:8px;width:100%" onclick="expRep()">📊 اکسل جدول میانگین‌ها</button><p class="sub" id="rmsg"></p></div>`;
  }else{
   const sid=+$('rs').value,s=st.find(x=>x.id===sid);if(!s){$('repBody').innerHTML='';return}
@@ -631,7 +769,7 @@ function renderRank(){
  $('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨';
  const rows=st.map(s=>({s,t:ptsOf(s.id),a:av(s)})).sort((x,y)=>rkMode==='lg'?(y.t-x.t)||((y.a??0)-(x.a??0)):((y.a??-1)-(x.a??-1))||(y.t-x.t));
  $('rkc').innerHTML=`<button class="${rkMode==='lg'?'on':''}" onclick="rkM('lg')">🏆 مجموع امتیاز</button><button class="${rkMode==='av'?'on':''}" onclick="rkM('av')">📘 میانگین ارزیابی</button>`;
- $('tbl').innerHTML=`<tr><th>#</th><th class="nm">نام</th><th>مجموع</th>${S.courses.map(c=>`<th>${esc2(c.name)}</th>`).join('')}<th>میانگین</th><th>توصیف</th></tr>`+rows.map((r,i)=>({r,i})).filter(({r})=>r.s.name.includes($('rkq').value.trim())).map(({r,i})=>`<tr class="${i<3?'g'+(i+1):''}"><td>${fa(i+1)}</td><td class="nm">${esc2(r.s.name)}<br><span class="tm">تیم ${TN[r.s.team-1]||fa(r.s.team)}</span></td><td><b>${fa(r.t)}</b></td>${S.courses.map(c=>{const v=cAvg(r.s.id,c.id,S.exams);return `<td style="color:${col(v)};font-weight:700">${f1(v)}</td>`}).join('')}<td style="color:${col(r.a)};font-weight:800">${f1(r.a)}</td><td class="dcol">${r.a!=null?LVW[lvl(r.a)]:'—'}</td></tr>`).join('');
+ $('tbl').innerHTML=`<tr><th>#</th><th class="nm">نام</th><th>مجموع</th>${S.courses.map(c=>`<th>${esc2(c.name)}</th>`).join('')}<th>میانگین</th><th>توصیف</th></tr>`+rows.map((r,i)=>({r,i})).filter(({r})=>r.s.name.includes($('rkq').value.trim())).map(({r,i})=>`<tr class="${i<3?'g'+(i+1):''}"><td>${fa(i+1)}</td><td class="nm">${esc2(r.s.name)}<br><span class="tm">${esc2(tname(r.s.team,'تیم '+(TN[r.s.team-1]||fa(r.s.team))))}</span></td><td><b>${fa(r.t)}</b></td>${S.courses.map(c=>{const v=cAvg(r.s.id,c.id,S.exams);return `<td style="color:${col(v)};font-weight:700">${f1(v)}</td>`}).join('')}<td style="color:${col(r.a)};font-weight:800">${f1(r.a)}</td><td class="dcol">${r.a!=null?LVW[lvl(r.a)]:'—'}</td></tr>`).join('');
  $('rklg').textContent='امتیاز فقط از پرسش و پاسخ کلاسی و آزمون کتبی به‌دست می‌آید: ۴ خیلی خوب | ۳ خوب | ۲ قابل قبول | ۱ نیاز به تلاش';
 }
 /* school profile */
@@ -669,28 +807,28 @@ function resData(sid){
  if(sid){const s=S.students.find(x=>x.id===sid),o=classTable().rk.findIndex(r=>r.s.id===sid)+1,ov=overall(sid);
   return{title:'گزارش عملکرد فردی — '+s.name+' — '+mt,sub,info:infoLines([t,'میانگین کل: '+f1(ov)+(ov!=null?' ('+LVW[lvl(ov)]+')':''),'رتبه: '+fa(o)+' از '+fa(S.students.length)]),land:false,head:['ردیف','تاریخ آزمون/پرسش','درس','نوع','امتیاز','ارزیابی توصیفی','میانگین کلاس'],rows,nameCol:-1,widths:[5,14,16,17,8,14,11],cellStyle:CS2}}
  return{title:'گزارش نتایج کلاس — '+mt,sub,info:infoLines([t]),land:true,head:['ردیف','تاریخ آزمون/پرسش','اسامی دانش‌آموزان','درس','نوع','امتیاز','ارزیابی توصیفی'],rows,nameCol:2,widths:[6,17,24,16,18,9,16],cellStyle:CS}}
-async function xpdf(o){await loadJS(H2C);await loadJS(JSP);try{await document.fonts.ready}catch(e){}
- const per=o.land?16:24,pages=Math.max(1,Math.ceil(o.rows.length/per)),doc=new window.jspdf.jsPDF({unit:'mm',format:'a4',orientation:o.land?'landscape':'portrait'});
+async function xpdf(o){await pdfLibs();try{await document.fonts.ready}catch(e){}
+ const per=o.land?16:24,pages=Math.max(1,Math.ceil(o.rows.length/per)),doc=new (window.jspdf?window.jspdf.jsPDF:MiniPDF)({unit:'mm',format:'a4',orientation:o.land?'landscape':'portrait'});
  const th='border:1px solid #9a86c9;background:#7e57c2;color:#fff;padding:6px 3px;text-align:center;vertical-align:middle;font-weight:700;',td='border:1px solid #c9bde6;padding:5px 3px;text-align:center;vertical-align:middle;';
  for(let i=0;i<pages;i++){
   const el=document.createElement('div');
   el.style.cssText='position:fixed;left:-9999px;top:0;'+(o.land?'width:1123px;height:794px;':'width:794px;height:1123px;')+'background:#fff;color:#222;direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;padding:28px 36px;box-sizing:border-box';
   const rows=o.rows.slice(i*per,(i+1)*per).map(r=>`<tr>${r.map((v,k)=>{const cs=o.cellStyle&&o.cellStyle(k,v,r);return `<td style="${td}${k===o.nameCol?'text-align:right;padding-right:8px;':''}${cs?`background:${cs.bg};color:${cs.fg};font-weight:700;`:''}">${typeof v==='number'?fa(v):esc2(v)}</td>`}).join('')}</tr>`).join('');
   el.innerHTML=`<div style="text-align:center;font-weight:800;font-size:22px">${esc2(o.title)}</div><div style="text-align:center;font-size:14px;margin:4px 0;color:#555">${esc2(o.sub)}</div>${[].concat(o.info||[]).map(x=>`<div style="text-align:center;font-size:13px;color:#444;margin-top:2px">${esc2(x)}</div>`).join('')}<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:12px"><tr>${o.head.map((h,k)=>`<th style="${th}${k===o.nameCol?'text-align:right;padding-right:8px;':''}">${esc2(h)}</th>`).join('')}</tr>${rows}</table>${i===pages-1?`<div style="position:absolute;bottom:62px;left:36px;right:36px;font-size:13px;display:flex;justify-content:space-between"><span>امضای آموزگار: ${esc2(S.prof.teacher||'................')}</span><span>مهر و امضای مدیر: ${esc2(S.prof.principal||'................')}</span></div>`:''}<div style="position:absolute;bottom:26px;left:36px;right:36px;font-size:12px;color:#555;display:flex;justify-content:space-between"><span>${LEG}</span><span>صفحه ${fa(i+1)} از ${fa(pages)}</span></div>`;
-  document.body.appendChild(el);const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'});el.remove();
+  document.body.appendChild(el);const cv=await rast(el);el.remove();
   if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,o.land?297:210,o.land?210:297)}
  return doc.output('arraybuffer')}
 async function runExp(kind,sid){try{const D=resData(sid);if(!D.rows.length){msg('برای این فیلتر ارزیابی‌ای ثبت نشده');return}msg(kind==='x'?'در حال ساخت فایل…':'در حال ساخت PDF…');
  const fn=fnRes(kind==='x'?'xlsx':'pdf',sid?'student-results':'class-results');
  if(kind==='x'){const buf=await xbook({sheet:'نتایج',title:D.title,sub:D.sub,info:D.info,head:D.head,rows:D.rows,nameCol:D.nameCol,widths:D.widths,legend:LEG,sign:true,land:D.land,footer:'&Cصفحه &P از &N',cellStyle:D.cellStyle});await dl(fn,buf)}
- else await dl(fn,await xpdf(D))}catch(e){msg('ساخت فایل ناموفق بود')}}
+ else await dl(fn,await xpdf(D))}catch(e){msg(errT(e))}}
 window.expRes=()=>runExp('x');window.expResPdf=()=>runExp('p');window.expStu=k=>runExp(k,+$('rs').value);
 show('home');render();
 /* ===== گزارش‌های مدیر ===== */
 (function(){
 S.notes=S.notes||{};
 let tab='c',nk='t';
-const F='font-family:Vazirmatn,Tahoma,sans-serif;',TH='border:1px solid #9a86c9;background:#7e57c2;color:#fff;padding:5px 3px;text-align:center;',TD='border:1px solid #d9cdee;padding:4px 3px;text-align:center;';
+const F='font-family:Vazirmatn,Tahoma,sans-serif;',TH='border:1px solid #9a86c9;background:#7e57c2;color:#fff;padding:5px 3px;text-align:center;white-space:normal;',TD='border:1px solid #d9cdee;padding:4px 3px;text-align:center;white-space:normal;';
 const NTP={t:['🌟 تشویق','#1a8f55'],n:['📝 نکته','#7e57c2'],w:['⚠️ هشدار','#d12f35']};
 const pc=v=>v==null?'—':fa(Math.round(v))+'٪',r1=v=>v==null?'':Math.round(v*10)/10;
 const rI=()=>{const x=SM.indexOf(+$('mp').value),y=SM.indexOf(+$('mp2').value);return[Math.max(0,Math.min(x,y)),Math.max(x,y)]};
@@ -725,11 +863,13 @@ const tbl=(h,rs,hi)=>`<table style="width:100%;border-collapse:collapse;font-siz
 const h3=t=>`<div style="font-weight:800;font-size:14px;margin:6px 0 8px;color:#4b3478">${t}</div>`;
 const K=(t,v)=>`<div style="flex:1;min-width:110px;background:#f5effc;border-radius:12px;padding:10px;text-align:center"><div style="font-size:20px;font-weight:800;color:#4b3478">${v}</div><div style="font-size:12px;color:#666">${t}</div></div>`;
 const kp=a=>`<div style="display:flex;gap:8px;flex-wrap:wrap">${a.map(x=>K(x[0],x[1])).join('')}</div>`;
-const apc=v=>v>=90?'#1a8f55':v>=80?'#d98600':'#d12f35',chips=f=>f.map(x=>`<span style="background:#fde8ea;color:#c0262c;border-radius:10px;padding:2px 8px;font-size:12px;margin-left:4px;display:inline-block">${x}</span>`).join('');
+const apc=v=>v>=90?'#1a8f55':v>=80?'#d98600':'#d12f35',chips=f=>f.map(x=>`<span style="background:#fde8ea;color:#c0262c;border-radius:10px;padding:2px 8px;font-size:12px;margin:0 0 2px 4px;display:inline-block">${x}</span>`).join(' ');
 const gr=x=>`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px;margin-top:10px">${x}</div>`;
 const kC=d=>kp([['دانش‌آموزان',fa(S.students.length)],['میانگین کلاس (از ۴)',f1(d.avg)],['درصد حضور',pc(d.ap)],['مجموع غیبت',fa(d.ab)],['آزمون‌ها',fa(d.EX.length)]]);
 const chC=d=>gr(box('📅 درصد حضور هر ماه',bars(d.mon.map(x=>({l:x.l,v:x.ap})),100,v=>fa(Math.round(v)),apc))+box('📈 میانگین کلاس در هر ماه',line(d.mon.map(x=>({l:x.l,v:x.av})),4,f1))+box('📚 میانگین هر درس',bars(d.les,4,f1,col))+box('🎯 توزیع سطح نمرات',bars(d.lv,Math.max(1,...d.lv.map(x=>x.v)),fa)));
-const atC=(d,n)=>{const L=d.rows.filter(q=>q.fl.length).sort((x,y)=>y.fl.length-x.fl.length).slice(0,n||99);return h3('⚠️ دانش‌آموزان نیازمند توجه')+(L.length?tbl(['نام','علت','حضور','میانگین'],L.map(q=>[esc2(q.s.name),chips(q.fl),pc(q.ap),f1(q.avg)])):'<div style="text-align:center;color:#1a8f55;font-size:13px">✅ موردی دیده نشد</div>')};
+const fx=(h,rs,w)=>`<table style="width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed"><colgroup>${w.map(x=>`<col style="width:${x}">`).join('')}</colgroup><tr>${h.map(x=>`<th style="${TH}">${x}</th>`).join('')}</tr>${rs.map(r=>`<tr>${r.map(c=>`<td style="${TD}overflow-wrap:anywhere">${c}</td>`).join('')}</tr>`).join('')}</table>`;
+const atH=['نام','علت','حضور','میانگین'],atW=['28%','46%','13%','13%'],atNone='<div style="text-align:center;color:#1a8f55;font-size:13px">✅ موردی دیده نشد</div>';
+const atC=(d,n)=>{const L=d.rows.filter(q=>q.fl.length).sort((x,y)=>y.fl.length-x.fl.length).slice(0,n||99);return h3('⚠️ دانش‌آموزان نیازمند توجه')+(L.length?fx(atH,L.map(q=>[esc2(q.s.name),chips(q.fl),pc(q.ap),f1(q.avg)]),atW):atNone)};
 const exR=(d,a,b)=>d.ex.slice(a,b).map(x=>[fmt(new Date(x.d+'T12:00:00Z')),esc2(x.c),esc2(x.t||''),f1(x.av),f1(x.lo),f1(x.hi),fa(x.n),x.mk||x.pd?(x.mk?fa(x.mk)+' جبرانی':'')+(x.pd?' | '+fa(x.pd)+' منتظر':''):'—']);
 const exT=(d,a,b)=>tbl(['تاریخ','درس','نوع','میانگین','کمترین','بیشترین','شرکت‌کننده','جبرانی'],exR(d,a,b),d.weak?d.ex.indexOf(d.weak)-a:-1);
 const mkTxt=(d,sid)=>{const L=[];d.EX.forEach(e=>{if(e.type===OR0)return;const lab=esc2((S.courses.find(c=>c.id===e.course)||{}).name||'')+' ('+fmt(new Date(e.date+'T12:00:00Z'))+')',m=e.mk&&e.mk[sid];if(m&&m!=='x')L.push('✅ '+lab+': در روز آزمون غایب بود و در تاریخ '+fmt(new Date(m+'T12:00:00Z'))+' آزمون جبرانی داد (نمره '+f1(nrm(e,sid))+' از ۴)');else if(m==='x')L.push('➖ '+lab+': غایب بود و از آزمون جبرانی معاف شد');else if((S.att[e.date]||{})[sid]==='a'&&e.scores[sid]==null)L.push('⏳ '+lab+': غایب بود و هنوز آزمون جبرانی نداده است')});return L.length?h3('🔁 آزمون‌های جبرانی (با بقیه‌ی کلاس در یک روز امتحان نداده)')+L.map(x=>`<div style="font-size:13px;margin:3px 0">${x}</div>`).join(''):''};
@@ -741,13 +881,23 @@ function sCard(d,sid,del){const r=d.rows.find(q=>q.s.id===sid);if(!r)return'';co
 const W=x=>`<div style="background:#fff;color:#222;border-radius:16px;padding:12px;margin-bottom:12px;${F}">${x}</div>`;
 const hdr=(t,s)=>`<div style="text-align:center"><div style="font-size:22px;font-weight:800;color:#4b3478">${t}</div><div style="font-size:13px;color:#555;margin-top:3px">${esc2(s)}</div><div style="font-size:12px;color:#777;margin-top:2px">${esc2(profLine())}</div></div><hr style="border:0;border-top:2px solid #7e57c2;margin:10px 0">`;
 const ftr=()=>`<div style="position:absolute;bottom:28px;left:36px;right:36px;display:flex;justify-content:space-between;font-size:13px"><span>امضای آموزگار: ${esc2(S.prof.teacher||'................')}</span><span>مهر و امضای مدیر: ${esc2(S.prof.principal||'................')}</span></div>`;
-const stT=d=>{const R=d.rows,h=Math.ceil(R.length/2),mk=a=>tbl(['نام','حضور','غ','ت','میانگین','وضعیت'],a.map(q=>[esc2(q.s.name),pc(q.ap),fa(q.c.a),fa(q.c.l),f1(q.avg),chips(q.fl)||'—']));return `<div style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1">${mk(R.slice(0,h))}</div>${R.length>1?`<div style="flex:1">${mk(R.slice(h))}</div>`:''}</div>`};
+const stH=['نام','حضور','غ','ت','میانگین','وضعیت'],stR=q=>[esc2(q.s.name),pc(q.ap),fa(q.c.a),fa(q.c.l),f1(q.avg),chips(q.fl)||'—'];
+const stT=d=>{const R=d.rows,h=Math.ceil(R.length/2),mk=a=>fx(stH,a.map(stR),['32%','12%','7%','7%','13%','29%']);return `<div style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1;min-width:0">${mk(R.slice(0,h))}</div>${R.length>1?`<div style="flex:1;min-width:0">${mk(R.slice(h))}</div>`:''}</div>`};
+const rH=(t,fl,wt,wf)=>{const a=Math.ceil(String(t).length*6.6/(wt-8)),b=fl&&fl.length?Math.ceil(fl.reduce((x,y)=>x+y.length*6.4+24,0)/(wf-8)):1;return 27+(Math.max(1,a,b)-1)*21};
+const flow=(t,segs,cap)=>{const P=[];let cur='',used=0,open=null;const close=()=>{if(open){cur+=fx(open.sg.head,open.rows,open.sg.w);open=null}},flush=()=>{close();if(cur)P.push(t+cur);cur='';used=0};
+ segs.forEach(sg=>{if(!sg.rows.length){if(used+70>cap)flush();cur+=h3(sg.title)+(sg.none||'');used+=70;return}
+  let started=false;sg.rows.forEach(r=>{const need=r.h+(open&&open.sg===sg?0:66);if(used+need>cap&&(open||cur))flush();
+   if(!open||open.sg!==sg){close();cur+=h3(sg.title+(started?' (ادامه)':''));open={sg,rows:[]};used+=66;started=true}
+   open.rows.push(r.c);used+=r.h});close()});flush();return P};
 const exT2=d=>{if(!d.ex.length)return'<div style="font-size:12px;color:#888">آزمونی ثبت نشده</div>';const h=Math.ceil(d.ex.length/2),mk=(a,b)=>tbl(['تاریخ','درس','میانگین','کمترین','بیشترین'],d.ex.slice(a,b).map(x=>[fmt(new Date(x.d+'T12:00:00Z')),esc2(x.c),f1(x.av),f1(x.lo),f1(x.hi)]),d.weak?d.ex.indexOf(d.weak)-a:-1);return `<div style="display:flex;gap:8px;align-items:flex-start"><div style="flex:1">${mk(0,h)}</div>${d.ex.length>1?`<div style="flex:1">${mk(h,99)}</div>`:''}</div>`+(d.weak?`<div style="font-size:12px;margin-top:4px;color:#c0262c">ضعیف‌ترین آزمون: ${esc2(d.weak.c)} (${fmt(new Date(d.weak.d+'T12:00:00Z'))}) با میانگین ${f1(d.weak.av)}</div>`:'')};
 const one=(d,s2)=>hdr('گزارش عملکرد کلاس',s2)+kC(d)+chC(d)+h3('👥 وضعیت دانش‌آموزان')+stT(d)+atC(d,8)+h3('📝 مقایسه‌ی آزمون‌ها')+exT2(d);
-const full=(d,s2)=>{const t=hdr('گزارش کامل عملکرد کلاس',s2),p=[t+kC(d)+chC(d),t+more(d),t+atC(d)+h3('👥 وضعیت دانش‌آموزان')+stT(d)];for(let i=0;i<d.ex.length;i+=30)p.push(t+h3('📝 مقایسه‌ی آزمون‌ها')+exT(d,i,i+30));return p};
-async function pdf(pg){await loadJS(H2C);await loadJS(JSP);try{await document.fonts.ready}catch(e){}const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});
- for(let i=0;i<pg.length;i++){const el=document.createElement('div');el.style.cssText='position:fixed;left:-9999px;top:0;width:794px;height:1123px;background:#fff;color:#222;direction:rtl;box-sizing:border-box;padding:28px 36px;overflow:hidden;'+F;el.innerHTML='<div style="width:722px;transform-origin:top right">'+pg[i]+'</div>'+ftr();document.body.appendChild(el);const fw=el.firstChild,hh=fw.offsetHeight;if(hh>1000){const sc=Math.max(.5,1000/hh);fw.style.width=722/sc+'px';fw.style.transform='scale('+sc+')'}const cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'});el.remove();if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}return doc.output('arraybuffer')}
-async function xls(d){await loadJS(EXJ);const wb=new ExcelJS.Workbook(),bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};
+const full=(d,s2)=>{const t=hdr('گزارش کامل عملکرد کلاس',s2),A=d.rows.filter(q=>q.fl.length).sort((x,y)=>y.fl.length-x.fl.length),p=[t+kC(d)+chC(d),t+more(d)];
+ p.push(...flow(t,[{title:'⚠️ دانش‌آموزان نیازمند توجه',head:atH,w:atW,none:atNone,rows:A.map(q=>({c:[esc2(q.s.name),chips(q.fl),pc(q.ap),f1(q.avg)],h:rH(q.s.name,q.fl,202,332)}))},
+  {title:'👥 وضعیت دانش‌آموزان',head:stH,w:['25%','9%','6%','6%','10%','44%'],rows:d.rows.map(q=>({c:stR(q),h:rH(q.s.name,q.fl,180,318)}))}],800));
+ for(let i=0;i<d.ex.length;i+=30)p.push(t+h3('📝 مقایسه‌ی آزمون‌ها')+exT(d,i,i+30));return p};
+async function pdf(pg){await pdfLibs();try{await document.fonts.ready}catch(e){}const doc=new (window.jspdf?window.jspdf.jsPDF:MiniPDF)({unit:'mm',format:'a4'});
+ for(let i=0;i<pg.length;i++){const el=document.createElement('div');el.style.cssText='position:fixed;left:-9999px;top:0;width:794px;height:1123px;background:#fff;color:#222;direction:rtl;box-sizing:border-box;padding:28px 36px;overflow:hidden;'+F;el.innerHTML='<div style="width:722px;transform-origin:top right">'+pg[i]+'</div>'+ftr();document.body.appendChild(el);const fw=el.firstChild,hh=fw.offsetHeight;if(hh>1000){const sc=Math.max(.5,1000/hh);fw.style.width=722/sc+'px';fw.style.transform='scale('+sc+')'}const cv=await rast(el);el.remove();if(i)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}return doc.output('arraybuffer')}
+async function xls(d){const wb=new ExcelLite.Workbook(),bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};
  const sh=(nm,h,rs,w)=>{const ws=wb.addWorksheet(nm,{views:[{rightToLeft:true,state:'frozen',ySplit:1}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});ws.columns=h.map((x,i)=>({width:(w&&w[i])||15}));ws.addRow(h);rs.forEach(r=>ws.addRow(r));ws.eachRow((row,ri)=>row.eachCell(c=>{c.border=B;c.alignment={horizontal:'center',vertical:'middle',readingOrder:'rtl',wrapText:true};c.font={name:'Tahoma',size:11,bold:ri===1,color:{argb:ri===1?'FFFFFFFF':'FF222222'}};if(ri===1)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}}}))};
  const ls=d.les.filter(x=>x.v!=null).sort((x,y)=>x.v-y.v);
  {const ws=wb.addWorksheet('گزارش یک‌برگه',{views:[{rightToLeft:true}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:1,margins:{left:.4,right:.4,top:.5,bottom:.5,header:.2,footer:.2}}});
@@ -791,9 +941,9 @@ function more(d){const st=S.students,A=S.att,ty=['پرسش و پاسخ کلاس�
  +h3('🎖️ بدون غیبت در این بازه ('+fa(perf.length)+' نفر)')+cp(perf,'#e3f5ea')
  +h3('🙋 کمترین مشارکت در پرسش کلاسی')+tbl(['نام','تعداد پرسش پاسخ‌داده‌شده'],oc.slice(0,5).map(x=>[esc2(x.q.s.name),fa(x.n)]))}
 const trendV=v=>{const n=v.length;if(n<2)return'—';const df=mean(v.slice(n-Math.ceil(n/2)))-mean(v.slice(0,n>>1)),m=mean(v);return df>.25?'📈 پیشرفت':df<-.25?'📉 پسرفت':m>=3.5?'🌟 عالی و پایدار':'➖ ثابت در سطح «'+LVW[lvl(m)]+'»'};
-function hwData(){const o=$('hp').value,t=tdy(),r=rangeY(),[i1,i2]=rI();let a=iso(r.a),b=iso(r.b),lbl='کل سال تحصیلی '+syLab(SY);
+function hwData(ov){const o=ov?'x':$('hp').value,t=tdy(),r=rangeY(),[i1,i2]=rI();let a=iso(r.a),b=iso(r.b),lbl='کل سال تحصیلی '+syLab(SY);
  if(o==='w'){const s0=addD(t,-((t.getUTCDay()+1)%7));a=iso(s0);b=iso(addD(s0,6));lbl='هفته‌ی جاری ('+fmt(s0)+' تا '+fmt(addD(s0,6))+')'}
- else if(o==='m'){const q=jp(t),f=fromJ(q.y,q.m,1),n=monthDays(f);a=iso(f);b=iso(n[n.length-1]);lbl='ماه '+MN[q.m-1]+' '+fa(q.y)}else if(o==='r')lbl=sub();
+ else if(o==='m'){const q=jp(t),f=fromJ(q.y,q.m,1),n=monthDays(f);a=iso(f);b=iso(n[n.length-1]);lbl='ماه '+MN[q.m-1]+' '+fa(q.y)}else if(o==='r')lbl=sub();else if(o==='k'){const A=new Date(($('hkw').value||iso(tdy()))+'T12:00:00Z'),B=addD(A,6);a=iso(A);b=iso(B);lbl='هفته‌ی '+fmt(A)+' تا '+fmt(B)}else if(o==='d'){const g=(m,d)=>{const y=m>=7?SY:SY+1;return fromJ(y,m,Math.min(d,monthDays(fromJ(y,m,1)).length))};let A=g(+$('hd1m').value,+$('hd1d').value),B=g(+$('hd2m').value,+$('hd2d').value);if(A>B){const t=A;A=B;B=t}a=iso(A);b=iso(B);lbl='از '+fmt(A)+' تا '+fmt(B)}else if(ov){a=ov.a;b=ov.b;lbl=ov.lbl}
  const rg=k=>k>=a&&k<=b&&(o!=='r'||(i=>i>=i1&&i<=i2)(SM.indexOf(jp(new Date(k+'T12:00:00Z')).m)));
  const L=(S.hwl||[]).filter(h=>rg(h.date)).sort((x,y)=>x.date.localeCompare(y.date)),st=S.students,cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'عمومی';
  const pct=h=>{let d=0,n=0;st.forEach(s=>{const x=h.st[s.id];if(x){n++;d+=x==='d'?1:x==='p'?.5:0}});return n?d/n*100:null};
@@ -808,28 +958,34 @@ const stSheets=(d,sid)=>{const r=d.rows.find(q=>q.s.id===sid),cn=id=>(S.courses.
  ['تکالیف',['تاریخ','درس','تکلیف','وضعیت'],S.hwl.filter(h=>h.st[sid]).map(h=>[sd(h.date),cn(h.course),h.title,{d:'کامل',p:'ناقص',n:'انجام‌نشده'}[h.st[sid]]]),[16,16,30,14]]]};
 const hwT=(d,a,b)=>tbl(['تاریخ','درس','تکلیف','درصد انجام'],d.L.slice(a,b).map(h=>[fmt(new Date(h.date+'T12:00:00Z')),esc2(d.cn(h.course)),esc2(h.title),pc(d.pct(h))]));
 const hwB=(d,lst)=>!d.L.length?'<div style="text-align:center;color:#888;font-size:13px">تکلیفی در این بازه ثبت نشده است</div>':kp([['تکالیف ثبت‌شده',fa(d.L.length)],['درصد انجام کلاس',pc(d.all)],['تعداد درس‌ها',fa(d.byC.length)]])+gr(box('📊 درصد انجام تکلیف هر درس',bars(d.byC.map(x=>({l:x.l,v:x.v})),100,v=>fa(Math.round(v)),apc))+box('⚠️ کمترین درصد انجام تکلیف',bars(d.rows.filter(q=>q.pc!=null).sort((x,y)=>x.pc-y.pc).slice(0,5).map(q=>({l:q.s.name,v:q.pc})),100,v=>fa(Math.round(v)),apc)))+h3('📚 به‌تفکیک درس')+tbl(['درس','تعداد تکلیف','درصد انجام'],d.byC.map(x=>[esc2(x.l),fa(x.n),pc(x.v)]))+h3('👥 وضعیت دانش‌آموزان')+tbl(['نام','✅ کامل','🟡 ناقص','❌ انجام‌نشده','درصد'],d.rows.map(q=>[esc2(q.s.name),fa(q.c.d),fa(q.c.p),fa(q.c.n),pc(q.pc)]))+(lst?h3('📝 فهرست تکالیف')+hwT(d,0,9999):'');
-const hwPages=d=>{const t=hdr('گزارش تکالیف دانش‌آموزان',d.lbl),p=[t+hwB(d)];for(let i=0;i<d.L.length;i+=34)p.push(t+h3('📝 فهرست تکالیف')+hwT(d,i,i+34));return p};
-const hwSheets=d=>[['خلاصه',['شاخص','مقدار'],[['بازه',d.lbl],['تعداد تکلیف',d.L.length],['درصد انجام کلاس',r1(d.all)]],[22,44]],['دانش‌آموزان',['نام','کامل','ناقص','انجام‌نشده','درصد'],d.rows.map(q=>[q.s.name,q.c.d,q.c.p,q.c.n,r1(q.pc)]),[24]],['درس‌ها',['درس','تعداد تکلیف','درصد انجام'],d.byC.map(x=>[x.l,x.n,r1(x.v)])],['فهرست تکالیف',['تاریخ','درس','تکلیف','درصد انجام'],d.L.map(h=>[fmt(new Date(h.date+'T12:00:00Z')),d.cn(h.course),h.title,r1(d.pct(h))]),[16,16,34,16]]];
-async function xwb(sh){await loadJS(EXJ);const wb=new ExcelJS.Workbook(),bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};sh.forEach(([nm,h,rs,w])=>{const ws=wb.addWorksheet(nm,{views:[{rightToLeft:true,state:'frozen',ySplit:1}],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});ws.columns=h.map((x,i)=>({width:(w&&w[i])||16}));ws.addRow(h);rs.forEach(r=>ws.addRow(r));ws.eachRow((row,ri)=>row.eachCell(c=>{c.border=B;c.alignment={horizontal:'center',vertical:'middle',readingOrder:'rtl',wrapText:true};c.font={name:'Tahoma',size:11,bold:ri===1,color:{argb:ri===1?'FFFFFFFF':'FF222222'}};if(ri===1)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}}}))});return wb.xlsx.writeBuffer()}
+function hkW(){const m=+$('hk1m').value,y=m>=7?SY:SY+1,f=fromJ(y,m,1),n=monthDays(f),t=iso(tdy());let s0=addD(f,-((f.getUTCDay()+1)%7)),i=0,h='',sel='';const l=n[n.length-1];while(s0<=l){const e=addD(s0,6),k=iso(s0);i++;h+=`<option value="${k}">هفته‌ی ${fa(i)}: ${fmt(s0).slice(5)} تا ${fmt(e).slice(5)}</option>`;if(t>=k&&t<=iso(e))sel=k;s0=addD(s0,7)}$('hkw').innerHTML=h;if(sel)$('hkw').value=sel}
+function hdI(){const a=$('hd1m');if(!a||a.options.length)return;{const p=jp(tdy()),m0=SM.indexOf(p.m)>=0?p.m:7;$('hk1m').innerHTML=SM.map(m=>`<option value="${m}">${MN[m-1]}</option>`).join('');$('hk1m').value=m0;hkW();$('hk1m').onchange=()=>{hkW();render()};$('hkw').onchange=render}const o=SM.map(m=>`<option value="${m}">${MN[m-1]}</option>`).join(''),dd=Array.from({length:31},(_,i)=>`<option value="${i+1}">${fa(i+1)}</option>`).join(''),p=jp(tdy()),m0=SM.indexOf(p.m)>=0?p.m:7;['hd1m','hd2m'].forEach(k=>{$(k).innerHTML=o;$(k).value=m0});['hd1d','hd2d'].forEach(k=>$(k).innerHTML=dd);$('hd1d').value=1;$('hd2d').value=p.d;document.querySelectorAll('#hdw select').forEach(x=>x.onchange=render)}
+const HS={d:['✓','#d8f3e3','#1a8f55'],p:['½','#fff1cf','#b26a00'],n:['✗','#fde1e3','#c0262c']},HLEG='✓ کامل | ½ ناقص | ✗ انجام‌نشده | · ثبت‌نشده';
+const hwGrid=(d,a,b,r0,r1)=>{const C=d.L.slice(a,b),w=Math.floor(68/Math.max(C.length,1));return fx(['نام',...C.map(h=>`<div style="font-size:10px;line-height:1.3">${fmt(new Date(h.date+'T12:00:00Z')).slice(5)}<br><span style="font-weight:400;font-size:9px">${esc2(d.cn(h.course))}</span></div>`),'درصد'],d.rows.slice(r0,r1).map(q=>[esc2(q.s.name),...C.map(h=>{const z=HS[h.st[q.s.id]];return z?`<span style="display:block;background:${z[1]};color:${z[2]};font-weight:800;border-radius:4px">${z[0]}</span>`:'·'}),q.pc==null?'—':pc(q.pc)]),['24%',...C.map(()=>w+'%'),'8%'])};
+const hwScr=d=>d.L.length?h3('✅ جدول تکالیف همه‌ی دانش‌آموزان')+`<div style="overflow-x:auto"><div style="min-width:${d.L.length*48+190}px">${hwGrid(d,0,d.L.length,0,d.rows.length)}</div></div><div style="font-size:11px;color:#777;margin-top:4px">${HLEG}</div>`:'';
+const hwPages=d=>{const t=hdr('گزارش تکالیف دانش‌آموزان',d.lbl),p=[t+hwB(d)],cc=10,rc=26,nc=Math.ceil(d.L.length/cc),nr=Math.ceil(d.rows.length/rc);for(let c=0;c<nc;c++)for(let r=0;r<nr;r++)p.push(t+h3('✅ جدول تکالیف همه‌ی دانش‌آموزان'+(nc*nr>1?' (بخش '+fa(c*nr+r+1)+' از '+fa(nc*nr)+')':''))+hwGrid(d,c*cc,(c+1)*cc,r*rc,(r+1)*rc)+`<div style="font-size:11px;color:#777;margin-top:6px">${HLEG}</div>`);for(let i=0;i<d.L.length;i+=34)p.push(t+h3('📝 فهرست تکالیف')+hwT(d,i,i+34));return p};
+window.hwExp=async(k,a,b,lbl,nm)=>{const d=hwData({a,b,lbl});await dl('گزارش-تکالیف-'+nm+(k==='x'?'.xlsx':'.pdf'),k==='x'?await xwb(hwSheets(d)):await pdf(hwPages(d)))};
+const hwSheets=d=>[['خلاصه',['شاخص','مقدار'],[['بازه',d.lbl],['تعداد تکلیف',d.L.length],['درصد انجام کلاس',r1(d.all)]],[22,44]],['دانش‌آموزان',['نام','کامل','ناقص','انجام‌نشده','درصد'],d.rows.map(q=>[q.s.name,q.c.d,q.c.p,q.c.n,r1(q.pc)]),[24]],['درس‌ها',['درس','تعداد تکلیف','درصد انجام'],d.byC.map(x=>[x.l,x.n,r1(x.v)])],['فهرست تکالیف',['تاریخ','درس','تکلیف','درصد انجام'],d.L.map(h=>[fmt(new Date(h.date+'T12:00:00Z')),d.cn(h.course),h.title,r1(d.pct(h))]),[16,16,34,16]],['جدول تکالیف',['نام',...d.L.map(h=>fmt(new Date(h.date+'T12:00:00Z'))+' '+d.cn(h.course)+': '+h.title),'درصد'],d.rows.map(q=>[q.s.name,...d.L.map(h=>({d:'کامل',p:'ناقص',n:'انجام‌نشده'}[h.st[q.s.id]]||'')),r1(q.pc)]),[24,...d.L.map(()=>13),10],v=>({'کامل':['FFD8F3E3','FF1A8F55'],'ناقص':['FFFFF1CF','FFB26A00'],'انجام‌نشده':['FFFDE1E3','FFC0262C']}[v])]];
+async function xwb(sh){const wb=new ExcelLite.Workbook(),bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};sh.forEach(([nm,h,rs,w,cs])=>{const ws=wb.addWorksheet(nm,{views:[Object.assign({rightToLeft:true,state:'frozen',ySplit:1},cs?{xSplit:1}:{})],pageSetup:{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0}});ws.columns=h.map((x,i)=>({width:(w&&w[i])||16}));ws.addRow(h);rs.forEach(r=>ws.addRow(r));ws.eachRow((row,ri)=>row.eachCell(c=>{c.border=B;c.alignment={horizontal:'center',vertical:'middle',readingOrder:'rtl',wrapText:true};c.font={name:'Tahoma',size:11,bold:ri===1,color:{argb:ri===1?'FFFFFFFF':'FF222222'}};if(ri===1)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}};const z=cs&&ri>1&&cs(c.value);if(z){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:z[0]}};c.font={name:'Tahoma',size:11,bold:true,color:{argb:z[1]}}}}))});return wb.xlsx.writeBuffer()}
 function render(){const mp=$('mp'),ms=$('ms');
  if(!mp.options.length){const o=SM.map(m=>`<option value="${m}">${MN[m-1]}</option>`).join('');mp.innerHTML=o;$('mp2').innerHTML=o;$('mp2').value=SM[SM.length-1]}
  if(!ms.options.length||ms.options.length!==S.students.length)ms.innerHTML=S.students.map(s=>`<option value="${s.id}">${esc2(s.name)}</option>`).join('');
  document.querySelectorAll('#mtab button').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
- $('mb1').style.display=tab==='c'?'':'none';$('mb3').style.display=$('hpw').style.display=tab==='h'?'':'none';$('mb2').style.display=$('mnote').style.display=ms.style.display=tab==='s'?'':'none';
+ $('mb1').style.display=tab==='c'?'':'none';$('mb3').style.display=$('hpw').style.display=tab==='h'?'':'none';hdI();$('hdw').style.display=tab==='h'&&$('hp').value==='d'?'':'none';$('hk0').style.display=tab==='h'&&$('hp').value==='k'?'':'none';$('mb2').style.display=$('mnote').style.display=ms.style.display=tab==='s'?'':'none';
  const m=+mp.value||0,d=data(m);
- $('mbody').innerHTML=W(h3('📅 بازه‌ی گزارش: '+(tab==='h'?hwData().lbl:sub())))+(tab==='c'?W(kC(d)+chC(d))+W(atC(d))+W(more(d))+W(h3('📝 مقایسه‌ی آزمون‌ها')+(d.ex.length?exT(d,0,99)+(d.weak?`<div style="font-size:12px;margin-top:6px;color:#c0262c">ضعیف‌ترین آزمون: ${esc2(d.weak.c)} (${fmt(new Date(d.weak.d+'T12:00:00Z'))}) با میانگین ${f1(d.weak.av)}</div>`:''):'<div style="font-size:13px;color:#888">آزمونی ثبت نشده</div>')):tab==='h'?W(hwB(hwData(),1)):W(sCard(d,+ms.value,true)));if(tab==='s'&&$('dtx'))$('dtx').value=(S.desc&&S.desc[+ms.value])||auto(d,+ms.value)}
+ $('mbody').innerHTML=W(h3('📅 بازه‌ی گزارش: '+(tab==='h'?hwData().lbl:sub())))+(tab==='c'?W(kC(d)+chC(d))+W(atC(d))+W(more(d))+W(h3('📝 مقایسه‌ی آزمون‌ها')+(d.ex.length?exT(d,0,99)+(d.weak?`<div style="font-size:12px;margin-top:6px;color:#c0262c">ضعیف‌ترین آزمون: ${esc2(d.weak.c)} (${fmt(new Date(d.weak.d+'T12:00:00Z'))}) با میانگین ${f1(d.weak.av)}</div>`:''):'<div style="font-size:13px;color:#888">آزمونی ثبت نشده</div>')):tab==='h'?W(hwB(hwData(),1)+hwScr(hwData())):W(sCard(d,+ms.value,true)));if(tab==='s'&&$('dtx'))$('dtx').value=(S.desc&&S.desc[+ms.value])||auto(d,+ms.value)}
 $('mgr').addEventListener('click',async e=>{const t=e.target.closest('[data-t],[data-a],[data-k]');if(!t)return;
  if(t.dataset.t){tab=t.dataset.t;return render()}
  if(t.dataset.k){nk=t.dataset.k;document.querySelectorAll('#nty button').forEach(b=>b.classList.toggle('on',b.dataset.k===nk));return}
  if(t.dataset.a==='pr')return window.openProf(+$('ms').value);const a=t.dataset.a,m=+$('mp').value||0,d=data(m),s2=sub(m),o=$('mmsg'),rr=(()=>{const[x,y]=rI(),n=i=>MN[SM[i]-1];return x===y?'ماه-'+n(x):n(x)+'-تا-'+n(y)})(),zz='-'+rr+'-'+SY;o.textContent='⏳ در حال ساخت فایل…';
  try{if(a==='x')await dl('گزارش-اکسل-کلاس'+zz+'.xlsx',await xls(d));
-  else if(a==='hp'){await dl('گزارش-تکالیف-'+($('hp').value==='w'?'هفته-جاری':$('hp').value==='m'?'ماه-'+MN[jp(tdy()).m-1]:$('hp').value==='y'?'کل-سال-تحصیلی':rr)+'-'+SY+'.pdf',await pdf(hwPages(hwData())))}
-  else if(a==='hx'){await dl('گزارش-تکالیف-'+($('hp').value==='w'?'هفته-جاری':$('hp').value==='m'?'ماه-'+MN[jp(tdy()).m-1]:$('hp').value==='y'?'کل-سال-تحصیلی':rr)+'-'+SY+'.xlsx',await xwb(hwSheets(hwData())))}
+  else if(a==='hp'){await dl('گزارش-تکالیف-'+($('hp').value==='w'?'هفته-جاری':$('hp').value==='m'?'ماه-'+MN[jp(tdy()).m-1]:$('hp').value==='y'?'کل-سال-تحصیلی':/^[dk]$/.test($('hp').value)?hwData().lbl.replace(/[\s\/]+/g,'-'):rr)+'-'+SY+'.pdf',await pdf(hwPages(hwData())))}
+  else if(a==='hx'){await dl('گزارش-تکالیف-'+($('hp').value==='w'?'هفته-جاری':$('hp').value==='m'?'ماه-'+MN[jp(tdy()).m-1]:$('hp').value==='y'?'کل-سال-تحصیلی':/^[dk]$/.test($('hp').value)?hwData().lbl.replace(/[\s\/]+/g,'-'):rr)+'-'+SY+'.xlsx',await xwb(hwSheets(hwData())))}
   else if(a==='sx'){await dl('کارنامه-'+nmS()+zz+'.xlsx',await xwb(stSheets(d,+$('ms').value)))}
   else if(a==='pf'){await dl('گزارش-کامل-کلاس'+zz+'.pdf',await pdf(full(d,s2)))}
   else if(a==='pc'){await dl('گزارش-خلاصه-یک‌صفحه-کلاس'+zz+'.pdf',await pdf([one(d,s2)]))}
   else{const L=a==='ps'?[+$('ms').value]:S.students.map(s=>s.id);await dl((a==='ps'?'کارنامه-'+nmS():'کارنامه-همه-دانش‌آموزان')+zz+'.pdf',await pdf(L.map(id=>hdr('کارنامه‌ی عملکرد دانش‌آموز',s2)+sCard(d,id))))}
-  o.textContent=window.claude?'✅ فایل آماده شد':'✅ فایل ساخته شد. اگر دانلود شروع نشد، برنامه را از آدرس سایت در مرورگر Chrome باز کنید'}catch(x){o.textContent='ساخت فایل ناموفق بود (برای ساخت فایل به اینترنت نیاز است)'}});
+  o.textContent=window.__dlok?'✅ فایل آماده شد':'⚠️ فایل ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد (راهنما در پایین صفحه). برنامه را از آدرس سایت در Chrome باز کنید.'}catch(x){o.textContent=errT(x)}});
 $('mp').onchange=$('mp2').onchange=$('ms').onchange=$('hp').onchange=render;
 $('tset').onclick=()=>{const n=S.students.length,a=+$('tn').value,b=+$('ts').value;let k=a>0?a:b>0?Math.ceil(n/b):0;if(!k){$('tmsg').textContent='تعداد تیم یا تعداد نفر در هر تیم را وارد کنید';return}k=Math.min(k,n);NT=k;S.nt=k;S.students.forEach((x,i)=>x.team=i%NT+1);$('tmsg').textContent='✅ '+fa(n)+' نفر در '+fa(k)+' تیم تقسیم شد';window.render()};
 $('nadd').onclick=()=>{const x=$('ntx').value.trim(),id=+$('ms').value;if(!x||!id)return;(S.notes[id]=S.notes[id]||[]).push({d:iso(tdy()),k:nk,x});$('ntx').value='';save();render()};
@@ -841,13 +997,14 @@ window.renderMgr=render;
 })();
 /* ===== پرونده، تکلیف، بازگشت، ورود لیست ===== */
 (function(){
-S.info=S.info||{};S.hwl=S.hwl||[];S.desc=S.desc||{};S.bin=S.bin||[];if(S.hw&&Object.keys(S.hw).length){Object.keys(S.hw).forEach(k=>S.hwl.push({id:'o'+k,date:k,course:0,title:(S.hwt&&S.hwt[k])||'تکلیف',st:S.hw[k]}));S.hw={};S.hwt={}}
+S.info=S.info||{};S.tnm=S.tnm||[];S.hwl=S.hwl||[];S.desc=S.desc||{};S.bin=S.bin||[];if(S.hw&&Object.keys(S.hw).length){Object.keys(S.hw).forEach(k=>S.hwl.push({id:'o'+k,date:k,course:0,title:(S.hwt&&S.hwt[k])||'تکلیف',st:S.hw[k]}));S.hw={};S.hwt={}}
 const fm=t=>new Date(t).toLocaleString('fa-IR'),HI={'':'⬜',d:'✅',p:'🟡',n:'❌'},SQ=['','d','p','n'];
 /* --- تکلیف --- */
 const BS='padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:700 13px Vazirmatn,Tahoma,sans-serif;margin:3px;cursor:pointer';
 let ha=null;
 function hwR(){const el=$('hwc');if(!el)return;if(mode!=='d'){el.innerHTML='';return}const k=iso(cur),L=S.hwl.filter(h=>h.date===k);if(!L.find(h=>h.id===ha))ha=L.length?L[0].id:null;const A=L.find(h=>h.id===ha),cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'عمومی';
- el.innerHTML=`<div class="card"><b>📚 بازدید تکلیف این روز</b><div style="margin:6px 0">${L.map(h=>`<button data-ha="${h.id}" style="${BS}${h.id===ha?';background:var(--p);color:#fff':''}">${esc2(cn(h.course))}: ${esc2(h.title)}</button>`).join('')||'<span class="sub">تکلیفی برای این روز ثبت نشده</span>'}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0"><select id="hwc2" style="margin:0;flex:1;min-width:120px">${S.courses.map(c=>`<option value="${c.id}">${esc2(c.name)}</option>`).join('')}</select><input id="hwt" placeholder="مثلاً: صفحه ۴۷ یا درس سوم" style="margin:0;flex:2;min-width:140px"><button class="sm" id="hwadd">➕ افزودن تکلیف</button></div>${A?`<div>${S.students.map(s=>`<button data-hw="${s.id}" style="${BS}">${HI[A.st[s.id]||'']} ${esc2(s.name)}</button>`).join('')}</div><p class="sub" style="margin:6px 0">هر لمس: ✅ انجام داده ← 🟡 ناقص ← ❌ انجام نداده ← ⬜ ثبت‌نشده</p><button class="sm" id="hwall">✅ همه انجام داده‌اند</button> <button class="sm" id="hwdel">🗑 حذف این تکلیف</button>`:''}</div>`}
+ el.innerHTML=`<div class="card"><b>📚 بازدید تکلیف این روز</b><div style="margin:6px 0">${L.map(h=>`<button data-ha="${h.id}" style="${BS}${h.id===ha?';background:var(--p);color:#fff':''}">${esc2(cn(h.course))}: ${esc2(h.title)}</button>`).join('')||'<span class="sub">تکلیفی برای این روز ثبت نشده</span>'}</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0"><select id="hwc2" style="margin:0;flex:1;min-width:120px">${S.courses.map(c=>`<option value="${c.id}">${esc2(c.name)}</option>`).join('')}</select><input id="hwt" placeholder="مثلاً: صفحه ۴۷ یا درس سوم" style="margin:0;flex:2;min-width:140px"><button class="sm" id="hwadd">➕ افزودن تکلیف</button></div>${A?`<div>${S.students.map(s=>`<button data-hw="${s.id}" style="${BS}">${HI[A.st[s.id]||'']} ${esc2(s.name)}</button>`).join('')}</div><p class="sub" style="margin:6px 0">هر لمس: ✅ انجام داده ← 🟡 ناقص ← ❌ انجام نداده ← ⬜ ثبت‌نشده</p><button class="sm" id="hwall">✅ همه انجام داده‌اند</button> <button class="sm" id="hwdel">🗑 حذف این تکلیف</button>`:''}<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">${L.length?'<button class="sm" id="hwxp">📄 PDF بازدید این روز</button><button class="sm" id="hwxx">📊 اکسل بازدید این روز</button>':''}<button class="sm" id="hwgo">📚 گزارش تکالیف با بازه‌ی دلخواه ←</button></div><p class="sub" id="hwmsg" style="margin:6px 0 0"></p></div>`}
+document.addEventListener('click',async e=>{const b=e.target.closest('#hwxp,#hwxx,#hwgo');if(!b)return;if(b.id==='hwgo'){window.show('mgr');setTimeout(()=>{const t=document.querySelector('#mtab [data-t="h"]');if(t)t.click()},60);return}const m=$('hwmsg');m.textContent='⏳ در حال ساخت فایل…';try{await window.hwExp(b.id==='hwxx'?'x':'p',iso(cur),iso(cur),'بازدید تکالیف روز '+fmt(cur),iso(cur));m.textContent=window.__dlok?'✅ فایل آماده شد':'⚠️ فایل ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد. برنامه را از آدرس سایت در Chrome باز کنید.'}catch(x){m.textContent='ساخت فایل ناموفق بود'}});
 const _ra=renderAtt;renderAtt=function(){_ra();hwR()};
 document.addEventListener('click',e=>{const el=$('hwc'),b=e.target.closest('[data-hw],[data-ha],#hwall,#hwadd,#hwdel');if(!b||!el.contains(b))return;const k=iso(cur),A=S.hwl.find(h=>h.id===ha);
  if(b.id==='hwadd'){const t=$('hwt').value.trim();if(!t)return;const id='h'+Date.now();S.hwl.push({id,date:k,course:+$('hwc2').value,title:t,st:{}});ha=id}
@@ -880,17 +1037,73 @@ $('spro').addEventListener('click',e=>{const t=e.target;if(t.id==='spro'||t.id==
 document.addEventListener('click',e=>{if(e.target.closest('#spro,#cpan,#jcal,#hpan,#lpan'))return;const el=e.target.closest('td.nm,.row>span:first-child,.row>div>b');if(!el)return;const t=el.textContent.trim(),s=[...S.students].sort((a,b)=>b.name.length-a.name.length).find(x=>t===x.name||t.startsWith(x.name));if(s)openP(s.id)});
 window.openProf=openP;
 /* --- ورود لیست --- */
-function imp(rows){let n=0;rows.forEach((c,i)=>{const nm=(c[0]||'').toString().trim();if(!nm||/^(نام( و نام خانوادگی)?|ردیف)$/.test(nm)||S.students.some(s=>s.name===nm))return;const id=Date.now()+i;S.students.push({id,name:nm,score:1000,team:S.students.length%NT+1,att:''});if(c[1]||c[2])S.info[id]={fp:(c[1]||'').toString().trim(),mp:(c[2]||'').toString().trim()};n++});save();render();$('imsg').textContent=n?'✅ '+fa(n)+' دانش‌آموز اضافه شد (در صورت اشتباه، دکمه‌ی ↩️ بالای صفحه)':'موردی برای افزودن پیدا نشد'}
+const imm={set t(v){document.querySelectorAll('.imsg').forEach(e=>e.textContent=v)}};
+function imp(rows){let n=0;rows.forEach((c,i)=>{const nm=(c[0]||'').toString().trim();if(!nm||/^(نام( و نام خانوادگی)?|ردیف)$/.test(nm)||S.students.some(s=>s.name===nm))return;const id=Date.now()+i;S.students.push({id,name:nm,score:1000,team:S.students.length%NT+1,att:''});if(c[1]||c[2])S.info[id]={fp:(c[1]||'').toString().trim(),mp:(c[2]||'').toString().trim()};n++});save();render();imm.t=n?'✅ '+fa(n)+' دانش‌آموز اضافه شد (در صورت اشتباه، دکمه‌ی ↩️ بالای صفحه)':'موردی برای افزودن پیدا نشد'}
 const sp=t=>t.split(/\r?\n/).map(l=>l.split(/[\t,،;؛]/));
 $('ipaste').onclick=()=>imp(sp($('itx').value));
-$('ifile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{let rows;if(/\.xlsx$/i.test(f.name)){await loadJS(EXJ);const wb=new ExcelJS.Workbook();await wb.xlsx.load(await f.arrayBuffer());rows=[];wb.worksheets[0].eachRow(r=>rows.push(r.values.slice(1).map(c=>c==null?'':c.text||String(c.result!=null?c.result:c))))}else rows=sp(await f.text());imp(rows)}catch(x){$('imsg').textContent='خواندن فایل ممکن نشد'}e.target.value=''};
+/* --- اکسل: خروجی و ورود لیست همراه با مشخصات --- */
+const XC=[['name','نام و نام خانوادگی',26],['ls','وضعیت زندگی والدین',22],['fn','نام پدر',18],['fp','شماره‌ی پدر',15,1],['fj','شغل پدر',16],['mn','نام مادر',18],['mp','شماره‌ی مادر',15,1],['mj','شغل مادر',16],['gn','نام قیم',18],['gr','نسبت با دانش‌آموز',14],['gp','شماره‌ی قیم',15,1],['hp','تلفن منزل',15,1],['ep','تلفن اضطراری',15,1],['ad','نشانی',34],['nc','کد ملی',14,1],['bd','تاریخ تولد',14],['sb','تعداد خواهر و برادر',12],['hl','بیماری، حساسیت یا مشکل جسمی',28],['hb','علایق و توانمندی‌ها',28],['nt','توضیحات دیگر',28],['id','شناسه (دست نزنید)',12]];
+const LSO=['با هم زندگی می‌کنند','جدا از هم زندگی می‌کنند','پدر فوت شده','مادر فوت شده','سرپرست دیگر'],TELK=['fp','mp','gp','hp','ep'];
+const d2l=t=>String(t).replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c)).replace(/[٠-٩]/g,c=>'٠١٢٣٤٥٦٧٨٩'.indexOf(c));
+const hn=t=>d2l(t==null?'':t).replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[^\p{L}\p{N}]/gu,'');
+const nk=t=>String(t==null?'':t).replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200f\u200e\s]+/g,'');
+const AL={name:['نام','نام دانش‌آموز','دانش‌آموز','نام خانوادگی','اسم'],id:['شناسه'],fp:['موبایل پدر','تلفن پدر','همراه پدر','شماره پدر'],mp:['موبایل مادر','تلفن مادر','همراه مادر','شماره مادر'],gp:['موبایل قیم','تلفن قیم','شماره قیم'],hp:['تلفن ثابت','تلفن خانه'],ep:['شماره اضطراری'],ad:['آدرس'],nc:['شماره ملی'],bd:['تولد'],sb:['خواهر و برادر'],hl:['بیماری','حساسیت','مشکل جسمی'],hb:['علایق'],nt:['توضیحات'],ls:['وضعیت والدین']};
+const HM={};XC.forEach(c=>HM[hn(c[1])]=c[0]);Object.keys(AL).forEach(k=>AL[k].forEach(a=>HM[hn(a)]=k));
+const cv=c=>{if(c==null)return'';if(c instanceof Date){const q=jp(new Date(Date.UTC(c.getUTCFullYear(),c.getUTCMonth(),c.getUTCDate(),12)));return q.y+'/'+z2(q.m)+'/'+z2(q.d)}
+ if(typeof c==='object'){if(c.richText)return c.richText.map(x=>x.text).join('');if(c.error)return'';if(c.text!=null)return String(c.text);if(c.result!=null)return cv(c.result);if(c.hyperlink)return String(c.hyperlink);return''}return String(c)};
+const nv=(k,v)=>{v=String(v==null?'':v).trim();if(!v)return'';
+ if(TELK.indexOf(k)>=0){v=d2l(v).replace(/[\s\-()]/g,'');if(/^9\d{9}$/.test(v))v='0'+v;return v}
+ if(k==='nc'){v=d2l(v).replace(/\D/g,'');if(v.length>=8&&v.length<10)v=v.padStart(10,'0');return v}
+ if(k==='ls')return LSO.find(o=>nk(o)===nk(v))||'';return v};
+function ximp(rows){let hr=-1,cm=null;
+ for(let i=0;i<Math.min(rows.length,6);i++){const m={};(rows[i]||[]).forEach((c,j)=>{const k=HM[hn(c)];if(k&&!(k in m))m[k]=j});if('name' in m){hr=i;cm=m;break}}
+ if(hr<0)return false;
+ const ks=Object.keys(cm).filter(k=>k!=='name'&&k!=='id'),g=(r,k)=>r[cm[k]]==null?'':r[cm[k]];
+ const byId=new Map(S.students.map(s=>[String(s.id),s])),byNc=new Map(),byNm=new Map();
+ S.students.forEach(s=>{const n=d2l((S.info[s.id]||{}).nc||'').replace(/\D/g,'');if(n)byNc.set(n,s);byNm.set(nk(s.name),s)});
+ const seen=new Set();let add=0,upd=0,dup=0;
+ rows.slice(hr+1).forEach((r,ri)=>{r=r||[];const nm=String(g(r,'name')).trim();if(!nm)return;
+  const vals={};ks.forEach(k=>{vals[k]=nv(k,g(r,k))});
+  let s=('id' in cm)?byId.get(String(g(r,'id')).trim()):null;
+  if(!s&&vals.nc)s=byNc.get(vals.nc);
+  if(!s)s=byNm.get(nk(nm));
+  if(s&&seen.has(s.id)){dup++;return}
+  if(s){let ch=0;if(nk(nm)!==nk(s.name)){s.name=nm;ch=1}const I=S.info[s.id]=S.info[s.id]||{};ks.forEach(k=>{if(vals[k]&&I[k]!==vals[k]){I[k]=vals[k];ch=1}});if(ch)upd++;seen.add(s.id)}
+  else{const id=Date.now()+ri;S.students.push({id,name:nm,score:1000,team:S.students.length%NT+1,att:''});const I={};ks.forEach(k=>{if(vals[k])I[k]=vals[k]});if(Object.keys(I).length)S.info[id]=I;byNm.set(nk(nm),S.students[S.students.length-1]);seen.add(id);add++}});
+ if(!seen.size){imm.t='در فایل، ردیفی با نام دانش‌آموز پیدا نشد';return true}
+ const miss=S.students.filter(s=>!seen.has(s.id));let rm=0;
+ if(miss.length&&confirm('این '+fa(miss.length)+' دانش‌آموز در فایل نیستند:\n'+miss.slice(0,8).map(s=>s.name).join('، ')+(miss.length>8?' و ...':'')+'\n\nاز برنامه حذف شوند؟\nتأیید = حذف  |  انصراف = نگه داشتن\n(حذف‌شده‌ها در سطل بازیافت می‌مانند و با دکمه‌ی ↩️ برمی‌گردند)')){const ids=new Set(miss.map(s=>s.id));S.students=S.students.filter(s=>!ids.has(s.id));S.drawn=(S.drawn||[]).filter(x=>!ids.has(x));rm=miss.length}
+ save();render();try{renderAtt()}catch(e){}
+ const t=[];if(add)t.push(fa(add)+' دانش‌آموز اضافه');if(upd)t.push(fa(upd)+' دانش‌آموز به‌روز');if(rm)t.push(fa(rm)+' دانش‌آموز حذف');if(dup)t.push(fa(dup)+' ردیف تکراری نادیده گرفته شد');
+ imm.t=t.length?'✅ '+t.join('، ')+' (در صورت اشتباه، دکمه‌ی ↩️ بالای صفحه)':'تغییری لازم نبود؛ فایل با برنامه یکی است';return true}
+const go=rows=>{if(!ximp(rows))imp(rows)};
+$('ifile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{let rows;if(/\.xlsx$/i.test(f.name)){const buf=await f.arrayBuffer();try{rows=await xread(buf)}catch(er){await loadJS(EXJ);const wb=new ExcelJS.Workbook();await wb.xlsx.load(buf);rows=[];wb.worksheets[0].eachRow({includeEmpty:false},r=>{const a=[];r.eachCell({includeEmpty:true},(c,j)=>{a[j-1]=cv(c.value)});rows.push(a)})}}else rows=sp(await f.text());go(rows)}catch(x){imm.t='خواندن فایل ممکن نشد'+(x&&x.message?' ('+x.message+')':'')}e.target.value=''};
+$('xout').onclick=async()=>{try{imm.t='⏳ در حال ساخت فایل…';
+ const wb=new ExcelLite.Workbook(),ws=wb.addWorksheet('دانش‌آموزان',{views:[{rightToLeft:true,state:'frozen',xSplit:1,ySplit:1}],pageSetup:{paperSize:9,orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0}}),bd={style:'thin',color:{argb:'FFC9BDE6'}},B={top:bd,left:bd,bottom:bd,right:bd};
+ ws.columns=XC.map(c=>({header:c[1],key:c[0],width:c[2],hidden:c[0]==='id'}));
+ S.students.forEach(s=>{const I=S.info[s.id]||{};ws.addRow(XC.map(c=>c[0]==='name'?s.name:c[0]==='id'?String(s.id):(I[c[0]]==null?'':String(I[c[0]]))))});
+ const last=S.students.length+31,lsc=XC.findIndex(c=>c[0]==='ls')+1;
+ for(let r=1;r<=last;r++){const row=ws.getRow(r);XC.forEach((c,ci)=>{const cell=row.getCell(ci+1);cell.border=B;
+  cell.alignment={horizontal:ci===0||c[0]==='ad'?'right':'center',vertical:'middle',readingOrder:'rtl',wrapText:true};
+  if(r===1){cell.font={name:'Tahoma',size:11,bold:true,color:{argb:'FFFFFFFF'}};cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}}}
+  else{cell.font={name:'Tahoma',size:11,color:{argb:'FF222222'}};if(c[3]||c[0]==='id')cell.numFmt='@';if(ci+1===lsc)cell.dataValidation={type:'list',allowBlank:true,formulae:['"'+LSO.join(',')+'"']}}})}
+ ws.getRow(1).height=34;
+ const gd=wb.addWorksheet('راهنما',{views:[{rightToLeft:true,showGridLines:false}]});gd.getColumn(1).width=110;
+ ['راهنمای استفاده از این فایل','',
+  '۱) دانش‌آموز جدید: در برگه‌ی «دانش‌آموزان» در اولین ردیف خالی، دست‌کم نام و نام خانوادگی را بنویسید (بقیه‌ی ستون‌ها اختیاری است).',
+  '۲) تغییر مشخصات: خانه‌ی مربوط را ویرایش کنید. خانه‌ی خالی، اطلاعات قبلی داخل برنامه را پاک نمی‌کند.',
+  '۳) دانش‌آموزی که رفته: کل ردیفش را پاک کنید. هنگام ورود فایل، برنامه می‌پرسد حذف شود یا نه.',
+  '۴) تغییر نام یک دانش‌آموز: اگر ستون «شناسه» یا «کد ملی» را دست نزنید، برنامه او را با نام تازه همان شخص می‌شناسد و دانش‌آموز تازه نمی‌سازد.',
+  '۵) ستون «شناسه (دست نزنید)» مخفی است؛ برای دانش‌آموز جدید لازم نیست چیزی در آن بنویسید.',
+  '۶) پس از ذخیره، فایل را در برنامه از «ویرایش دانش‌آموزان ← انتخاب فایل» وارد کنید.'].forEach((t,i)=>{const c=gd.addRow([t]).getCell(1);c.alignment={horizontal:'right',vertical:'middle',readingOrder:'rtl',wrapText:true};c.font={name:'Tahoma',size:i?11:14,bold:!i}});
+ await dl('لیست-دانش‌آموزان-با-مشخصات.xlsx',await wb.xlsx.writeBuffer());imm.t=window.__dlok?'✅ فایل آماده شد':'⚠️ فایل ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد. برنامه را از آدرس سایت در Chrome باز کنید.'}catch(x){imm.t=errT(x)}};
 })();
 
 /* --- کارت‌های خانه: لیست و میان‌بر --- */
 (function(){const B={undefined:'⬜ ثبت‌نشده',p:'✅ حاضر',l:'✅ حاضر · ⏰ با تأخیر',a:'❌ غایب'};
 function lst(k){const T=S.att[iso(tdy())]||{},st=S.students;let t,L;
  if(k==='all'){t='👥 همه‌ی دانش‌آموزان';L=st}else{const f={p:x=>x==='p'||x==='l',l:x=>x==='l',a:x=>x==='a'}[k];t={p:'✅ حاضرین امروز',l:'⏰ دانش‌آموزان با تأخیر امروز',a:'❌ غایبین امروز'}[k];L=st.filter(s=>f(T[s.id]))}
- $('lpan').innerHTML=`<div class="box"><b style="font-size:17px">${t} (${fa(L.length)})</b><div style="margin-top:8px;max-height:60vh;overflow:auto">${L.length?L.map((s,i)=>`<div data-sid="${s.id}" style="display:flex;justify-content:space-between;gap:8px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer"><span>${fa(i+1)}. <b>${esc2(s.name)}</b></span><span style="font-size:12px;color:var(--mut)">${k==='all'?'🏅 تیم '+fa(s.team)+' · ':''}${B[T[s.id]]}</span></div>`).join(''):'<p class="sub">موردی وجود ندارد</p>'}</div><p class="sub" style="margin:8px 0 0">برای دیدن پرونده، روی نام بزنید.</p><button class="big" id="lcl" style="font-size:15px;padding:12px;margin-top:8px">بستن</button></div>`;$('lpan').classList.add('open')}
+ $('lpan').innerHTML=`<div class="box"><b style="font-size:17px">${t} (${fa(L.length)})</b><div style="margin-top:8px;max-height:60vh;overflow:auto">${L.length?L.map((s,i)=>`<div data-sid="${s.id}" style="display:flex;justify-content:space-between;gap:8px;padding:9px 4px;border-bottom:1px solid var(--line);cursor:pointer"><span>${fa(i+1)}. <b>${esc2(s.name)}</b></span><span style="font-size:12px;color:var(--mut)">${k==='all'?'🏅 '+esc2(tname(s.team,'تیم '+fa(s.team)))+' · ':''}${B[T[s.id]]}</span></div>`).join(''):'<p class="sub">موردی وجود ندارد</p>'}</div><p class="sub" style="margin:8px 0 0">برای دیدن پرونده، روی نام بزنید.</p><button class="big" id="lcl" style="font-size:15px;padding:12px;margin-top:8px">بستن</button></div>`;$('lpan').classList.add('open')}
 document.addEventListener('click',e=>{const c=e.target.closest('#stats .st');if(c){const k=c.dataset.k;if(k==='teams'||k==='rep')show(k);else lst(k);return}
  const L=$('lpan');if(!L.classList.contains('open'))return;if(e.target===L||e.target.id==='lcl')return L.classList.remove('open');const r=e.target.closest('[data-sid]');if(r){L.classList.remove('open');window.openProf(+r.dataset.sid)}});
 })();

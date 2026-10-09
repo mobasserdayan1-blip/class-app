@@ -263,6 +263,17 @@ table.rt-fit th:first-child,table.rt-fit td:first-child{width:26%}
  table.rt-stack td[data-label=""]::before{display:none}
 }
 </style>
+<style id="resp-v2">
+/* تب‌ها و چیپ‌ها: اگر جا نشد، به خط بعد می‌روند (بدون بریدگی و اسکرول افقی) */
+#subTabs{flex-wrap:wrap;overflow:visible}
+#subTabs button{flex:1 1 auto;white-space:normal;min-width:0;max-width:100%}
+@media(max-width:700px){#subTabs{position:static}}
+.tabs,.tb2,.rpseg,.rpact,.chips2,.lv,.lg{flex-wrap:wrap}
+.tabs button,.tb2 button{flex:1 1 30%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.rpseg,.rpact{display:flex}.rpseg button,.rpact button{flex:1 1 220px}
+.kc table{width:100%;table-layout:auto}
+.kc th,.kc td{overflow-wrap:anywhere;word-break:break-word}
+</style>
 </head>
 <body>
 <script>window.stN=t=>/دخترانه/.test(t||'')?'دخترانه':/پسرانه/.test(t||'')?'پسرانه':'';window.schoolFull=P=>{P=P||(window.S&&S.prof)||{};if(!P.school)return'';const nm=String(P.school).replace(/^\s*(دبستان|مدرسه)\s*(پسرانه|دخترانه)?\s*/,'').trim(),t=stN(P.stype);return 'دبستان '+(t?t+' ':'')+nm};window.bidi=t=>String(t==null?'':t).replace(/\(/g,'\u200F(').replace(/\)/g,')\u200F')</script>
@@ -334,7 +345,7 @@ table.rt-fit th:first-child,table.rt-fit td:first-child{width:26%}
 <section id="crs">
 <h2>📚 درس‌ها و آزمون‌ها</h2>
 <div class="card"><b>📝 ثبت ارزشیابی یا آزمون</b>
-<label class="sum fl">درس</label><select id="ec" class="fs"></select><label class="sum fl">نوع ارزشیابی</label><select id="et" class="fs"></select>
+<label class="sum fl">درس</label><select id="ec" class="fs"></select><label class="sum fl">نوع ارزشیابی</label><select id="et" class="fs"></select><p class="sub" style="text-align:right;margin:4px 0 8px;line-height:1.9">«پرسش و پاسخ کلاسی» و «آزمون کتبی» جزو ارزشیابی مستمر طول نیمسال‌اند؛ «آزمون پایان نیمسال» جدا حساب می‌شود و در کارنامه ستون مخصوص خودش را دارد.</p>
 <label class="sum fl">محدوده یا موضوع</label><input id="etl" placeholder="مثلاً درس ۳، صفحه ۱۲ تا ۲۰">
 <label class="sum fl">تاریخ برگزاری (شمسی)</label><select id="ed_s" class="fs"></select><p class="sum" id="ed_l" style="margin:0 0 8px;white-space:normal"></p>
 <button class="big" style="font-size:15px;padding:12px" id="eadd">ثبت و ورود نمرات</button><p class="sub" id="emsg"></p></div>
@@ -999,7 +1010,7 @@ window.clearDay=()=>{const k=iso(cur);if(!ask('clr'+k))return;delete S.att[k];re
 window.openDay=()=>{delete S.closed[iso(cur)];render()};
 /* courses & exams */
 S.prof=S.prof||{};
-const TYPES=['پرسش و پاسخ کلاسی','آزمون کتبی'];
+const TYPES=['پرسش و پاسخ کلاسی','آزمون کتبی','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم'];
 S.exams.forEach(e=>{if(!TYPES.includes(e.type))e.type=e.type==='کتبی'?'آزمون کتبی':'پرسش و پاسخ کلاسی'});
 delete S.prof.deputy;
 const LVW={4:'خیلی خوب',3:'خوب',2:'قابل قبول',1:'نیاز به تلاش'},TN=['یک','دو','سه','چهار','پنج','شش','هفت'],GR=['اول','دوم','سوم','چهارم','پنجم','ششم'];
@@ -1370,7 +1381,7 @@ function hwData(ov){const o=ov?'x':$('hp').value,t=tdy(),r=rangeY(),[i1,i2]=rI()
 const nmS=()=>{const x=S.students.find(q=>q.id===+$('ms').value);return x?x.name.trim().replace(/\s+/g,'-'):'دانش‌آموز'};
 const stSheets=(d,sid)=>{const r=d.rows.find(q=>q.s.id===sid),cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'',E=d.EX.filter(e=>nn(nrm(e,sid))),sd=x=>fmt(new Date(x+'T12:00:00Z'));
  return[['خلاصه',['شاخص','مقدار'],[['نام',r.s.name],['ارزشیابی توصیفی',(S.desc&&S.desc[sid])||(window.genDesc?window.genDesc(sid):'')],['مباحث نیازمند تمرین',window.weakTxt?window.weakTxt(sid):''],['بازه',sub()],['درصد حضور',r1(r.ap)],['حاضر (شامل تأخیر)',r.c.p+r.c.l],['غایب',r.c.a],['تأخیر',r.c.l],['میانگین کل (از ۴)',r1(r.avg)],['تکالیف کامل / ناقص / انجام‌نشده',r.hw.d+' / '+r.hw.p+' / '+r.hw.n],['ارزشیابی توصیفی',(S.desc&&S.desc[sid])||auto(d,sid)]],[28,70]],
- ['درس‌ها',['درس','تعداد آزمون','میانگین','روند'],S.courses.map((c,i)=>{const v=d.EX.filter(e=>e.course===c.id).map(e=>nrm(e,sid)).filter(nn);return[c.name,v.length,r1(r.per[i]),trendV(v)]}),[20,14,12,26]],
+ ['درس‌ها',['درس','تعداد آزمون','مستمر (طول نیمسال)','پایان نیمسال اول','پایان نیمسال دوم','میانگین کل','سطح','روند / ارزشیابی توصیفی'],S.courses.map((c,i)=>{const sk=c.name==='هنر'?'art':c.name==='تربیت بدنی'?'pe':null;if(sk){const L=window.skillLevel?window.skillLevel(sid,sk):null,t=window.skillDesc?window.skillDesc(sid,sk):'';return[c.name,'—','—','—','—','—',L?LVW[L]:'—',t||'ارزشیابی توصیفی ثبت نشده']}const ex=d.EX.filter(e=>e.course===c.id),g=fn=>{const a=ex.filter(e=>fn(e.type)).map(e=>nrm(e,sid)).filter(nn);return a.length?r1(mean(a)):'—'},v=ex.map(e=>nrm(e,sid)).filter(nn);return[c.name,v.length,g(t=>t!=='آزمون پایان نیمسال اول'&&t!=='آزمون پایان نیمسال دوم'),g(t=>t==='آزمون پایان نیمسال اول'),g(t=>t==='آزمون پایان نیمسال دوم'),v.length?r1(r.per[i]):'—',v.length?LVW[Math.min(4,Math.max(1,Math.round(mean(v))))]:'—',v.length?trendV(v):'—']}),[16,10,13,13,13,11,13,40]],
  ['آزمون‌ها',['تاریخ','درس','نوع','نمره'],E.map(e=>[sd(e.date),cn(e.course),e.type||'',nrm(e,sid)]),[16,16,22,10]],
  ['تکالیف',['تاریخ','درس','تکلیف','وضعیت'],S.hwl.filter(h=>h.st[sid]).map(h=>[sd(h.date),cn(h.course),h.title,{d:'کامل',p:'ناقص',n:'انجام‌نشده'}[h.st[sid]]]),[16,16,30,14]]]};
 const hwT=(d,a,b)=>tbl(['تاریخ','درس','تکلیف','درصد انجام'],d.L.slice(a,b).map(h=>[fmt(new Date(h.date+'T12:00:00Z')),esc2(d.cn(h.course)),esc2(h.title),pc(d.pct(h))]));
@@ -2058,7 +2069,7 @@ window.renderMk=rm;
  /* ---- ۱۲. فصل و مبحث در بخش درس‌ها ---- */
  const card=document.createElement('div');card.className='card';card.id='chCard';$('crsList').before(card);let chc=null;
  function renderCh(){if(!S.courses.length){card.innerHTML='<b>🗂️ فصل‌ها و مبحث‌ها</b><p class="sub">ابتدا یک درس اضافه کنید.</p>';return}
-  if(!cs(chc))chc=S.courses[0].id;const ch=CH(chc),nt=S.exams.filter(e=>e.course===chc&&!e.tp).slice(-8).reverse();
+  if(!cs(chc))chc=S.courses[0].id;const ch=CH(chc),nt=S.exams.filter(e=>e.course===chc&&!e.tp&&!/پایان نیمسال/.test(e.type||'')).slice(-8).reverse();
   card.innerHTML=`<b>🗂️ فصل‌ها و مبحث‌ها (درس ← فصل ← مبحث)</b><select id="chc" class="fs" style="margin-top:8px">${S.courses.map(c=>`<option value="${c.id}"${c.id===chc?' selected':''}>${esc2(c.name)}</option>`).join('')}</select>
   <div style="display:flex;gap:6px"><input id="chn" placeholder="نام فصل (مثلاً فصل ۲)" style="margin:0;flex:1"><button class="sm" id="cha">➕ فصل</button></div>
   ${ch.map(h=>`<div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:8px"><b>📖 ${esc2(h.name)}</b> <button class="sm" data-ech="${h.id}">✏️</button> <button class="sm" data-dch="${h.id}">🗑️</button>${h.tp.length?`<div class="tpw">${h.tp.map(t=>`<div class="tpi"><span class="tpn">${esc2(t.name)}</span><span class="tpb"><button class="sm" data-etp="${h.id}:${t.id}">✏️</button> <button class="sm" data-dtp="${h.id}:${t.id}">✕</button></span></div>`).join('')}</div>`:''}<div style="display:flex;gap:6px;margin-top:6px"><input data-tn="${h.id}" placeholder="مبحث جدید (مثلاً جمع دو رقمی)" style="margin:0;flex:1"><button class="sm" data-ta="${h.id}">➕ مبحث</button></div></div>`).join('')}
@@ -2073,9 +2084,9 @@ window.renderMk=rm;
   else if(t.dataset.dtp){const[h,p]=t.dataset.dtp.split(':').map(Number),H=ch.find(x=>x.id===h);if(!H||!window.tap2(t))return;H.tp=H.tp.filter(x=>x.id!==p);S.exams.forEach(x=>{if(x.tp===p){delete x.ch;delete x.tp}});save();renderCh()}});
  /* انتخاب مبحث در فرم ثبت آزمون یا پرسش کلاسی */
  const sel=document.createElement('select');sel.id='etp';sel.className='fs';$('et').after(sel);
- const fillTp=()=>{const cid=+$('ec').value;sel.innerHTML='<option value="">مبحث (اختیاری)</option>'+topicOpts(cid);sel.style.display=CH(cid).some(h=>h.tp.length)?'':'none'};
- $('ec').addEventListener('change',fillTp);
- const _ea=$('eadd').onclick;$('eadd').onclick=function(){const n=S.exams.length,v=sel.value;_ea.call(this);if(S.exams.length>n&&v){setTp(S.exams[S.exams.length-1],v);save();window.render()}};
+ const fillTp=()=>{const cid=+$('ec').value;sel.innerHTML='<option value="">مبحث (اختیاری)</option>'+topicOpts(cid);const fin=/پایان نیمسال/.test($('et').value);sel.style.display=!fin&&CH(cid).some(h=>h.tp.length)?'':'none'};
+ $('ec').addEventListener('change',fillTp);$('et').addEventListener('change',fillTp);
+ const _ea=$('eadd').onclick;$('eadd').onclick=function(){const n=S.exams.length,v=/پایان نیمسال/.test($('et').value)?'':sel.value;_ea.call(this);if(S.exams.length>n&&v){setTp(S.exams[S.exams.length-1],v);save();window.render()}};
  const _r=window.render;window.render=function(){_r.apply(this,arguments);try{fillTp();if($('crs').classList.contains('on'))renderCh()}catch(e){}};
  /* ---- ۱۳ و ۱۵. صفحه‌ی تحلیل نقاط ضعف و گزارش هوشمند ---- */
  const sec=document.createElement('section');sec.id='wk';sec.innerHTML='<h2>🎯 تحلیل و گزارش هوشمند</h2><div id="wkBody"></div>';$('rep').before(sec);let wc=null,ws=null;
@@ -2116,6 +2127,8 @@ window.renderMk=rm;
  const nm1=id=>(S.students.find(s=>s.id===id)||{}).name||'';
  const hwAll=(id,flt)=>{let d=0,p=0,n=0;(S.hwl||[]).filter(h=>!flt||flt(h.date)).forEach(h=>{const v=h.st&&h.st[id];v==='d'?d++:v==='p'?p++:v==='n'&&n++});const t=d+p+n;return{d,p,n,t,pct:t?(d+p*.5)/t*100:null}};
  const topics=(id)=>{const w=[],g=[];S.courses.forEach(c=>CH(c.id).forEach(h=>h.tp.forEach(t=>{const q=tstat(c.id,t.id,id);if(q.p==null)return;(q.p<60?w:q.p>=80?g:[]).push({t:t.name,c:c.name,p:q.p})})));w.sort((a,b)=>a.p-b.p);g.sort((a,b)=>b.p-a.p);return{w,g}};
+ const FIN1='آزمون پایان نیمسال اول',FIN2='آزمون پایان نیمسال دوم',skKeyOf=c=>c.name==='هنر'?'art':c.name==='تربیت بدنی'?'pe':null;
+ const crsFull=id=>S.courses.map(c=>{const ex=S.exams.filter(e=>e.course===c.id),g=t=>avg(ex.filter(e=>t(e.type)).map(e=>nrm(e,id)).filter(v=>v!=null)),b=crs(id).find(z=>z.c.id===c.id);return{c,sk:skKeyOf(c),v:b?b.v:null,n:b?b.n:0,d:b?b.d:null,cont:g(t=>t!==FIN1&&t!==FIN2),t1:g(t=>t===FIN1),t2:g(t=>t===FIN2)}});
  const crs=id=>S.courses.map(c=>{const v=vals(id,e=>e.course===c.id),n=v.length,h=n>>1,b=n>1?avg(v.slice(0,h)):null,a=n>1?avg(v.slice(h)):null;return{c,v:avg(v),n,d:n>1?a-b:null,cur:n>1?a:avg(v),b}}).filter(x=>x.v!=null);
  const J=a=>a.length>1?a.slice(0,-1).join('، ')+' و '+a[a.length-1]:a[0]||'';
  /* ---- متن توصیفی (اصلاح‌شده: سطح فعلی و روند جدا بیان می‌شوند) ---- */
@@ -2153,6 +2166,7 @@ window.renderMk=rm;
  const LC=v=>v>=3.5?'#1a8f55':v>=2.5?'#2a7fd4':v>=1.5?'#b26a00':'#c0262c',P0=()=>S.prof||{};
  const head=(t,id)=>{const p=P0(),q=jp(tdy());return `<div style="text-align:center;border-bottom:3px solid #7e57c2;padding-bottom:8px;margin-bottom:10px;position:relative;min-height:84px;padding-left:104px;padding-right:104px">${window.LG()}${id?window.PH(id):''}<div style="font-size:23px;font-weight:800;color:#4b3478">${t}</div><div style="font-size:12px;color:#555;margin-top:3px">${esc2(profLine())}</div><div style="font-size:11px;color:#888">سال تحصیلی ${syLab?syLab(SY):''} · تاریخ: ${fa(q.y+'/'+String(q.m).padStart(2,'0')+'/'+String(q.d).padStart(2,'0'))}</div></div>`};
  const sign=()=>window.sigRow('margin-top:38px');
+ const SKL=['','نیاز به تلاش','قابل قبول','خوب','خیلی خوب'],kcN=v=>v==null?'—':f(v),kcSl=(x,id,o)=>{const L=window.skillLevel?window.skillLevel(id,x.sk):null;return L?(o?`<b style="color:${LC(L)}">${SKL[L]}</b>`:`<span class="lv" style="background:${LC(L)}">${SKL[L]}</span>`):'<span style="color:#999">—</span>'},kcSk=(x,id)=>{const t=window.skillDesc?window.skillDesc(id,x.sk):'';return t?esc2(t):'<span style="color:#999">هنوز ارزشیابی توصیفی ثبت نشده است.</span>'};
 const spark=v=>{if(v.length<2)return '<div style="font-size:12px;color:#888">برای رسم روند حداقل دو ارزیابی لازم است.</div>';const w=330,h=70,pd=8,pts=v.map((y,i)=>[pd+i*(w-2*pd)/(v.length-1),h-pd-(y-1)/3*(h-2*pd)]);return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:70px">${[1,2,3,4].map(k=>`<line x1="0" x2="${w}" y1="${h-pd-(k-1)/3*(h-2*pd)}" y2="${h-pd-(k-1)/3*(h-2*pd)}" stroke="#eee"/>`).join('')}<polyline fill="none" stroke="#7e57c2" stroke-width="2.5" points="${pts.map(p=>p.join(',')).join(' ')}"/>${pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="#7e57c2"/>`).join('')}</svg>`};
  const KC_CSS=`<style>.kc{font-family:Vazirmatn,Tahoma,sans-serif;color:#2a2238;direction:rtl;text-align:right;line-height:1.5;-webkit-print-color-adjust:exact;print-color-adjust:exact}.kc *{box-sizing:border-box}
 .kc .hd{background:linear-gradient(115deg,#5f3fa6,#8f68cf);color:#fff;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:14px}
@@ -2183,42 +2197,42 @@ const spark=v=>{if(v.length<2)return '<div style="font-size:12px;color:#888">ب�
  const kcTrend=v=>{if(v.length<2)return '<div class="nt">برای رسم روند حداقل دو ارزیابی لازم است.</div>';const w=700,h=96,pl=6,pr=34,pt=14,pb=8,X=i=>pl+i*(w-pl-pr)/(v.length-1),Y=y=>pt+(4-y)/3*(h-pt-pb),pts=v.map((y,i)=>[X(i),Y(y)]),pp=pts.map(p=>p.join(',')).join(' ');return `<svg viewBox="0 0 ${w} ${h}" style="width:100%;height:auto;display:block;direction:ltr;font-family:Vazirmatn,Tahoma,sans-serif">${[1,2,3,4].map(k=>`<line x1="${pl}" x2="${w-pr}" y1="${Y(k)}" y2="${Y(k)}" stroke="#e8e0f4"/><text x="${w-pr+8}" y="${Y(k)+4}" font-size="11" fill="#8a7aa6">${fa(k)}</text>`).join('')}<polygon points="${pp} ${pts[pts.length-1][0]},${Y(1)} ${pts[0][0]},${Y(1)}" fill="#7e57c222"/><polyline fill="none" stroke="#7e57c2" stroke-width="2.6" stroke-linejoin="round" points="${pp}"/>${pts.map((p,i)=>`<circle cx="${p[0]}" cy="${p[1]}" r="3.6" fill="${LC(v[i])}" stroke="#fff" stroke-width="1.3"/>`).join('')}</svg>`};
  const pad2=n=>String(n).padStart(2,'0');
  /* داده‌ی مشترک هر دو کارنامه (همان محاسبات قبلی؛ فقط یک‌جا جمع شده تا دو نسخه مغایرت نداشته باشند) */
- function kcData(id){const s=S.students.find(x=>x.id===id),at=attSt(id),h=hwAll(id),all=X.acad?X.acad(id):avg(vals(id)),cr=crs(id),tp=topics(id),pr=X.prog?X.prog(id):null,B=X.badgesY(),bd=X.BD.filter(b=>B[b[0]].includes(id)),ov=X.overall(id),bh=X.behavior(id),ex=S.exams.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(e=>nrm(e,id)).filter(v=>v!=null);
+ function kcData(id){const s=S.students.find(x=>x.id===id),at=attSt(id),h=hwAll(id),all=X.acad?X.acad(id):avg(vals(id)),cr=crs(id),cf=crsFull(id),tp=topics(id),pr=X.prog?X.prog(id):null,B=X.badgesY(),bd=X.BD.filter(b=>B[b[0]].includes(id)),ov=X.overall(id),bh=X.behavior(id),ex=S.exams.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(e=>nrm(e,id)).filter(v=>v!=null);
   const str=[];const best=cr.slice().sort((a,b)=>b.v-a.v)[0];if(best&&best.v>=3)str.push(`قوی در درس ${esc2(best.c.name)} (${f(best.v)} از ۴)`);tp.g.slice(0,3).forEach(x=>str.push(`تسلط بر «${esc2(x.t)}» (${r0(x.p)}٪)`));if(at.pct>=95)str.push('حضور منظم و بدون غیبت');if(h.pct>=85)str.push('انجام منظم تکالیف');bd.forEach(b=>str.push(`${b[1]} ${b[2]}`));const pos=acts(id).filter(x=>x.type==='positive').length;if(pos)str.push(`${fa(pos)} فعالیت مثبت کلاسی`);const oa=window.ACTX&&ACTX.oral(id);if(oa&&oa.t>=3)str.push(`ارزشیابی مستمر کلاسی: ${f(oa.score)} از ۴ (${fa(oa.t)} پرسش شفاهی)`);
   const att=[];tp.w.slice(0,4).forEach(x=>att.push(`مبحث «${esc2(x.t)}» (${esc2(x.c)}) ${r0(x.p)}٪`));cr.filter(x=>x.d!=null&&x.d<=-.5).forEach(x=>att.push(`کاهش نمره در ${esc2(x.c.name)}`));if(h.pct!=null&&h.pct<70)att.push('پیگیری انجام تکالیف');if(at.pct!=null&&at.pct<85)att.push(`درصد حضور ${r0(at.pct)}٪`);if(effN(id))att.push(`${fa(effN(id))} مورد «نیاز به تلاش بیشتر»`);
   const P=P0(),q=jp(tdy()),nw=new Date(),dstr=fa(q.y+'/'+pad2(q.m)+'/'+pad2(q.d)),stamp='تاریخ چاپ: '+dstr+' | ساعت '+fa(pad2(nw.getHours())+':'+pad2(nw.getMinutes()));
   const cls=c=>avg(S.students.flatMap(z=>vals(z.id,e=>e.course===c.id)));
-  return{s,at,h,all,cr,tp,pr,ov,bh,ex,str,att,P,q,dstr,stamp,cls,sch:P.school?schoolFull():'',gr:pr&&pr.pct!=null?(pr.pct>=0?'+':'−')+fa(Math.abs(Math.round(pr.pct)))+'٪':'—',sy:syLab?syLab(SY):''}}
+  return{s,at,h,all,cr,cf,tp,pr,ov,bh,ex,str,att,P,q,dstr,stamp,cls,sch:P.school?schoolFull():'',gr:pr&&pr.pct!=null?(pr.pct>=0?'+':'−')+fa(Math.abs(Math.round(pr.pct)))+'٪':'—',sy:syLab?syLab(SY):''}}
  const kcTr=d=>d==null?'<span style="color:#999">—</span>':d>=.5?'<span class="tr" style="color:#1a8f55">▲ رو به رشد</span>':d<=-.5?'<span class="tr" style="color:#c0262c">▼ کاهش</span>':'<span class="tr" style="color:#6b5f84">● ثابت</span>';
  const kcLi=(a,c)=>a.length?a.map(x=>`<div class="li"><span style="color:${c}">●</span> ${x}</div>`).join(''):'<div class="nt">مورد قابل‌ذکری ثبت نشده است.</div>';
  /* ---- کارنامه‌ی گرافیکی ---- */
- function cardHtml(id){const D=kcData(id),{s,at,h,all,cr,pr,ov,bh,ex,str,att,P,q,dstr,stamp,cls,sch,gr}=D;
+ function cardHtml(id){const D=kcData(id),{s,at,h,all,cr,cf,pr,ov,bh,ex,str,att,P,q,dstr,stamp,cls,sch,gr}=D;
   const kp=[['امتیاز کلی',r0(ov),'#7e57c2'],['میانگین تحصیلی (از ۴)',f(all),all==null?'#999':LC(all)],['رفتار',r0(bh),'#5b7fd6'],['امتیاز فعالیت',fa(X.actPts(id)),'#d98600'],['درصد حضور',at.pct==null?'—':r0(at.pct)+'٪',at.pct!=null&&at.pct<85?'#c0262c':'#2f9bb0'],['رشد (نیمه‌ی دوم به اول)',gr,pr&&pr.d<0?'#c0262c':'#1a8f55']];
-  const rows=cr.map(x=>{const ca=cls(x.c);return `<tr><td>${esc2(x.c.name)}</td><td><div class="bar"><s style="width:${x.v/4*100}%;background:${LC(x.v)}"></s>${ca!=null?`<i style="right:calc(${ca/4*100}% - 1px)"></i>`:''}</div></td><td><b style="color:${LC(x.v)}">${f(x.v)}</b></td><td style="color:#6b5f84">${f(ca)}</td><td><span class="lv" style="background:${LC(x.v)}">${lv(x.v)}</span></td><td>${kcTr(x.d)}</td></tr>`}).join('');
+  const rows=cf.map(x=>{if(x.sk)return `<tr><td>${esc2(x.c.name)}</td><td colspan="2" style="text-align:center">${kcSl(x,id,0)}</td><td colspan="6" style="text-align:right;font-size:11px;line-height:1.8">${kcSk(x,id)}</td></tr>`;const ca=cls(x.c),has=x.v!=null;return `<tr><td>${esc2(x.c.name)}</td><td><div class="bar">${has?`<s style="width:${x.v/4*100}%;background:${LC(x.v)}"></s>`:''}${ca!=null?`<i style="right:calc(${ca/4*100}% - 1px)"></i>`:''}</div></td><td>${kcN(x.cont)}</td><td>${kcN(x.t1)}</td><td>${kcN(x.t2)}</td><td>${has?`<b style="color:${LC(x.v)}">${f(x.v)}</b>`:'—'}</td><td style="color:#6b5f84">${f(ca)}</td><td>${has?`<span class="lv" style="background:${LC(x.v)}">${lv(x.v)}</span>`:'<span style="color:#999">—</span>'}</td><td>${has?kcTr(x.d):'<span style="color:#999">—</span>'}</td></tr>`}).join('');
   const hT=h.d+h.p+h.n,hb=hT?`<div class="sbar"><i style="width:${h.d/hT*100}%;background:#1a8f55"></i><i style="width:${h.p/hT*100}%;background:#f59e0b"></i><i style="width:${h.n/hT*100}%;background:#e5484d"></i></div>`:'';
   const aT=at.pct==null?'':`<div class="sbar"><i style="width:${Math.min(100,at.pct)}%;background:${at.pct<85?'#e5484d':'#1a8f55'}"></i></div>`;
   return KC_CSS+`<div class="kc"><div class="hd"><div class="lg">${P.logo?`<img src="${P.logo}">`:''}${esc2(sch)}</div><div class="t"><div class="ti">کارنامه‌ی عملکرد دانش‌آموز</div><div class="sb">${esc2(profLine())}</div><div class="pill">سال تحصیلی ${D.sy} · ${dstr}</div></div><div style="width:92px"></div></div>
   <div class="st">${kcPh(s,72,96)}<div style="min-width:0"><div class="lb">نام و نام خانوادگی دانش‌آموز</div><div class="nm">${esc2(s.name)}</div></div>${all!=null?`<div class="ov" style="background:${LC(all)}"><small>وضعیت کلی تحصیلی</small>${lv(all)}</div>`:''}</div>
   <div class="kp">${kp.map(k=>`<div class="k" style="--c:${k[2]}"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('')}</div>
-  <div class="p" style="--c:#7e57c2"><div class="gt">وضعیت دروس</div>${cr.length?`<table><tr><th>درس</th><th style="width:26%">میانگین (از ۴)</th><th>میانگین دانش‌آموز</th><th>میانگین کلاس</th><th>سطح</th><th>روند</th></tr>${rows}</table><div class="nt">خط تیره روی نوار، میانگین کلاس در همان درس است.</div>`:'<div class="nt">آزمونی ثبت نشده است.</div>'}</div>
+  <div class="p" style="--c:#7e57c2"><div class="gt">وضعیت دروس</div>${cf.length?`<table><tr><th>درس</th><th style="width:15%">میانگین (از ۴)</th><th>مستمر (طول نیمسال)</th><th>پایان نیمسال اول</th><th>پایان نیمسال دوم</th><th>میانگین کل</th><th>میانگین کلاس</th><th>سطح</th><th>روند</th></tr>${rows}</table><div class="nt">خط تیره روی نوار، میانگین کلاس در همان درس است. «مستمر» میانگین پرسش‌های کلاسی و آزمون‌های طول نیمسال است؛ «—» یعنی هنوز داده‌ای ثبت نشده. هنر و تربیت بدنی به‌صورت توصیفی ارزشیابی می‌شوند.</div>`:'<div class="nt">درسی تعریف نشده است.</div>'}</div>
   <div class="row"><div class="p" style="--c:#2f9bb0"><div class="gt">حضور</div>${aT}<div class="tri"><div><small>درصد حضور</small><b style="color:${at.pct!=null&&at.pct<85?'#c0262c':'#1a8f55'}">${at.pct==null?'—':r0(at.pct)+'٪'}</b></div><div><small>غیبت</small><b style="color:#c0262c">${fa(at.a)}</b></div><div><small>تأخیر</small><b style="color:#b26a00">${fa(at.l)}</b></div></div></div>
   <div class="p" style="--c:#1a8f55"><div class="gt">تکالیف</div>${hb}<div class="tri"><div><small>کامل</small><b style="color:#1a8f55">${fa(h.d)}</b></div><div><small>ناقص</small><b style="color:#b26a00">${fa(h.p)}</b></div><div><small>انجام‌نشده</small><b style="color:#c0262c">${fa(h.n)}</b></div></div></div></div>
   <div class="p" style="--c:#7e57c2"><div class="gt">روند رشد (همه‌ی ارزیابی‌ها، از ۴)</div>${kcTrend(ex)}</div>
   <div class="row"><div class="p" style="--c:#1a8f55;background:#f3fbf6;border-color:#cfeadb"><div class="gt">🌟 نقاط قوت</div>${kcLi(str,'#1a8f55')}</div><div class="p" style="--c:#d98600;background:#fffaf0;border-color:#f3dfae"><div class="gt">⚠️ موارد نیازمند توجه</div>${kcLi(att,'#d98600')}</div></div>
   <div class="sum"><b style="color:#4b3478">📝 نظر معلم: </b>${esc2((S.desc&&S.desc[id])||window.genDesc(id))}</div>${sign()}<div class="ft">${stamp}</div></div>`}
  /* ---- کارنامه‌ی رسمی و اداری ---- */
- function officialHtml(id){const D=kcData(id),{s,at,h,all,cr,ov,bh,ex,str,att,P,dstr,stamp,cls,sch}=D;
+ function officialHtml(id){const D=kcData(id),{s,at,h,all,cr,cf,ov,bh,ex,str,att,P,dstr,stamp,cls,sch}=D;
   const kv=(k,v)=>`<div><span>${k}:</span><b>${v?esc2(v):'—'}</b></div>`,cn=c=>{const z=S.courses.find(x=>x.id===c);return z?z.name:'—'};
   const kk=[['میانگین تحصیلی (از ۴)',f(all)],['سطح عملکرد',all==null?'—':lv(all)],['امتیاز کلی',r0(ov)],['امتیاز رفتار',r0(bh)],['درصد حضور',at.pct==null?'—':r0(at.pct)+'٪'],['امتیاز فعالیت',fa(X.actPts(id))]];
-  const rowsC=cr.map((x,i)=>`<tr><td>${fa(i+1)}</td><td class="n">${esc2(x.c.name)}</td><td>${fa(x.n)}</td><td><b>${f(x.v)}</b></td><td>${f(cls(x.c))}</td><td><b style="color:${LC(x.v)}">${lv(x.v)}</b></td><td>${x.d==null?'—':x.d>=.5?'رو به رشد':x.d<=-.5?'کاهش':'ثابت'}</td></tr>`).join('');
+  const rowsC=cf.map((x,i)=>{if(x.sk)return `<tr><td>${fa(i+1)}</td><td class="n">${esc2(x.c.name)}</td><td colspan="2" style="text-align:center">${kcSl(x,id,1)}</td><td colspan="6" style="text-align:right;font-size:11px;line-height:1.8">${kcSk(x,id)}</td></tr>`;const has=x.v!=null;return `<tr><td>${fa(i+1)}</td><td class="n">${esc2(x.c.name)}</td><td>${fa(x.n)}</td><td>${kcN(x.cont)}</td><td>${kcN(x.t1)}</td><td>${kcN(x.t2)}</td><td>${has?`<b>${f(x.v)}</b>`:'—'}</td><td>${f(cls(x.c))}</td><td>${has?`<b style="color:${LC(x.v)}">${lv(x.v)}</b>`:'—'}</td><td>${!has||x.d==null?'—':x.d>=.5?'رو به رشد':x.d<=-.5?'کاهش':'ثابت'}</td></tr>`}).join('');
   const exs=S.exams.slice().sort((a,b)=>a.date.localeCompare(b.date)).map(e=>({e,v:nrm(e,id)})).filter(x=>x.v!=null);
   const dt=e=>{const p=jp(new Date(e.date+'T12:00:00Z'));return fa(p.y+'/'+pad2(p.m)+'/'+pad2(p.d))};
   const chunks=[];for(let i=0;i<exs.length;i+=14)chunks.push(exs.slice(i,i+14));
-  const exT=chunks.map((c,k)=>`<div>${k===0?'<div class="oh2">ریز نتایج ارزیابی‌ها</div>':''}<table><tr><th style="width:8%">ردیف</th><th style="width:22%">تاریخ</th><th>درس</th><th style="width:16%">نمره (از ۴)</th><th style="width:20%">سطح</th></tr>${c.map((x,i)=>`<tr><td>${fa(k*14+i+1)}</td><td>${dt(x.e)}</td><td class="n">${esc2(cn(x.e.course))}</td><td><b>${f(x.v)}</b></td><td><b style="color:${LC(x.v)}">${lv(x.v)}</b></td></tr>`).join('')}</table></div>`).join('');
+  const exT=chunks.map((c,k)=>`<div>${k===0?'<div class="oh2">ریز نتایج ارزیابی‌ها</div>':''}<table><tr><th style="width:7%">ردیف</th><th style="width:17%">تاریخ</th><th>درس</th><th style="width:24%">نوع</th><th style="width:13%">نمره (از ۴)</th><th style="width:15%">سطح</th></tr>${c.map((x,i)=>`<tr><td>${fa(k*14+i+1)}</td><td>${dt(x.e)}</td><td class="n">${esc2(cn(x.e.course))}</td><td>${esc2(x.e.type||'')}</td><td><b>${f(x.v)}</b></td><td><b style="color:${LC(x.v)}">${lv(x.v)}</b></td></tr>`).join('')}</table></div>`).join('');
   return KC_CSS+`<div class="kc ko"><div class="oh"><div class="lg">${P.logo?`<img src="${P.logo}">`:''}${esc2(sch)}</div><div class="t"><div class="ti">کارنامه‌ی رسمی دانش‌آموز</div><div class="sb">گزارش رسمی وضعیت تحصیلی · سال تحصیلی ${D.sy}</div></div><div style="width:100px"></div></div>
   <div class="inf">${kcPh(s,96,128)}<div class="ig">${kv('نام و نام خانوادگی',s.name)}${kv('پایه',P.grade)}${kv('کلاس',P.sec)}${kv('آموزگار',P.teacher)}${kv('مدیر',P.principal)}${kv('منطقه / شهر',P.city)}${kv('سال تحصیلی',D.sy)}${kv('تاریخ گزارش',dstr)}</div></div>
   <div class="kk">${kk.map(x=>`<div><b>${x[1]}</b><span>${x[0]}</span></div>`).join('')}</div>
-  <div><div class="oh2">وضعیت دروس</div>${cr.length?`<table><tr><th style="width:7%">ردیف</th><th>درس</th><th style="width:13%">تعداد ارزیابی</th><th style="width:14%">میانگین دانش‌آموز</th><th style="width:13%">میانگین کلاس</th><th style="width:13%">سطح</th><th style="width:12%">روند</th></tr>${rowsC}</table><div class="nt">نمرات بر مبنای ۴ است. میانگین کلاس از نمرات همه‌ی دانش‌آموزان همان درس محاسبه شده است.</div>`:'<div class="nt">آزمونی ثبت نشده است.</div>'}</div>
+  <div><div class="oh2">وضعیت دروس</div>${cf.length?`<table><tr><th style="width:5%">ردیف</th><th>درس</th><th style="width:8%">تعداد ارزیابی</th><th style="width:9%">مستمر</th><th style="width:9%">پایان نیمسال اول</th><th style="width:9%">پایان نیمسال دوم</th><th style="width:9%">میانگین کل</th><th style="width:9%">میانگین کلاس</th><th style="width:10%">سطح</th><th style="width:9%">روند</th></tr>${rowsC}</table><div class="nt">نمرات بر مبنای ۴ است. «مستمر» میانگین ارزشیابی‌های طول نیمسال (پرسش کلاسی و آزمون کتبی) و «پایان نیمسال» نمره‌ی آزمون نهایی همان نیمسال است؛ «—» یعنی داده‌ای ثبت نشده. هنر و تربیت بدنی توصیفی‌اند.</div>`:'<div class="nt">درسی تعریف نشده است.</div>'}</div>
   <div class="tw"><div><div class="oh2">حضور و غیاب</div><table><tr><th>درصد حضور</th><th>غیبت</th><th>تأخیر</th></tr><tr><td><b>${at.pct==null?'—':r0(at.pct)+'٪'}</b></td><td>${fa(at.a)}</td><td>${fa(at.l)}</td></tr></table></div><div><div class="oh2">تکالیف</div><table><tr><th>کامل</th><th>ناقص</th><th>انجام‌نشده</th></tr><tr><td>${fa(h.d)}</td><td>${fa(h.p)}</td><td>${fa(h.n)}</td></tr></table></div></div>
   ${exT}
   <div class="tw"><div><div class="oh2">نقاط قوت</div><div class="bx">${kcLi(str,'#1a8f55')}</div></div><div><div class="oh2">موارد نیازمند توجه</div><div class="bx">${kcLi(att,'#d98600')}</div></div></div>
@@ -3317,7 +3331,7 @@ const o=window.show;window.show=function(id){return o.call(this,id==='sc'?'mot':
 /* [CHG-6] منوی جدید: ۸ بخش اصلی + زبانه‌های داخلی؛ و نوار شاخص‌های صفحه‌ی اصلی */
 (function(){try{
 const nav=document.getElementById('nav'),$=id=>document.getElementById(id);
-const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و حضور',['att','act','teams','draw']],['les','📚 درس و آزمون',['crs','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','mgr']],['mot','🎮 امتیاز و انگیزش',['mot']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf']],['set','⚙️ تنظیمات و پشتیبان',['set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
+const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و حضور',['att','act','teams','draw']],['les','📚 درس و آزمون',['crs','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','mgr']],['mot','🎮 امتیاز و انگیزش',['mot']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf']],['set','⚙️ تنظیمات و پشتیبان',['set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
 const known=new Set(H.flatMap(h=>h.ids));[...document.querySelectorAll('section[id]')].forEach(s=>{if(!known.has(s.id)&&s.id!=='sc'&&s.id!=='mot2'){H[H.length-1].ids.push(s.id);known.add(s.id)}});
 const title=i=>{const p=(typeof pages!=='undefined'?pages:[]).find(x=>x[0]===i);return p?p[1]:i},last={};
 nav.innerHTML='';H.filter(h=>h.ids.length).forEach(h=>{const b=document.createElement('button');b.textContent=h.t;b.dataset.p=h.k;b.onclick=()=>show(last[h.k]||h.ids[0]);nav.appendChild(b)});
@@ -3398,6 +3412,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-sk],[data-
 document.addEventListener('change',e=>{if(e.target.id==='sk_s'){skSid=+e.target.value;loadTmp();rSk()}});
 {const g0=window.genDesc;if(typeof g0==='function')window.genDesc=function(id){let t=g0.apply(this,arguments);const x=['art','pe'].map(k=>{const d=descOf(id,k);return d?SUBJ[k].t+': '+d:''}).filter(Boolean).join(' ');return x?(t?t+' ':'')+x:t}}
 window.skillDesc=descOf;
+window.skillLevel=(sid,key)=>{const D=sk(sid,key),B=SUBJ[key];if(!D||!B)return null;const v=(B.rc||B.ind.map(x=>x[0])).map(k=>D[k]).filter(Boolean);return v.length?Math.min(4,Math.max(1,Math.round(v.reduce((a,b)=>a+b,0)/v.length))):null};
 
 /* ================= گزارش نموداری فعالیت کلاسی ================= */
 const ACAD=['پاسخ به سؤال','حل مسئله روی تخته','ارائه'],isA=k=>ACAD.includes(k);

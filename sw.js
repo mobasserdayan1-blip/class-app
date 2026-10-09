@@ -1,4 +1,4 @@
-const C='cl-v37',A=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
+const C='cl-v44',A=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
 /* [CHG-7] کتابخانه‌های PDF/اکسل بعد از اولین بارگذاری موفق، آفلاین هم کار می‌کنند */
 const CDN=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js'];
 const isCDN=u=>/^https:\/\/(cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net|unpkg\.com)\//.test(u);

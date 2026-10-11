@@ -935,7 +935,17 @@ async function push(){if(!user)return;let note='';try{ui('در حال ذخیره
   const ix1={},fx1={};Object.keys(idx).forEach(k=>(k[0]==='s'?fx1:ix1)[k]=idx[k]);await ref().set({v:2,idx:ix1,fx:fx1,ts:ts0,by});await Promise.all(stale);lastIdx=idx}catch(e){if(e.code==='permission-denied'){v2=false;await legacy();note='\n⚠️ حالت قدیمی (تک‌سند). قوانین Firestore را برای ذخیره‌ی بخش‌بخش اصلاح کنید.'}else throw e}}
  else{await legacy();note='\n⚠️ حالت قدیمی (تک‌سند). قوانین Firestore را اصلاح کنید.'}
  ui('✅ ذخیره شد · '+user.email+'\nآخرین ذخیره: '+fmtT(ts())+note,'ok')}catch(e){ui('❌ ذخیره نشد (اینترنت، دسترسی یا حجم): '+(e.code||e.message),'err')}}
-window.cloudPush=()=>{if(!user)return;clearTimeout(timer);timer=setTimeout(push,1500)};
+let dirty=false;
+window.cloudPush=()=>{if(!user)return;dirty=true;clearTimeout(timer);timer=setTimeout(()=>{dirty=false;push()},1200)};
+/* [CHG-LIVE] دریافت زنده‌ی تغییرات دستگاه دیگر؛ اگر کاربر در حال تایپ است تا پایان تایپ صبر می‌کند */
+let waitOn=false;
+function wait(){if(waitOn)return;waitOn=true;let n=0;
+ const go=async()=>{const a=document.activeElement;
+  if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)&&a.type!=='file'&&n++<40){setTimeout(go,2500);return}
+  waitOn=false;if(!user||dirty)return;
+  if(n>40){ui('🔄 تغییر تازه‌ای در ابر هست؛ «همگام‌سازی الآن» را بزنید.','');return}
+  try{const sn=await ref().get();const d=sn.exists&&sn.data();if(d&&d.ts>ts()){ui('🔄 دریافت تغییرات دستگاه دیگر…','');applyCloud(d)}}catch(e){}};
+ go()}
 async function sync(first){
  if(!user||busy)return;busy=true;
  try{ui('در حال همگام‌سازی…','');const snap=await ref().get(),lt=ts();
@@ -944,7 +954,7 @@ async function sync(first){
    if(d.v===2&&d.idx&&d.ts<=lt&&!lastIdx)lastIdx=Object.assign({},d.idx,d.fx||{});
    if(d.ts>lt){
     if(first&&lt===0&&localStorage.getItem('cl1')&&!confirm('در حساب ابری شما اطلاعات ذخیره شده است.\n\nOK = اطلاعات ابری روی این دستگاه بیاید\nCancel = اطلاعات همین دستگاه جایگزین ابری شود')){localStorage.setItem('cl1_ts',Date.now());await push()}
-    else applyCloud(d)
+    else if(first)applyCloud(d);else wait()
    }else if(d.ts<lt){await push()}
    else ui('✅ همه‌چیز به‌روز است · '+user.email+'\nآخرین تغییر: '+fmtT(lt),'ok')}
  }catch(e){ui('❌ خطا در همگام‌سازی: '+(e.code||e.message),'err')}
@@ -956,11 +966,13 @@ if(!CFG.apiKey){ui('ذخیره‌ی ابری هنوز تنظیم نشده است
 ui('در حال اتصال…','');
 Promise.all([ld(B+'firebase-app-compat.js'),0]).then(()=>Promise.all([ld(B+'firebase-auth-compat.js'),ld(B+'firebase-firestore-compat.js')])).then(()=>{
  firebase.initializeApp(CFG);auth=firebase.auth();db=firebase.firestore();
- auth.onAuthStateChanged(u=>{user=u;if(u){$('cin').style.display='none';$('csy').style.display=$('cout').style.display='';sync(true)}else{ui('وارد نشده‌اید. با ورود به حساب گوگل، اطلاعات شما در هر دستگاهی در دسترس است.','');$('cin').style.display='';$('csy').style.display=$('cout').style.display='none'}});
+ let un=null;auth.onAuthStateChanged(u=>{user=u;if(un){try{un()}catch(e){}un=null}if(u){try{un=ref().onSnapshot(sn=>{if(!sn.exists||sn.metadata.hasPendingWrites||busy||dirty)return;const d=sn.data();if(d&&ts()>0&&d.ts>ts())wait()},()=>{})}catch(e){}$('cin').style.display='none';$('csy').style.display=$('cout').style.display='';sync(true)}else{ui('وارد نشده‌اید. با ورود به حساب گوگل، اطلاعات شما در هر دستگاهی در دسترس است.','');$('cin').style.display='';$('csy').style.display=$('cout').style.display='none'}});
  $('cin').onclick=()=>{const pr=new firebase.auth.GoogleAuthProvider();auth.signInWithPopup(pr).catch(e=>{if(e.code==='auth/popup-blocked'||e.code==='auth/popup-closed-by-user'&&0)auth.signInWithRedirect(pr);else ui('❌ ورود انجام نشد: '+e.code+(e.code==='auth/unauthorized-domain'?'\nدامنه‌ی این صفحه در Firebase مجاز نشده است.':''),'err')})};
  $('csy').onclick=()=>sync(false);
  $('cout').onclick=()=>auth.signOut();
- document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync(false)});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync(false);else if(dirty&&user){clearTimeout(timer);dirty=false;push()}});
+ addEventListener('pagehide',()=>{if(dirty&&user){clearTimeout(timer);dirty=false;push()}});
+ setInterval(()=>{if(!document.hidden&&user&&!dirty&&!busy)sync(false)},60000);
  addEventListener('online',()=>sync(false));
 }).catch(()=>ui('❌ بارگذاری Firebase ممکن نشد (اینترنت یا فایل از طریق آدرس وب باز نشده).','err'));
 })();
@@ -4377,7 +4389,7 @@ const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const MN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 const WN=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
-const TYPES=['پرسش و پاسخ کلاسی','آزمون کتبی','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم'];
+const TYPES=['آزمون کتبی','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم'];
 const isFin=t=>/پایان نیمسال/.test(t||'');
 const jf=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'});
 const jp=d=>{const o={};jf.formatToParts(d).forEach(p=>{if(p.type==='year'||p.type==='relatedYear')o.y=+p.value;else if(p.type==='month')o.m=+p.value;else if(p.type==='day')o.d=+p.value});return o};
@@ -4585,7 +4597,7 @@ function submit(){
  else{P().push({id:Date.now(),course:c,type,rng:r,time:tm,bell:bl,date:k,ch,tp,st:'p'});toast('آزمون در برنامه ثبت شد ✅');$('exR').value='';$('exBl').value='';blTouched=false;$('exTp').value='';setISO(iso(addD(today(),1)))}
  persist();hero();list();
 }
-function edit(id){const e=P().find(x=>x.id===id);if(!e)return;editId=id;fillCourses();$('exC').value=e.course;$('exT').value=e.type;fillTp();$('exTp').value=e.tp?e.ch+':'+e.tp:'';$('exR').value=e.rng||'';fillBells();$('exBl').value=e.bell||'';blTouched=true;setISO(e.date);
+function edit(id){const e=P().find(x=>x.id===id);if(!e)return;editId=id;fillCourses();$('exC').value=e.course;$('exT').value=TYPES.includes(e.type)?e.type:TYPES[0];fillTp();$('exTp').value=e.tp?e.ch+':'+e.tp:'';$('exR').value=e.rng||'';fillBells();$('exBl').value=e.bell||'';blTouched=true;setISO(e.date);
  $('exFt').textContent='ویرایش آزمون';$('exAdd').textContent='ذخیره‌ی تغییرات';$('exCan').style.display='';$('exFormCard').scrollIntoView({behavior:'smooth',block:'start'})}
 
 /* ---------- تبدیل به ثبت نمره ---------- */

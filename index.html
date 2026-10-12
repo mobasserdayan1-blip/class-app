@@ -1920,7 +1920,7 @@ window.renderMk=rm;
  const cfg=()=>{const c=S.actCfg=S.actCfg||{};if(!c.tgt)c.tgt=3;if(c.wAcad==null)c.wAcad=30;if(!c.perDay)c.perDay=6;if(!c.subs)c.subs={};return c};
  const modeOf=()=>cfg().mode==='g'?'g':'i';
  const curKind=m=>{m=m||modeOf();const ks=kinds(m),c=cfg(),key=m==='g'?'gkind':'kind';return ks.some(k=>k[0]===c[key])?c[key]:(ks[0]?ks[0][0]:'سایر')};
- let sel=null,selType='positive',selKind=null,selVol=false,volOn=false,noteOpen=new Set(),bulk=new Set(),bkNote='',selNote=false,setOpen=false,gridOpen=false,seq=0,armed='';
+ let sel=null,selType='positive',selKind=null,selVol=false,volOn=false,noteOpen=new Set(),bulk=new Set(),bkNote='',selNote=false,setOpen=false,gridOpen=false,seq=0,armed='',bkDate=0;
  const cl01=v=>Math.max(0,Math.min(1,v));
  const q=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
  const today=()=>iso(tdy()),D=k=>new Date(k+'T12:00:00Z'),dl=k=>fmt(D(k));
@@ -1933,8 +1933,11 @@ window.renderMk=rm;
  const cnt=(sid,day)=>{const A=S.activities.filter(x=>x.sid===sid&&(!day||x.date===day)),ac=A.filter(x=>isAcad(x.kind)),bh=A.filter(x=>!isAcad(x.kind)),n=(L,t)=>L.filter(x=>x.type===t).length;return{m:n(ac,'positive'),e:n(ac,'effort'),p:n(bh,'positive'),f:n(bh,'effort'),g:A.filter(x=>x.grp).length,n:A.length}};
  /* ثبت‌های یک دانش‌آموز در یک روز (هر نوع ثبت: نوبت امروز، دسته‌جمعی، دستی، تیمی) — تعداد ثبت در روز محدود نیست */
  const absentToday=sid=>((S.att||{})[today()]||{})[sid]==='a';
+ const absentOn=(sid,d)=>((S.att||{})[d]||{})[sid]==='a';
+ const bkIso=()=>addD(today(),-bkDate);
  /* برای هر دانش‌آموز، در هر درس/مبحث انتخاب‌شده فقط یک بار می‌شود عملکرد ثبت کرد (اگر درسی انتخاب نشده باشد محدودیتی نیست) */
- const blockMsg=sid=>absentToday(sid)?'این دانش‌آموز امروز غایب است و در فعالیت کلاسی شرکت نمی‌کند':'';
+ const dupOf=(sid,kind)=>{const cx=ctx();if(!cx.course||!cx.tp||!isAcad(kind))return null;return S.activities.find(x=>x.sid===sid&&x.course===cx.course&&x.tp===cx.tp&&x.ch===cx.ch&&isAcad(x.kind))||null};
+ const blockMsg=(sid,kind)=>{if(absentToday(sid))return 'این دانش‌آموز امروز غایب است و در فعالیت کلاسی شرکت نمی‌کند';const d=dupOf(sid,kind);return d?'برای «'+where(d)+'» قبلاً در '+dl(d.date)+' فعالیت ثبت شده است. برای هر مبحث فقط یک‌بار می‌شود ثبت کرد؛ اگر اشتباه بوده، اول همان ثبت را لغو (↩) یا حذف کنید.':''};
  const dayRecs=(sid,day)=>S.activities.filter(x=>x.sid===sid&&x.date===day).sort((a,b)=>(a.ts||a.id)-(b.ts||b.id));
  /* ---- درس و مبحث (از بخش «درس‌ها ← فصل و مبحث») ---- */
  const crs=()=>S.courses||[];
@@ -2007,6 +2010,14 @@ window.renderMk=rm;
  .act-nt{flex-basis:100%;width:100%}.act-nt input{width:100%;margin:4px 0 0;font:inherit;font-size:13px}.act-nt small{display:block;color:var(--mut);font-size:11.5px;margin-top:3px}
  .act-h{font-size:13px;font-weight:800;margin:14px 0 4px;padding:6px 10px;border-radius:10px;background:var(--bg2)}
  .act-fl{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#2a2238;color:#fff;border-radius:999px;padding:11px 18px;font-size:14px;font-weight:700;z-index:80;box-shadow:0 6px 18px #0005;max-width:90vw;text-align:center}
+ .act-rec{margin-top:10px;padding:8px 10px 9px;border-radius:14px;background:var(--bg2);border:1px solid var(--line);border-inline-start:5px solid var(--rc,#9a93a8);position:relative}
+ .act-rec+.act-rec{margin-top:12px}
+ .act-rec .act-pr{align-items:center}
+ .act-no{margin-inline-start:auto;min-width:22px;height:22px;border-radius:99px;background:var(--rc,#9a93a8);color:#fff;font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+ .act-wh{margin-top:7px;font-size:12.5px;line-height:1.8;color:var(--tx);display:flex;align-items:flex-start;gap:6px}
+ .act-wh i{flex:0 0 8px;height:8px;border-radius:50%;background:var(--rc,#9a93a8);margin-top:8px}
+ .act-wh b{color:var(--rc,#7e57c2)}.act-nw{color:var(--mut)}
+ .act-wn{margin-top:4px;font-size:12px;color:var(--mut)}
  details.card>summary{cursor:pointer;list-style:none}details.card>summary::-webkit-details-marker{display:none}`;
  document.head.appendChild(css);
  /* منو و صفحه */
@@ -2014,7 +2025,7 @@ window.renderMk=rm;
   const b=document.createElement('button');b.textContent='🌟 فعالیت کلاسی';b.dataset.p='act';b.onclick=()=>show('act');
   const ref=nav.querySelector('[data-p="att"]');ref?ref.after(b):nav.appendChild(b)}
  const _show=window.show;window.show=function(id){_show(id);if(id==='act')render()};
- function add(sid,type,kind,o){o=o||{};if(absentToday(sid))return null;{const L0=S.activities[S.activities.length-1];if(L0&&L0.sid===sid&&L0.kind===kind&&L0.type===type&&!!L0.grp===!!o.grp&&Date.now()-(L0.ts||0)<1200)return null}const r={id:Date.now()*100+(seq++%100),sid,type,kind,points:TY[type].p+(type==='positive'&&o.vol?2:0),note:o.note||'',date:today(),ts:Date.now()};
+ function add(sid,type,kind,o){o=o||{};if(absentOn(sid,o.date||today()))return null;if(dupOf(sid,kind))return null;{const L0=S.activities[S.activities.length-1];if(L0&&L0.sid===sid&&L0.kind===kind&&L0.type===type&&!!L0.grp===!!o.grp&&Date.now()-(L0.ts||0)<1200)return null}const r={id:Date.now()*100+(seq++%100),sid,type,kind,points:TY[type].p+(type==='positive'&&o.vol?2:0),note:o.note||'',date:o.date||today(),ts:Date.now()};
   if(o.vol)r.vol=1;if(o.grp){r.grp=o.grp;r.gb=o.gb}
   const cx=ctx();if(cx.course){r.course=cx.course;if(cx.tp){r.ch=cx.ch;r.tp=cx.tp}r.tl=where(r)}
   const sb=cfg().subs[kind];if(sb&&SUBS[kind])r.sub=sb;
@@ -2039,7 +2050,9 @@ window.renderMk=rm;
   return `<div class="card"><b>📊 جمع‌بندی به تفکیک نوع فعالیت${grpMode?' (هر ثبت گروهی یک بار)':''}</b>
   ${A.length?`<div class="act-h">🎓 فعالیت‌های درسی</div>${tbl(A,[['✅ مسلط','positive'],['🔄 نیاز به تمرین','effort']])}`:''}
   ${B.length?`<div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری</div>${tbl(B,[['🌟 مثبت','positive'],['💪 نیاز به تلاش','effort']])}`:''}</div>`}
- const recRow=x=>{const w=where(x),op=noteOpen.has(String(x.id));return `<div class="act-nt"><div class="act-pr" style="margin-top:6px"><span class="act-dn">${x.grp?'👥 ':''}${esc2(kl(x))} · ${esc2(RL(x.kind||'سایر',x.type))}${x.vol?' · ✋':''}</span><button class="act-x" data-undo="${x.id}" aria-label="لغو">↩</button><button class="act-x${x.note?' on':''}" data-ntt="${x.id}" aria-label="توضیح" title="توضیح">📝</button></div>${op?`<input class="fs" data-nt="${x.id}" value="${q(x.note||'')}" placeholder="📝 توضیح (اختیاری)">${w?`<small>📚 ${esc2(w)}</small>`:''}`:''}</div>`};
+ const CC=['#7e57c2','#2a9d6a','#e0762b','#3b82c4','#d6457a','#14a3a3','#a6891b','#8a5a44'];
+ const wParts=x=>{const c=x.course?crs().find(z=>z.id===x.course):null;if(!c)return{n:'',t:x.tl||'',col:'#9a93a8'};let t='';if(x.tp){const H=CHs(x.course).find(h=>h.id===x.ch),T=H&&(H.tp||[]).find(z=>z.id===x.tp);t=T?T.name:(x.tl&&x.tl!==c.name?x.tl:'')}return{n:c.name,t,col:CC[Math.max(0,crs().indexOf(c))%CC.length]}};
+ const recRow=(x,i,arr)=>{const wp=wParts(x),op=noteOpen.has(String(x.id)),many=arr&&arr.length>1;return `<div class="act-nt act-rec" style="--rc:${wp.col}"><div class="act-pr"><span class="act-dn">${x.grp?'👥 ':''}${esc2(kl(x))} · ${esc2(RL(x.kind||'سایر',x.type))}${x.vol?' · ✋':''}</span><button class="act-x" data-undo="${x.id}" aria-label="لغو">↩</button><button class="act-x${x.note?' on':''}" data-ntt="${x.id}" aria-label="توضیح" title="توضیح">📝</button>${many?`<span class="act-no">${fa(i+1)}</span>`:''}</div><div class="act-wh">${wp.n||wp.t?`<i></i><span>📚 ${wp.n?`<b>${esc2(wp.n)}</b>`:''}${wp.n&&wp.t?' ← ':''}${esc2(wp.n?wp.t:wp.t)}</span>`:'<span class="act-nw">📚 درس و مبحث مشخص نشده</span>'}</div>${x.note&&!op?`<div class="act-wn">📝 ${esc2(x.note)}</div>`:''}${op?`<input class="fs" data-nt="${x.id}" value="${q(x.note||'')}" placeholder="📝 توضیح (اختیاری)">`:''}</div>`};
  function render(){
   const root=$('actBody');if(!root)return;autoCx();const st=S.students,T=today(),c=cfg(),mode=modeOf(),kind=curKind(mode),w0=wkStart(T);
   if(!st.length){root.innerHTML='<div class="card"><p class="sub">ابتدا دانش‌آموزان را در بخش «ویرایش دانش‌آموزان» اضافه کنید.</p></div>';return}
@@ -2084,8 +2097,13 @@ window.renderMk=rm;
   <div class="act-h">🎓 فعالیت‌های درسی (مسلط / نیاز به تمرین)</div>${IA.length?IA.slice(0,10).map(ii).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}
   <div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری (مثبت / نیاز به تلاش)</div>${IB.length?IB.slice(0,10).map(ii).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}</div>
   ${summary(IR,false)}${settings}`}
-function bulkCard(st,kind,TA){const at=(S.att||{})[today()]||{},L=st.filter(s=>at[s.id]!=='a');
-  return `<div class="card"><b>👥 ثبت دسته‌جمعی</b><p class="sub" style="margin:4px 0 8px">یک سؤال را از چند نفر پرسیدید؟ دانش‌آموزان را انتخاب کنید و با یک لمس عملکرد همه را ثبت کنید.</p>
+function bulkCard(st,kind,TA){const bd=bkIso(),at=(S.att||{})[bd]||{},L=st.filter(s=>at[s.id]!=='a');
+  const DL=['امروز','دیروز','۲ روز قبل'];
+  return `<div class="card"><b>👥 ثبت دسته‌جمعی</b><p class="sub" style="margin:4px 0 8px">مناسب بعد از کلاس: درس و مبحث و تاریخ را انتخاب کنید، دانش‌آموزان را انتخاب کنید و با یک لمس عملکرد همه را ثبت کنید. اول افراد «مسلط»، بعد افراد «نیاز به تمرین».</p>
+  <b style="font-size:13px">📅 تاریخ ثبت</b><div class="act-kd">${DL.map((l,i)=>`<button class="${bkDate===i?'on':''}" data-bkd="${i}">${l}${i?' · '+dl(addD(today(),-i)):''}</button>`).join('')}</div>
+  ${bkDate?`<p class="sub" style="margin:0 0 8px;color:#b26a00">⚠️ ثبت‌ها با تاریخ ${dl(bd)} ذخیره می‌شوند و غایبان همان روز در لیست نیستند.</p>`:''}
+  ${ctxHtml()}
+  <b style="font-size:13px;display:block;margin:8px 0 4px">نوع فعالیت</b>${chips('i',kind,'data-ck')}
   <div class="act-bkc">${L.map(s=>`<button class="${bulk.has(s.id)?'on':''}" data-bks="${s.id}">${esc2(s.name)}</button>`).join('')||'<span class="sub">دانش‌آموزی نیست</span>'}</div>
   <div style="display:flex;gap:6px;margin:8px 0"><button class="sm" data-bka="1">انتخاب همه</button><button class="sm" data-bkn="1">پاک‌کردن</button><span class="sub" style="margin:0;align-self:center">${fa(bulk.size)} نفر انتخاب شده</span></div>
   <input class="fs" id="actBkNote" value="${q(bkNote)}" placeholder="📝 توضیح مشترک (اختیاری)" style="width:100%;margin:0 0 8px">
@@ -2113,7 +2131,7 @@ function bulkCard(st,kind,TA){const at=(S.att||{})[today()]||{},L=st.filter(s=>a
    if(e.target.closest('[data-snt]')){selNote=!selNote;keep();if($('actNote'))$('actNote').focus();return}
    const au=e.target.closest('[data-cxauto]');if(au){const c0=cfg();c0.course=+au.dataset.cxauto;c0.tp='';save();keep();render();return}
    const ud=e.target.closest('[data-undo]');if(ud){S.activities=S.activities.filter(x=>String(x.id)!==ud.dataset.undo);fin();keep();return}
-   if(e.target.id==='actSave'||e.target.id==='actSave2'){const bm=blockMsg(sel);if(bm){flash(bm);return}add(sel,selType,selKind,{vol:selVol,note:($('actNote')?$('actNote').value:'').trim()});
+   if(e.target.id==='actSave'||e.target.id==='actSave2'){const bm=blockMsg(sel,selKind);if(bm){flash(bm);return}add(sel,selType,selKind,{vol:selVol,note:($('actNote')?$('actNote').value:'').trim()});
     if(e.target.id==='actSave2'){selVol=false;selNote=false;fin();sheet();flash('✅ ثبت شد؛ مورد بعدی را وارد کنید');return}
     sel=null;sheet();fin()}});
   document.body.appendChild(o)}
@@ -2137,15 +2155,16 @@ function bulkCard(st,kind,TA){const at=(S.att||{})[today()]||{},L=st.filter(s=>a
   if(b=g('[data-sub]')){const k=curKind(),S2=cfg().subs;S2[k]=S2[k]===b.dataset.sub?'':b.dataset.sub;save();render();return}
   if(g('[data-vol]')){volOn=!volOn;render();return}
   if(g('[data-repick]')){pickNow();render();return}
-  if(b=g('[data-rs]')){const[sid,t]=b.dataset.rs.split('|'),bm=blockMsg(+sid);if(bm){flash(bm);return}add(+sid,t,curKind('i'),{vol:volOn});volOn=false;fin();return}
+  if(b=g('[data-rs]')){const[sid,t]=b.dataset.rs.split('|'),bm=blockMsg(+sid,curKind('i'));if(bm){flash(bm);return}add(+sid,t,curKind('i'),{vol:volOn});volOn=false;fin();return}
   if(b=g('[data-gr]')){const[t,ty]=b.dataset.gr.split('|'),k=curKind('g'),at=(S.att||{})[today()]||{},m=S.students.filter(s=>s.team===+t&&at[s.id]!=='a');
    if(!m.length){flash('هیچ عضو حاضری برای این تیم نیست');return}
-   const gb=Date.now()*100+(seq++%100);const ok=m,skp=0;if(!ok.length){flash('همه‌ی اعضای حاضر این تیم برای این درس و مبحث قبلاً ثبت دارند');return}ok.forEach(s=>add(s.id,ty,k,{grp:+t,gb}));fin();flash('✅ ثبت شد برای '+fa(ok.length)+' عضو '+tname(+t,'تیم '+t)+(skp?' · '+fa(skp)+' نفر قبلاً ثبت داشتند':''));return}
+   const gb=Date.now()*100+(seq++%100);const ok=m.filter(s=>!dupOf(s.id,k)),skp=m.length-ok.length;if(!ok.length){flash('همه‌ی اعضای حاضر این تیم برای این درس و مبحث قبلاً ثبت دارند');return}ok.forEach(s=>add(s.id,ty,k,{grp:+t,gb}));fin();flash('✅ ثبت شد برای '+fa(ok.length)+' عضو '+tname(+t,'تیم '+t)+(skp?' · '+fa(skp)+' نفر قبلاً ثبت داشتند':''));return}
   if(b=g('[data-ntt]')){const k=b.dataset.ntt;noteOpen.has(k)?noteOpen.delete(k):noteOpen.add(k);render();const i=act.querySelector('input[data-nt="'+k+'"],input[data-ntg="'+k.slice(1)+'"]');if(i)i.focus();return}
+  if(b=g('[data-bkd]')){bkDate=+b.dataset.bkd||0;render();return}
   if(b=g('[data-bks]')){const id=+b.dataset.bks;bulk.has(id)?bulk.delete(id):bulk.add(id);render();return}
-  if(g('[data-bka]')){const at=(S.att||{})[today()]||{};S.students.forEach(s=>{if(at[s.id]!=='a')bulk.add(s.id)});render();return}
+  if(g('[data-bka]')){const at=(S.att||{})[bkIso()]||{};S.students.forEach(s=>{if(at[s.id]!=='a')bulk.add(s.id)});render();return}
   if(g('[data-bkn]')){bulk.clear();render();return}
-  if(b=g('[data-bkr]')){const ids0=[...bulk].filter(id=>S.students.some(s=>s.id===id));if(!ids0.length){flash('ابتدا دانش‌آموزان را انتخاب کنید');return}const ids=ids0.filter(id=>!absentToday(id)),skp=ids0.length-ids.length;if(!ids.length){flash('همه‌ی افراد انتخاب‌شده برای این درس و مبحث قبلاً ثبت دارند یا امروز غایب‌اند');return}const nt=($('actBkNote')?$('actBkNote').value:bkNote).trim(),k=curKind('i');ids.forEach(id=>add(id,b.dataset.bkr,k,{note:nt}));bulk.clear();bkNote='';fin();flash('✅ عملکرد '+fa(ids.length)+' دانش‌آموز ثبت شد'+(skp?' · '+fa(skp)+' نفر رد شدند (قبلاً ثبت داشتند یا غایب‌اند)':''));return}
+  if(b=g('[data-bkr]')){const ids0=[...bulk].filter(id=>S.students.some(s=>s.id===id));if(!ids0.length){flash('ابتدا دانش‌آموزان را انتخاب کنید');return}const ids=ids0.filter(id=>!absentOn(id,bkIso())&&!dupOf(id,curKind('i'))),skp=ids0.length-ids.length;if(!ids.length){flash('همه‌ی افراد انتخاب‌شده برای این درس و مبحث قبلاً ثبت دارند یا امروز غایب‌اند');return}const nt=($('actBkNote')?$('actBkNote').value:bkNote).trim(),k=curKind('i');ids.forEach(id=>add(id,b.dataset.bkr,k,{note:nt,date:bkIso()}));bulk.clear();bkNote='';fin();flash('✅ عملکرد '+fa(ids.length)+' دانش‌آموز'+(bkDate?' برای '+dl(bkIso()):'')+' ثبت شد'+(skp?' · '+fa(skp)+' نفر رد شدند (قبلاً ثبت داشتند یا غایب‌اند)':''));return}
   if(b=g('[data-undo]')){S.activities=S.activities.filter(x=>String(x.id)!==b.dataset.undo);fin();return}
   if(b=g('[data-undog]')){const k=b.dataset.undog;S.activities=S.activities.filter(x=>!(x.grp&&gk(x)===k));fin();return}
   if(b=g('[data-sid]')){if(absentToday(+b.dataset.sid)){flash('این دانش‌آموز امروز غایب است و در فعالیت کلاسی شرکت نمی‌کند');return}sel=+b.dataset.sid;selNote=false;selType='positive';selKind=curKind('i');selVol=false;sheet();return}
@@ -3606,8 +3625,8 @@ function stat(id,a,b){
  return{days:days.length,p,ab,l,pos,eff,hd,hp,hn,nA:A.length,avg:vs.length?mean(vs):null}}
 
 /* ---------- ۱. پیام به اولیا ---------- */
-const TONE={t:['🌟 تشویق','#1a8f55'],w:['⚠️ نگرانی','#d97706'],n:['📝 گزارش کوتاه','#7e57c2']};
-let N=30,filt='all',ov={},ed={},openId=null;
+const TONE={t:['🌟 تشویق','#1a8f55'],w:['⚠️ نگرانی','#d97706'],n:['📝 گزارش','#7e57c2']};
+let N=30,filt='all',ed={},sh={},openId=null;
 function judge(id){const b=TD(),a=addD(b,-(N-1)),x=stat(id,a,b),y=stat(id,addD(a,-N),addD(a,-1)),d=x.avg!=null&&y.avg!=null?x.avg-y.avg:null,th=N>14?3:2,C=[],P=[];
  if(x.ab>=th)C.push(fa(x.ab)+' روز غیبت در این بازه ثبت شده است');
  if(x.hn>=2)C.push(fa(x.hn)+' تکلیف انجام‌نشده داشته‌اند');
@@ -3619,9 +3638,20 @@ function judge(id){const b=TD(),a=addD(b,-(N-1)),x=stat(id,a,b),y=stat(id,addD(a
  if(x.avg!=null&&x.avg>=3.5)P.push('نتایج ارزیابی‌ها عالی بوده است');
  if(d!=null&&d>=.3)P.push('نسبت به دوره‌ی قبل پیشرفت قابل توجهی در نمرات دیده می‌شود');
  if(x.hd>=3&&x.hn===0)P.push('تکالیف را به‌طور منظم انجام داده‌اند');
- return{k:C.length?'w':P.length?'t':'n',C,P,x}}
-function draft(s,k){const J=judge(s.id),nm=first(s),tc=(S.prof||{}).teacher,end='\nبا تشکر و احترام'+(tc?'\n'+tc:''),hi='سلام و احترام؛ اولیای محترم دانش‌آموز، '+callN(s)+'،\n';
- if(k==='t'){const P=J.P.length?J.P:['حضور و مشارکت مناسبی در کلاس داشته‌اند'];return hi+'خوشحالم که گزارش خوبی از '+nm+' دارم: '+join(P)+'. از تلاش ایشان و همراهی شما سپاسگزارم و امیدوارم این روند ادامه پیدا کند.'+end}
+ const weak=(x.avg!=null&&x.avg<2.5)||(x.avg==null&&x.eff>=2&&x.eff>x.pos),imp=d!=null&&d>=.3;
+ return{k:(C.length||weak)?'w':P.length?'t':'n',C,P:weak?[]:P,x,weak,imp}}
+function weakCs(id){const b=TD(),a=addD(b,-(N-1)),m={};(S.exams||[]).forEach(e=>{if(e.date>=a&&e.date<=b){const v=nrm(e,id);if(nn(v))(m[e.course]=m[e.course]||[]).push(v)}});return Object.keys(m).map(c=>({n:cName(+c),v:mean(m[c])})).filter(o=>o.n&&o.v<2.5).sort((p,q)=>p.v-q.v).slice(0,3).map(o=>o.n)}
+function draft(s,k,short){const J=judge(s.id),nm=first(s),tc=(S.prof||{}).teacher,end='\nبا تشکر و احترام'+(tc?'\n'+tc:''),hi='سلام و احترام؛ اولیای محترم دانش‌آموز، '+callN(s)+'،\n';
+ if(J.weak&&k!=='n')k='w';
+ if(short){
+  if(k==='t'){const P=J.P.length?J.P:['حضور و مشارکت مناسبی در کلاس داشته‌اند'];return hi+'گزارش خوبی از '+nm+' دارم: '+join(P.slice(0,2))+'. از همراهی شما سپاسگزارم.'+end}
+  if(k==='w'&&J.weak){const wc=weakCs(s.id);return hi+nm+(wc.length?' در '+join(wc):'')+' به تمرین و تقویت بیشتری نیاز دارند. پیشنهاد می‌کنم روزانه ۱۵ تا ۲۰ دقیقه مرور داشته باشند؛ در صورت تمایل برای گفت‌وگو هماهنگ کنیم.'+end}
+  if(k==='w'){const C=J.C.length?J.C:['به پیگیری بیشتری نیاز است'];return hi+'برای کمک بیشتر به '+nm+' لازم است به این نکته توجه شود: '+join(C.slice(0,2))+'. در صورت تمایل برای گفت‌وگو هماهنگ کنیم.'+end}
+  {const x=J.x,r=[];if(x.days)r.push(fa(x.p)+' روز حضور از '+fa(x.days)+' روز کلاسی');if(x.nA)r.push(fa(x.nA)+' فعالیت کلاسی');return hi+'گزارش کوتاه '+nm+': '+(r.length?join(r):'اطلاعات کافی ثبت نشده است')+'.'+end}
+ }
+ if(k==='t'){const P=J.P.length?J.P:['حضور و مشارکت مناسبی در کلاس داشته‌اند'],soft=J.x.avg!=null&&J.x.avg<3;return hi+'خوشحالم که گزارش خوبی از '+nm+' دارم: '+join(P)+'. '+(soft?'در بخش درسی هم با کمی تمرین و مرور بیشتر می‌توانند به نتیجه‌ی بهتری برسند. ':'')+'از تلاش ایشان و همراهی شما سپاسگزارم و امیدوارم این روند ادامه پیدا کند.'+end}
+ if(k==='w'&&J.weak){const wc=weakCs(s.id),on=J.x.avg!=null?'ارزیابی‌های اخیر':'فعالیت‌های کلاسی اخیر',rest=J.C.filter(c=>!/تمرین|تلاش/.test(c));
+  return hi+'می‌خواستم درباره‌ی وضعیت درسی '+nm+' با شما هماهنگ باشم. بر اساس '+on+'، ایشان'+(wc.length?' به‌ویژه در '+(wc.length>1?'درس‌های ':'درس ')+join(wc):'')+' به تمرین و تقویت بیشتری نیاز دارند.'+(rest.length?' همچنین '+join(rest)+'.':'')+(J.imp?' روند نمرات نسبت به دوره‌ی قبل کمی بهتر شده، اما هنوز تا سطح مطلوب فاصله دارد.':'')+' پیشنهاد می‌کنم هر روز حدود ۱۵ تا ۲۰ دقیقه مرور درس‌ها و انجام تکالیف با همراهی شما انجام شود؛ من هم در کلاس فرصت‌های تمرین بیشتری برایشان در نظر می‌گیرم. اگر مایلید زمانی برای گفت‌وگو هماهنگ کنیم تا برنامه‌ی تقویتی مشخصی داشته باشیم.'+end}
  if(k==='w'){const C=J.C.length?J.C:['به پیگیری بیشتری نیاز است'];return hi+'می‌خواستم درباره‌ی وضعیت اخیر '+nm+' با شما هماهنگ باشم تا با همکاری هم بتوانیم کمک بیشتری به ایشان بکنیم. '+(J.P.length?'نکات مثبتی هم وجود دارد؛ '+join(J.P)+'. ':'')+(J.P.length?'در عین حال ':'بر اساس ثبت‌های کلاس، ')+join(C)+'. اگر نکته‌ای هست که لازم است من بدانم یا فرصتی برای گفت‌وگو دارید، خوشحال می‌شوم هماهنگ کنیم.'+end}
  const x=J.x,r=[];if(x.days)r.push('در '+fa(x.days)+' روز کلاسی، '+fa(x.p)+' روز حاضر بوده‌اند');if(x.nA)r.push(fa(x.nA)+' فعالیت کلاسی ثبت شده است');if(x.avg!=null)r.push('میانگین ارزیابی‌ها '+fa((Math.round(x.avg*10)/10).toString().replace('.','٫'))+' از ۴ است');
  return hi+'گزارش کوتاهی از وضعیت '+nm+' در این بازه خدمتتان ارسال می‌کنم: '+(r.length?join(r):'اطلاعات کافی ثبت نشده است')+'. در صورت نیاز، آماده‌ی گفت‌وگو هستم.'+end}
@@ -3629,30 +3659,30 @@ const latin=s=>String(s||'').replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexO
 const intl=s=>{let d=latin(s);if(d.slice(0,2)==='00')d=d.slice(2);else if(d[0]==='0')d='98'+d.slice(1);else if(d.length===10&&d[0]==='9')d='98'+d;return d.length>=11?d:''};
 function renderPm(){const box=$('pm_l');if(!box)return;
  if(!S.students.length){box.innerHTML='<div class="card"><p class="sub">ابتدا دانش‌آموزان را اضافه کنید.</p></div>';return}
- const L=S.students.map(s=>{const J=judge(s.id);return{s,J,k:ov[s.id]||J.k}}).filter(r=>filt==='all'||r.J.k===filt);
+ const L=S.students.map(s=>{const J=judge(s.id);return{s,J,k:J.k}}).filter(r=>filt==='all'||r.J.k===filt);
  const cnt=k=>S.students.filter(s=>judge(s.id).k===k).length;
  $('pm_f').innerHTML=[['all','همه ('+fa(S.students.length)+')'],['w','⚠️ نگرانی ('+fa(cnt('w'))+')'],['t','🌟 تشویق ('+fa(cnt('t'))+')']].map(x=>`<button data-f="${x[0]}" class="${filt===x[0]?'on':''}">${x[1]}</button>`).join('');
- box.innerHTML=L.length?L.map(({s,k})=>{const I=(S.info||{})[s.id]||{},f=intl(I.fp),m=intl(I.mp);if(ed[s.id]==null||ed[s.id].k!==k)ed[s.id]={k,t:draft(s,k)};
+ box.innerHTML=L.length?L.map(({s,J,k})=>{const I=(S.info||{})[s.id]||{},f=intl(I.fp),m=intl(I.mp);const sx=!!sh[s.id];if(ed[s.id]==null||ed[s.id].k!==k||ed[s.id].s!==sx)ed[s.id]={k,s:sx,t:draft(s,k,sx)};
   const fx=intl(I.gp),P=[['پدر',f],['مادر',m],['قیم',fx]].filter(x=>x[1]),d1=P[0];
    return`<div class="card pmc${openId===s.id?' open':''}" data-sid="${s.id}"><div class="pmh" data-tg="1"><b>${q(s.name)}</b><span class="pmt" style="background:${TONE[k][1]}">${TONE[k][0]}</span><i>▾</i></div>
-   <div class="pmb"><div><div><div class="tb2">${['t','w','n'].map(t=>`<button data-tn="${t}" class="${k===t?'on':''}">${TONE[t][0]}</button>`).join('')}</div>
+   <div class="pmb"><div><div><div class="tb2"><button data-ln="f" class="${sx?'':'on'}">📄 کامل</button><button data-ln="s" class="${sx?'on':''}">✂️ کوتاه</button></div><p class="sub" style="margin:2px 0 6px;text-align:right">🔒 لحن پیام (${TONE[k][0]}) را برنامه از روی عملکرد دانش‌آموز تعیین می‌کند و قابل تغییر نیست. «کوتاه»، خلاصه‌ی همان پیام است.</p>
    <textarea class="pmx" rows="7">${q(ed[s.id].t)}</textarea>
-   <div class="pmr"><button class="sm" data-a="cp">📋 کپی</button>${d1?'<button class="sm" data-a="sm" data-n="'+d1[1]+'">✉️ ارسال پیامک ('+d1[0]+')</button>':''}</div>
-   ${P.length?'<div class="pmr">'+P.map(x=>'<button class="sm" data-a="wa" data-n="'+x[1]+'">💬 واتساپ '+x[0]+'</button>'+(x!==d1?'<button class="sm" data-a="sm" data-n="'+x[1]+'">✉️ پیامک '+x[0]+'</button>':'')).join('')+'</div>':'<p class="sub" style="margin:6px 0 0;text-align:right">شماره‌ی پدر، مادر یا قیم در پرونده‌ی دانش‌آموز ثبت نشده؛ فقط «کپی» در دسترس است.</p>'}</div></div></div></div>`}).join(''):'<div class="card"><p class="sub">موردی با این فیلتر وجود ندارد 🌟</p></div>'}
+   <div class="pmr"><button class="sm" data-a="cp">📋 کپی</button>${P.map(x=>'<button class="sm sms" data-a="sm" data-n="'+x[1]+'">✉️ پیامک به '+x[0]+'</button>').join('')}</div>
+   ${P.length?'<div class="pmr">'+P.map(x=>'<button class="sm" data-a="wa" data-n="'+x[1]+'">💬 واتساپ '+x[0]+'</button>').join('')+'</div>':'<p class="sub" style="margin:6px 0 0;text-align:right">📵 شماره‌ی همراه پدر یا مادر ثبت نشده؛ فعلاً فقط «کپی» در دسترس است. برای فعال‌شدن پیامک: پرونده‌ی دانش‌آموز ← ✏️ مشخصات، والدین و عکس ← شماره‌ی پدر / مادر.</p>'}</div></div></div></div>`}).join(''):'<div class="card"><p class="sub">موردی با این فیلتر وجود ندارد 🌟</p></div>'}
 function pmInit(){
  const sec=document.createElement('section');sec.id='pm';
- sec.innerHTML='<h2>💬 پیام به اولیا</h2><div class="card"><p class="sub" style="text-align:right">برای هر دانش‌آموز، از روی حضور، تکلیف، نمره و فعالیت کلاسی یک پیش‌نویس مؤدبانه ساخته می‌شود. پیش از ارسال می‌توانید متن را ویرایش کنید.</p><select id="pm_w" class="fs"><option value="7">بازه‌ی ۷ روز اخیر</option><option value="14">بازه‌ی ۱۴ روز اخیر</option><option value="30" selected>بازه‌ی ۳۰ روز اخیر</option></select><div class="tb2" id="pm_f"></div></div><div id="pm_l"></div>';
+ sec.innerHTML='<h2>💬 پیام به اولیا</h2><div class="card"><p class="sub" style="text-align:right">برای هر دانش‌آموز، از روی حضور، تکلیف، نمره و فعالیت کلاسی یک پیش‌نویس مؤدبانه ساخته می‌شود. پیش از ارسال می‌توانید متن را ویرایش کنید. اگر عملکرد درسی دانش‌آموز ضعیف باشد، متن تشویقی ساخته نمی‌شود و به‌جای آن پیام همراهی و پیشنهاد تقویت نوشته می‌شود.</p><select id="pm_w" class="fs"><option value="7">بازه‌ی ۷ روز اخیر</option><option value="14">بازه‌ی ۱۴ روز اخیر</option><option value="30" selected>بازه‌ی ۳۰ روز اخیر</option></select><div class="tb2" id="pm_f"></div></div><div id="pm_l"></div>';
  $('rep').before(sec);
- sec.addEventListener('change',e=>{if(e.target.id==='pm_w'){N=+e.target.value;ov={};ed={};renderPm()}});
+ sec.addEventListener('change',e=>{if(e.target.id==='pm_w'){N=+e.target.value;ed={};renderPm()}});
  sec.addEventListener('input',e=>{const c=e.target.closest('[data-sid]');if(c&&e.target.classList.contains('pmx')&&ed[c.dataset.sid])ed[c.dataset.sid].t=e.target.value});
  sec.addEventListener('click',e=>{const f=e.target.closest('[data-f]');if(f){filt=f.dataset.f;renderPm();return}
   const c=e.target.closest('[data-sid]');if(!c)return;const id=+c.dataset.sid,ta=c.querySelector('textarea'),t=e.target.closest('[data-tn]');
    if(e.target.closest('[data-tg]')){const was=c.classList.contains('open');sec.querySelectorAll('.pmc.open').forEach(x=>x.classList.remove('open'));openId=was?null:id;if(!was)c.classList.add('open');return}
-  if(t){ov[id]=t.dataset.tn;ed[id]=null;renderPm();return}
+  const ln=e.target.closest('[data-ln]');if(ln){sh[id]=ln.dataset.ln==='s';renderPm();return}
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,txt=ta.value;
   if(a==='cp'){const ok=()=>{b.textContent='✅ کپی شد';setTimeout(()=>b.textContent='📋 کپی',1500)};try{navigator.clipboard.writeText(txt).then(ok,()=>{ta.select();document.execCommand('copy');ok()})}catch(x){ta.select();try{document.execCommand('copy');ok()}catch(y){}}}
   else if(a==='wa')window.open('https://wa.me/'+b.dataset.n+'?text='+encodeURIComponent(txt),'_blank');
-  else if(a==='sm')location.href='sms:+'+b.dataset.n+'?&body='+encodeURIComponent(txt)})}
+  else if(a==='sm'){const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);location.href='sms:+'+b.dataset.n+(ios?'&':'?')+'body='+encodeURIComponent(txt)}})}
 
 /* ---------- ۲. گزارش هفتگی ---------- */
 const cName=id=>{const c=(S.courses||[]).find(x=>x.id===id);return c?c.name:''};
@@ -4734,7 +4764,9 @@ const W=()=>{
  recalc(w);
  return w};
 const kindBy=id=>(W().kinds||[]).find(k=>k.id===id);
-const linked=k=>k&&k.cn?(S.courses||[]).find(c=>c.name===k.cn):null;
+const DEFCN={'انشا':'فارسی','املا':'فارسی','ورزش':'تربیت بدنی'};
+const nz=s=>String(s==null?'':s).replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200e\u200f\s]+/g,'').replace(/[0-9۰-۹٠-٩]/g,'');
+const linked=k=>{if(!k||k.nc)return null;const cn=k.cn||DEFCN[k.name];if(!cn)return null;const cs=S.courses||[];let f=cs.find(c=>c.name===cn);if(f)return f;const a=nz(cn);if(!a)return null;f=cs.find(c=>nz(c.name)===a);if(f)return f;return cs.find(c=>{const b=nz(c.name);return b&&(b.includes(a)||a.includes(b))})||null};
 const itName=it=>it.c!=null?courseBy(it.c).name:kindBy(it.k).name;
 const itCid=it=>it.c!=null?it.c:(linked(kindBy(it.k))||{}).id;
 const hueC=id=>{const i=(S.courses||[]).findIndex(c=>c.id===id);return(Math.max(i,0)*47+265)%360};
@@ -4803,7 +4835,7 @@ const css=document.createElement('style');css.id='wscCss';css.textContent=`
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ws-today{background:linear-gradient(135deg,#1e2a44,#2c2142)}}
 .ws-today{cursor:default}.ws-today h4{cursor:pointer}.ws-today .ws-pl span{cursor:pointer}
 .ws-bar{height:8px;border-radius:99px;background:#7e57c233;overflow:hidden;margin:-2px 0 10px}.ws-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#7e57c2,#ff7aa2);transition:width .6s}
-.ws-qb{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}.ws-ql{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--mut)}
+.ws-qb{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}.ws-ql{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--mut)}
 .ws-qb button,.ws-qa button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:16px;padding:11px 6px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 .ws-qb button:active,.ws-qa button:active{transform:scale(.97)}
 .ws-qa{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ws-qa button{padding:14px 6px;font-size:14px}
@@ -4911,7 +4943,7 @@ function settings(){
  <div class="ws-tl">پایان آخرین زنگ: <b>${hhmm(tstr(endM(n-1)))}</b></div></details></div>
  <div class="ws-card" style="animation-delay:.2s"><details class="ws-set" id="wsKD" ${kOpen?'open':''}><summary>🔔 زنگ‌های ویژه (انشا، املا، نماز، ورزش، آزاد…)</summary>
  <div class="ws-tl">این‌ها کتاب درسی جدا ندارند ولی برایشان زنگ تعریف می‌شود. با «درس مادر» می‌توانید مشخص کنید در آمار و انتخاب خودکار درس، جزو کدام درس حساب شوند (مثلاً انشا ← فارسی، ورزش ← تربیت بدنی).</div>
- ${w.kinds.map(k=>`<div class="ws-kr"><input class="ws-in" data-kn="${k.id}" value="${esc(k.name)}" maxlength="24"><select class="ws-in" data-kc="${k.id}"><option value="">درس مادر: مستقل</option>${(S.courses||[]).map(c=>`<option value="${esc(c.name)}" ${c.name===k.cn?'selected':''}>${esc(c.name)}</option>`).join('')}${k.cn&&!linked(k)?`<option value="${esc(k.cn)}" selected>${esc(k.cn)} (در این کلاس نیست)</option>`:''}</select><button data-kd="${k.id}" title="حذف">🗑</button></div>`).join('')}
+ ${w.kinds.map(k=>`<div class="ws-kr"><input class="ws-in" data-kn="${k.id}" value="${esc(k.name)}" maxlength="24"><select class="ws-in" data-kc="${k.id}"><option value="">درس مادر: مستقل</option>${(S.courses||[]).map(c=>`<option value="${esc(c.name)}" ${(linked(k)||{}).id===c.id?'selected':''}>${esc(c.name)}</option>`).join('')}${k.cn&&!linked(k)?`<option value="${esc(k.cn)}" selected>${esc(k.cn)} (در این کلاس نیست)</option>`:''}</select><button data-kd="${k.id}" title="حذف">🗑</button></div>`).join('')}
  <div class="ws-kr"><input class="ws-in" id="wsKNew" placeholder="زنگ ویژه‌ی جدید، مثلاً «مطالعه‌ی آزاد»" maxlength="24"><button data-a="kadd">➕ افزودن</button></div></details></div>`;
 }
 function actions(){
@@ -5058,7 +5090,7 @@ document.addEventListener('change',e=>{
  else if(t.id==='wsStart'){if(t.value){w.start=t.value;setOpen=true;persist();renderW()}}
  else if(t.dataset&&t.dataset.gap!=null){w.gaps[+t.dataset.gap]=Math.max(0,Math.min(60,+t.value||0));setOpen=true;persist();renderW()}
  else if(t.dataset&&t.dataset.kn!=null){const k=kindBy(+t.dataset.kn),v=t.value.trim().slice(0,24);if(k&&v&&!w.kinds.some(x=>x!==k&&x.name===v)){k.name=v;persist()}kOpen=true;renderW()}
- else if(t.dataset&&t.dataset.kc!=null){const k=kindBy(+t.dataset.kc);if(k){if(t.value)k.cn=t.value;else delete k.cn;persist()}kOpen=true;renderW()}
+ else if(t.dataset&&t.dataset.kc!=null){const k=kindBy(+t.dataset.kc);if(k){if(t.value){k.cn=t.value;delete k.nc}else{delete k.cn;k.nc=1}persist()}kOpen=true;renderW()}
 });
 
 /* ---------- کارت «امروز» در داشبورد ---------- */
@@ -5069,11 +5101,13 @@ function goQ(q,cid){
  if(q==='att')window.show('att');
  else if(q==='act'){if(cid&&window.ACTX&&window.ACTX.setCourse)window.ACTX.setCourse(cid);window.show('act')}
  else if(q==='crs'){window.__wsCourse=cid?{id:cid,t:Date.now()}:null;window.show('crs')}
+ else if(q==='hw'){window.show('att');setTimeout(()=>{try{const d=document.querySelector('#att .tabs [data-m="d"]');if(d)d.click();const t=$('tdb');if(t)t.click()}catch(e){}
+  setTimeout(()=>{try{const A=window.wscApi.now(),id=cid||(A&&A.cid)||0,sl=$('hwc2');if(sl&&id&&[...sl.options].some(o=>String(o.value)===String(id))){sl.value=String(id);sl.dispatchEvent(new Event('change',{bubbles:true}))}const h=$('hwc');if(h)h.scrollIntoView({behavior:'smooth',block:'start'})}catch(e){}},150)},60)}
  else window.show('wsc')}
 function openDay(pi){const old=$('wsDay');if(old)old.remove();
  const its=items(todayIdx(),pi),ids=cids(its).filter(courseBy);let cid=ids[0]||0;
  const o=document.createElement('div');o.id='wsDay';o.className='act-ov';
- const draw=()=>{o.innerHTML=`<div class="act-sh"><b style="font-size:18px">زنگ ${fa(pi+1)} — ${esc(lab(its))}</b><p class="sub" style="margin:4px 0 10px">${bellRange(pi)}</p>${ids.length>1?`<p class="sub" style="margin:0 0 6px">درس مورد نظر:</p><div class="ws-pl" style="margin-bottom:12px">${ids.map(id=>`<span data-cid="${id}" style="--h:${hueC(id)}" class="${id===cid?'now':''}">${esc(courseBy(id).name)}</span>`).join('')}</div>`:''}<div class="ws-qa"><button data-q="att">✅ حضور و غیاب</button><button data-q="act">🌟 ثبت فعالیت کلاسی</button><button data-q="crs">📝 آزمون و تکلیف</button><button data-q="wsc">📅 برنامه‌ی هفتگی</button></div><button class="sm" data-x="1" style="width:100%;margin-top:10px">بستن</button></div>`};
+ const draw=()=>{o.innerHTML=`<div class="act-sh"><b style="font-size:18px">زنگ ${fa(pi+1)} — ${esc(lab(its))}</b><p class="sub" style="margin:4px 0 10px">${bellRange(pi)}</p>${ids.length>1?`<p class="sub" style="margin:0 0 6px">درس مورد نظر:</p><div class="ws-pl" style="margin-bottom:12px">${ids.map(id=>`<span data-cid="${id}" style="--h:${hueC(id)}" class="${id===cid?'now':''}">${esc(courseBy(id).name)}</span>`).join('')}</div>`:''}<div class="ws-qa"><button data-q="att">✅ حضور و غیاب</button><button data-q="act">🌟 ثبت فعالیت کلاسی</button><button data-q="crs">📝 آزمون</button><button data-q="hw">📚 تکلیف</button><button data-q="wsc" style="grid-column:1/-1">📅 برنامه‌ی هفتگی</button></div><button class="sm" data-x="1" style="width:100%;margin-top:10px">بستن</button></div>`};
  draw();
  o.onclick=e=>{if(e.target===o||e.target.closest('[data-x]')){o.remove();return}
   const c=e.target.closest('[data-cid]');if(c){cid=+c.dataset.cid;draw();return}
@@ -5099,7 +5133,7 @@ function homeCard(){
    const fx=st.L.find(x=>x.i===fp);
    box.innerHTML=`<h4>📅 برنامه‌ی امروز — ${DAYS[st.idx]} <small style="font-weight:600;color:var(--mut)">(${fa(st.L.length)} زنگ)</small></h4><p>${line}</p>${bar}
    <div class="ws-pl">${st.L.map((x,i)=>`<span data-pi="${x.i}" style="--h:${hueIt(x.its[0])};--i:${i}" class="${st.cur&&st.cur.i===x.i?'now':x.e<=n?'past':''}">${hhmm(x.s)} ${nm(x)}</span>`).join('')}</div>
-   <div class="ws-qb"><div class="ws-ql">برای زنگ ${fa(fp+1)}${fx?' — '+nm(fx):''}:</div><button data-q="att" data-p="${fp}">✅ حضور و غیاب</button><button data-q="act" data-p="${fp}">🌟 فعالیت کلاسی</button><button data-q="crs" data-p="${fp}">📝 آزمون و تکلیف</button></div>${tom}`;
+   <div class="ws-qb"><div class="ws-ql">برای زنگ ${fa(fp+1)}${fx?' — '+nm(fx):''}:</div><button data-q="att" data-p="${fp}">✅ حضور و غیاب</button><button data-q="act" data-p="${fp}">🌟 فعالیت کلاسی</button><button data-q="crs" data-p="${fp}">📝 آزمون</button><button data-q="hw" data-p="${fp}">📚 تکلیف</button></div>${tom}`;
   }
   box.onclick=e=>{const q=e.target.closest('[data-q]');if(q){const pi=+q.dataset.p,its=items(todayIdx(),pi),ids=cids(its).filter(courseBy);goQ(q.dataset.q,ids[0]||0);return}
    const c=e.target.closest('[data-pi]');if(c){openDay(+c.dataset.pi);return}
@@ -5122,9 +5156,14 @@ function hwChips(){
  const sel=$('hwc2');if(!sel||$('wsHw'))return;
  let idx=(todayIdx()+1)%7,lab0='فردا',k=0;while(idx>4&&k<7){idx=(idx+1)%7;k++;lab0='روز مدرسه‌ی بعد ('+DAYS[idx]+')'}
  if(idx>4)return;
- const w=W(),ids=[...new Set(w.per.flatMap((_,i)=>cids(items(idx,i))))].filter(id=>courseBy(id));if(!ids.length)return;
+ const w=W(),ids=[...new Set(w.per.flatMap((_,i)=>cids(items(idx,i))))].filter(id=>courseBy(id));
+ const ks=[];w.per.forEach((_,i)=>items(idx,i).forEach(it=>{if(it.k!=null){const k=kindBy(it.k);if(k&&!ks.includes(k))ks.push(k)}}));
+ const G={},U=[];ks.forEach(k=>{const l=linked(k);if(l)(G[l.name]=G[l.name]||[]).push(k.name);else if(!k.nc&&(k.cn||DEFCN[k.name]))U.push(k.name)});
+ const nt=Object.keys(G).map(cn=>{const a=G[cn],q=a.map(x=>'«'+esc(x)+'»').join(' و ');return q+' به درس '+(a.length>1?'مادرشان':'مادرش')+' ('+esc(cn)+') وصل '+(a.length>1?'می‌شوند':'می‌شود')+'.'});
+ if(U.length)nt.push(U.map(x=>'«'+esc(x)+'»').join(' و ')+' هنوز به درسی وصل نیست؛ در «برنامه هفتگی ← زنگ‌های ویژه» درس مادرش را انتخاب کنید.');
+ if(!ids.length&&!nt.length)return;
  const d=document.createElement('div');d.id='wsHw';d.className='ws-hw';
- d.innerHTML='<span>📌 برای '+lab0+':</span>'+ids.map(id=>`<button type="button" data-c="${id}" style="--h:${hueC(id)}">${esc(courseBy(id).name)}</button>`).join('');
+ d.innerHTML='<span>📌 برای '+lab0+':</span>'+ids.map(id=>`<button type="button" data-c="${id}" style="--h:${hueC(id)}">${esc(courseBy(id).name)}</button>`).join('')+(nt.length?'<div style="flex:0 0 100%;font-size:11.5px;font-weight:600;color:var(--mut);line-height:1.9">💡 '+nt.join(' ')+'</div>':'');
  d.onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;sel.value=b.dataset.c;sel.dispatchEvent(new Event('change',{bubbles:true}));const t=$('hwt');t&&t.focus()};
  (sel.parentNode||sel).before(d);
 }
@@ -5149,6 +5188,143 @@ window.show=function(id){const r=_sh.apply(this,arguments);try{if(id==='wsc')ren
 window.wscHwChips=hwChips;window.wscRefresh=()=>{try{homeCard();const s=$('wsc');if(s&&s.classList.contains('on'))renderW()}catch(e){}};
 try{const h=$('home');if(h&&h.classList.contains('on'))homeCard()}catch(e){}
 }catch(e){console.error('wsc-module',e)}})();
+
+</script>
+
+<script type="text/plain" data-app>
+/* ===== [CHG-MP] داشبورد مدیر: برنامه‌ی هفتگی همه‌ی کلاس‌ها + برنامه‌ی امتحانات نیمسال اول و دوم + خروجی PDF ===== */
+(function(){try{
+const $=id=>document.getElementById(id);
+const fa2=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
+const E=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const DAYS=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه'],WD=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+const F1='آزمون پایان نیمسال اول',F2='آزمون پایان نیمسال دوم';
+const DEFCN={'انشا':'فارسی','املا':'فارسی','ورزش':'تربیت بدنی'};
+const nz=s=>String(s==null?'':s).replace(/[يى]/g,'ی').replace(/ك/g,'ک').replace(/[\u200c\u200e\u200f\s]+/g,'').replace(/[0-9۰-۹٠-٩]/g,'');
+const tmN=s=>{const a=String(s||'0:0').split(':').map(Number);return(a[0]||0)*60+(a[1]||0)};
+const tS=m=>{m=((Math.round(m)%1440)+1440)%1440;return fa2(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'))};
+const dOf=k=>new Date(k+'T12:00:00Z');
+const jd=k=>{try{return fmt(dOf(k))}catch(e){return k}};
+const wdOf=k=>WD[(dOf(k).getUTCDay()+1)%7];
+let tab='w',sel='all',busy=false,lastUrl=null;
+const clsList=()=>{const G=typeof GR!=='undefined'?GR:[];const gi=c=>{try{const i=G.indexOf(clsMeta(c).g);return i<0?99:i}catch(e){return 99}};return S.classes.filter(c=>!c.demo).slice().sort((a,b)=>gi(a)-gi(b))};
+const dataOf=c=>c.id===S.cur?S:((S.stash||{})[c.id]||null);
+const lab=c=>{try{return window.clsLab(c)}catch(e){return c.name||'کلاس'}};
+const tch=c=>{try{return String((clsMeta(c)||{}).t||'').trim()}catch(e){return''}};
+const hueI=(T,id)=>{const i=(T.courses||[]).findIndex(c=>c.id===id);return(Math.max(i,0)*47+265)%360};
+function kLink(T,k){if(!k||k.nc)return null;const cn=k.cn||DEFCN[k.name];if(!cn)return null;const cs=T.courses||[];let f=cs.find(c=>c.name===cn);if(f)return f;const a=nz(cn);if(!a)return null;f=cs.find(c=>nz(c.name)===a);if(f)return f;return cs.find(c=>{const b=nz(c.name);return b&&(b.includes(a)||a.includes(b))})||null}
+function cellItems(T,w,d,i){let v=(w.cell||{})[d+'_'+i];if(v==null||v==='')return[];v=(Array.isArray(v)?v:[v]).map(x=>x&&typeof x==='object'?x:{c:x});const out=[];
+ v.slice(0,2).forEach(x=>{if(x.c!=null){const c=(T.courses||[]).find(z=>z.id===x.c);if(c)out.push({n:c.name,h:hueI(T,c.id)})}
+  else if(x.k!=null){const ks=w.kinds||[],k=ks.find(z=>z.id===x.k);if(k){const l=kLink(T,k);out.push({n:k.name,h:l?hueI(T,l.id):(ks.indexOf(k)*73+25)%360})}}});return out}
+function bellTimes(w){const n=Math.max(1,Math.min(10,w.n||(w.per||[]).length||4)),dur=Math.max(10,Math.min(180,+w.dur||45)),R=[];
+ if(Array.isArray(w.gaps)){let m=tmN(w.start||(w.per&&w.per[0]&&w.per[0].s)||'07:30');for(let i=0;i<n;i++){R.push([m,m+dur]);m+=dur+(+w.gaps[i]||0)}}
+ else if(Array.isArray(w.per)&&w.per.length){for(let i=0;i<n;i++){const s=w.per[i]?tmN(w.per[i].s):(R.length?R[R.length-1][1]+10:tmN('07:30'));R.push([s,s+dur])}}
+ else{let m=tmN('07:30');for(let i=0;i<n;i++){R.push([m,m+dur]);m+=dur+10}}return R}
+
+/* ---------- برنامه‌ی هفتگی ---------- */
+function weekBlock(c){const T=dataOf(c),w=T&&T.wsc,t=tch(c);
+ const head=`<div class="mp-bh"><b>🏫 ${E(lab(c))}</b>${t?`<span>👩‍🏫 ${E(t)}</span>`:''}</div>`;
+ const has=w&&w.cell&&Object.keys(w.cell).some(k=>{const q=k.split('_').map(Number);return q[0]<=4&&cellItems(T,w,q[0],q[1]).length});
+ if(!has)return`<div class="mp-b">${head}<p class="mp-e">برنامه‌ی هفتگی این کلاس هنوز ثبت نشده است.</p></div>`;
+ const R=bellTimes(w),cnt={};let rows='';
+ for(let i=0;i<R.length;i++){let tds='';for(let d=0;d<5;d++){const its=cellItems(T,w,d,i);its.forEach(x=>cnt[x.n]=(cnt[x.n]||0)+1/its.length);
+   tds+=`<td>${its.length?its.map(x=>`<span class="mp-c" style="background:hsla(${x.h},75%,62%,.3);border-color:hsla(${x.h},70%,45%,.55)">${E(x.n)}</span>`).join(''):'<i>—</i>'}</td>`}
+  rows+=`<tr><th class="mp-t"><b>زنگ ${fa2(i+1)}</b><small>${tS(R[i][0])}–${tS(R[i][1])}</small></th>${tds}</tr>`}
+ const sm=Object.keys(cnt).map(k=>E(k)+' '+fa2(Math.round(cnt[k]*10)/10).replace('.','٫')).join(' · ');
+ return`<div class="mp-b">${head}<div class="mp-sc"><table class="mp-w"><tr><th></th>${DAYS.map(d=>`<th>${d}</th>`).join('')}</tr>${rows}</table></div><p class="mp-sm">📊 تعداد زنگ هفتگی: ${sm}</p></div>`}
+
+/* ---------- برنامه‌ی امتحانات ---------- */
+const exList=(c,term)=>{const T=dataOf(c);if(!T)return[];const ty=term===1?F1:F2;return(T.exPlan||[]).filter(e=>e.type===ty&&e.st!=='x').slice().sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:0)};
+function bellTxt(T,e){const w=T.wsc;if(e.bell!==''&&e.bell!=null&&w){const R=bellTimes(w);let i;
+  if(e.bell==='last'){const di=(dOf(e.date).getUTCDay()+1)%7;i=-1;for(let j=0;j<R.length;j++)if(cellItems(T,w,di,j).length)i=j;if(i<0)i=R.length-1}else i=+e.bell;
+  if(R[i])return'زنگ '+fa2(i+1)+' · '+tS(R[i][0])}
+ return e.time?fa2(e.time):'—'}
+const cNm=(T,id)=>((T.courses||[]).find(z=>z.id===id)||{}).name||'درس';
+const topicOf=(T,e)=>{if(e.rng)return e.rng;const c=(T.courses||[]).find(z=>z.id===e.course);if(c&&e.tp)for(const h of(c.ch||[]))for(const p of(h.tp||[]))if(p.id===e.tp)return h.name+' ← '+p.name;return'—'};
+const termTxt=t=>t===1?'نیمسال اول':'نیمسال دوم';
+function examBlock(c,term){const T=dataOf(c),t=tch(c),L=exList(c,term);
+ const head=`<div class="mp-bh"><b>🏫 ${E(lab(c))}</b>${t?`<span>👩‍🏫 ${E(t)}</span>`:''}</div>`;
+ if(!T||!L.length)return`<div class="mp-b">${head}<p class="mp-e">امتحان پایان ${termTxt(term)} برای این کلاس هنوز در «برنامه امتحانی» ثبت نشده است.</p></div>`;
+ return`<div class="mp-b">${head}<div class="mp-sc"><table class="mp-x"><tr><th>ردیف</th><th>روز و تاریخ</th><th>درس</th><th>محدوده / موضوع</th><th>زنگ / ساعت</th><th>وضعیت</th></tr>${L.map((e,i)=>`<tr><td>${fa2(i+1)}</td><td><b>${wdOf(e.date)}</b><br><small>${jd(e.date)}</small></td><td><b>${E(cNm(T,e.course))}</b></td><td>${E(topicOf(T,e))}</td><td>${bellTxt(T,e)}</td><td>${e.st==='done'?'✅ برگزار شد':'⏳ برنامه‌ریزی‌شده'}</td></tr>`).join('')}</table></div></div>`}
+function overview(cs,term){const A=[];cs.forEach(c=>{const T=dataOf(c);exList(c,term).forEach(e=>A.push({e,c,T}))});if(!A.length)return'';
+ A.sort((a,b)=>a.e.date<b.e.date?-1:a.e.date>b.e.date?1:0);
+ return`<div class="mp-b mp-ov"><div class="mp-bh"><b>🗓️ تقویم کلی امتحانات پایان ${termTxt(term)}</b><span>${fa2(A.length)} امتحان</span></div><div class="mp-sc"><table class="mp-x"><tr><th>روز و تاریخ</th><th>کلاس</th><th>درس</th><th>زنگ / ساعت</th></tr>${A.map(({e,c,T})=>`<tr><td><b>${wdOf(e.date)}</b> <small>${jd(e.date)}</small></td><td>${E(lab(c))}</td><td><b>${E(cNm(T,e.course))}</b></td><td>${bellTxt(T,e)}</td></tr>`).join('')}</table></div></div>`}
+
+function blocks(){const cs=clsList().filter(c=>sel==='all'||String(c.id)===String(sel));
+ if(!cs.length)return['<div class="mp-b"><p class="mp-e">کلاسی برای نمایش وجود ندارد.</p></div>'];
+ if(tab==='w')return cs.map(weekBlock);
+ const term=tab==='e1'?1:2,B=[];if(cs.length>1)B.push(overview(cs,term));cs.forEach(c=>B.push(examBlock(c,term)));return B.filter(Boolean)}
+const title=()=>tab==='w'?'برنامه‌ی هفتگی کلاس‌ها':'برنامه‌ی امتحانات پایان '+termTxt(tab==='e1'?1:2);
+const fname=()=>(tab==='w'?'برنامه-هفتگی-کلاس‌ها':'برنامه-امتحانات-'+(tab==='e1'?'نیمسال-اول':'نیمسال-دوم'))+'.pdf';
+
+/* ---------- ظاهر ---------- */
+const css=document.createElement('style');css.textContent=`
+#mpCard h3{margin:0 0 10px;font-size:15px;color:var(--tx)}
+.mp-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}.mp-tabs button{flex:1 1 auto;border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:14px;padding:9px 10px;font:800 12.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.mp-tabs button.on{background:linear-gradient(90deg,#7e57c2,#ff7aa2);border-color:transparent;color:#fff}
+.mp-pills{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px}.mp-pills button{flex:none;border:1px solid var(--line);background:var(--bg2);color:var(--tx);border-radius:999px;padding:6px 12px;font:700 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.mp-pills button.on{background:var(--p);border-color:var(--p);color:#fff}
+.mp-act{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}.mp-act button{border:0;border-radius:14px;padding:10px 16px;font:800 13px Vazirmatn,Tahoma,sans-serif;color:#fff;background:linear-gradient(90deg,#7e57c2,#ff7aa2);cursor:pointer}
+.mp-act span{font-size:12.5px;color:var(--mut)}.mp-act a{color:var(--p);font-weight:800}
+.mp-b{border:1px solid var(--line);border-radius:18px;padding:12px;margin:10px 0;background:var(--card)}
+.mp-bh{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.mp-bh b{font-size:14.5px}.mp-bh span{font-size:12px;color:var(--mut)}
+.mp-sc{overflow-x:auto}
+.mp-w{width:100%;min-width:430px;border-collapse:separate;border-spacing:4px;table-layout:fixed}
+.mp-w th,.mp-w td{background:none!important;border:0;padding:2px;text-align:center;font-size:12px;vertical-align:middle}
+.mp-w th{font-weight:800;color:var(--mut)!important;padding:5px 2px}.mp-w th.mp-t{width:64px}.mp-w th.mp-t b{display:block;color:var(--tx);font-size:12px}.mp-w th.mp-t small{font-size:10.5px;font-weight:600}
+.mp-c{display:block;border:1px solid;border-radius:10px;padding:6px 3px;font-weight:700;font-size:11.5px;line-height:1.55;margin:1px 0;color:var(--tx)}
+.mp-w td i{color:var(--mut);font-style:normal}
+.mp-x{width:100%;border-collapse:collapse;font-size:12.5px}.mp-x th{background:var(--bg2)!important;color:var(--mut)!important;font-weight:800;padding:8px 5px;text-align:right;white-space:nowrap}
+.mp-x td{padding:8px 5px;border-bottom:1px solid var(--line);text-align:right;vertical-align:middle}.mp-x td small{color:var(--mut)}
+.mp-sm{margin:8px 0 0;font-size:11.5px;color:var(--mut);line-height:1.9}.mp-e{margin:6px 0;color:var(--mut);font-size:13px;line-height:1.9}
+.mp-print{--card:#fff;--tx:#2b2140;--mut:#6b5f84;--line:#e3d9f3;--bg2:#f3ecfc;--p:#7e57c2;direction:rtl;color:#2b2140;font-family:Vazirmatn,Tahoma,sans-serif}
+.mp-print .mp-b{background:#fff;border:1px solid #e3d9f3;margin:0 0 14px}.mp-print .mp-c{color:#2b2140}.mp-print .mp-w{min-width:0}
+.mp-print .mp-x th{background:#f3ecfc!important;color:#4b3478!important}.mp-print .mp-w th{color:#6b5f84!important}
+.mp-ph{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #7e57c2;padding-bottom:10px;margin-bottom:14px}
+.mp-ph b{display:block;font-size:20px;color:#4b3478}.mp-ph span{font-size:12.5px;color:#6b5f84}.mp-ph em{font-style:normal;font-size:12.5px;color:#6b5f84}
+.mp-pf{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:11px;color:#6b5f84}
+`;document.head.appendChild(css);
+
+function inner(){const cs=clsList();
+ const T=[['w','📅 برنامه‌ی هفتگی'],['e1','📝 امتحانات نیمسال اول'],['e2','📝 امتحانات نیمسال دوم']];
+ return`<h3>🗓️ برنامه‌ی کلاس‌ها و امتحانات<small>همه‌ی کلاس‌ها در یک نگاه</small></h3>
+ <div class="mp-tabs">${T.map(x=>`<button data-mt="${x[0]}" class="${tab===x[0]?'on':''}">${x[1]}</button>`).join('')}</div>
+ <div class="mp-pills"><button data-mc="all" class="${sel==='all'?'on':''}">همه‌ی کلاس‌ها</button>${cs.map(c=>`<button data-mc="${c.id}" class="${String(sel)===String(c.id)?'on':''}">${E(lab(c))}</button>`).join('')}</div>
+ <div class="mp-act"><button data-mp="pdf">📄 دریافت PDF این بخش</button><span id="mpMsg"></span></div>
+ <div id="mpBody">${blocks().join('')}</div>`}
+const paint=()=>{const c=$('mpCard');if(c)c.innerHTML=inner()};
+
+/* ---------- PDF ---------- */
+const ld=urls=>new Promise((res,rej)=>{let i=0;(function n(){if(i>=urls.length)return rej(new Error('بارگذاری کتابخانه'));const e=document.createElement('script');e.src=urls[i++];e.onload=()=>res();e.onerror=()=>{e.remove();n()};document.head.appendChild(e)})()});
+async function libs(){if(!window.html2canvas)await ld(['https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js']);
+ if(!(window.jspdf&&window.jspdf.jsPDF))await ld(['https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'])}
+async function exportPdf(){if(busy)return;busy=true;const say=h=>{const m=$('mpMsg');if(m)m.innerHTML=h};
+ try{say('⏳ در حال ساخت PDF…');await libs();try{await document.fonts.ready}catch(e){}
+  const B=blocks(),W=794,PH=1123,MX=34,AV=PH-26-80-52;
+  const meas=document.createElement('div');meas.className='mp-print';meas.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;padding:0 ${MX}px;box-sizing:border-box`;meas.innerHTML=B.join('');document.body.appendChild(meas);
+  const hs=[...meas.children].map(el=>el.offsetHeight+14);meas.remove();
+  const pages=[];let cur=[],h=0;B.forEach((b,i)=>{if(cur.length&&h+hs[i]>AV){pages.push(cur);cur=[];h=0}cur.push(b);h+=hs[i]});if(cur.length)pages.push(cur);
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'});let school='';try{school=window.schoolFull?schoolFull(S.prof||{}):''}catch(e){}
+  for(let p=0;p<pages.length;p++){const el=document.createElement('div');el.className='mp-print';el.style.cssText=`position:fixed;left:-9999px;top:0;width:${W}px;height:${PH}px;box-sizing:border-box;padding:26px ${MX}px 0;background:#fff;overflow:hidden`;
+   el.innerHTML=`<div class="mp-ph"><div><b>${E(title())}</b><span>${E(school)}</span></div><em>${fmt(tdy())}</em></div>${pages[p].join('')}<div class="mp-pf">صفحه ${fa2(p+1)} از ${fa2(pages.length)}</div>`;
+   document.body.appendChild(el);let cv;try{cv=await window.html2canvas(el,{scale:2,backgroundColor:'#ffffff'})}finally{el.remove()}
+   if(p)doc.addPage();doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)}
+  const blob=doc.output('blob'),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=fname();a.style.display='none';document.body.appendChild(a);a.click();setTimeout(()=>a.remove(),1000);
+  if(lastUrl)try{URL.revokeObjectURL(lastUrl)}catch(e){}lastUrl=u;
+  say('✅ فایل آماده شد. اگر دانلود شروع نشد، <a href="'+u+'" download="'+fname()+'">اینجا را بزنید</a>')}
+ catch(e){say('❌ ساخت PDF ناموفق بود'+(e&&e.message?' ('+E(e.message)+')':'')+'. برای بار اول به اینترنت نیاز است.')}
+ busy=false}
+
+document.addEventListener('click',e=>{const c=e.target.closest&&e.target.closest('#mpCard');if(!c)return;
+ const t=e.target.closest('[data-mt]');if(t){tab=t.dataset.mt;paint();return}
+ const k=e.target.closest('[data-mc]');if(k){sel=k.dataset.mc;paint();return}
+ if(e.target.closest('[data-mp="pdf"]'))exportPdf()});
+
+const prev=window.renderDm;
+window.renderDm=function(){const r=prev?prev.apply(this,arguments):undefined;
+ try{const g=document.querySelector('#dmb .tdg');if(!g)return r;const o=$('mpCard');if(o)o.remove();
+  const d=document.createElement('div');d.className='tw';d.id='mpCard';d.innerHTML=inner();g.insertBefore(d,g.lastElementChild)}catch(x){console.warn('mp',x)}return r};
+}catch(e){console.error('mp-module',e)}})();
 
 </script>
 

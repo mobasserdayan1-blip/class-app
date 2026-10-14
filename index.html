@@ -5426,5 +5426,78 @@ let n=0;const tm=setInterval(()=>{n++;
 }catch(e){console.error('school-team',e)}})();
 </script>
 
+<script type="text/plain" data-app id="role-access-v1">
+/* ===== [ROLE-1] جداسازی دسترسی «معلم» و «مدیر» =====
+   معلم (حساب عضو مدرسه با نقش teacher ← کلید schAcc): فقط کلاس و اطلاعات خودش.
+   مدیر / حالت تک‌کاربره (بدون schAcc): دسترسی کامل به همه‌چیز. */
+(function(){try{
+const $=id=>document.getElementById(id);
+const isT=()=>{try{const a=JSON.parse(localStorage.getItem('schAcc')||'null');return !!a&&a.role==='teacher'}catch(e){return false}};
+window.isTeacherRole=isT;window.isManagerRole=()=>!isT();
+/* صفحه‌های مخصوص مدیر: مدرسه و کلاس‌ها، داشبورد مدیر، پرونده‌ی معلمان، خروجی گروهی کل مدرسه */
+const BLOCK=['cls','dm','tf','bz'];
+const st=document.createElement('style');
+st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz{display:none!important}';
+document.head.appendChild(st);
+/* عنوان‌های مخصوص معلم */
+const TT={prof:'✍️ امضا و کتاب‌های من',mgr:'🧾 گزارش‌های کلاس من'},orig={},origH={};
+function titles(t){
+ if(typeof pages!=='undefined')Object.keys(TT).forEach(k=>{const p=pages.find(x=>x[0]===k);if(!p)return;if(!(k in orig))orig[k]=p[1];p[1]=t?TT[k]:orig[k]});
+ Object.keys(TT).forEach(k=>{const s=$(k),h=s&&s.querySelector('h2');if(!h)return;if(!(k in origH))origH[k]=h.textContent;h.textContent=t?TT[k]:origH[k]});
+}
+function applyUI(){
+ const t=isT();
+ document.body.classList.toggle('role-teacher',t);
+ titles(t);
+ /* منوی اصلی و زیرتب‌ها */
+ const nav=$('nav');
+ if(nav)['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
+ document.querySelectorAll('#subTabs [data-t]').forEach(b=>{const k=b.dataset.t;
+  if(BLOCK.indexOf(k)>=0)b.classList.toggle('ra-hide',t);
+  if(TT[k]&&orig[k])b.textContent=t?TT[k]:orig[k]});
+ /* انتخاب کلاس بالای صفحه: گزینه‌ی «مدیریت کلاس‌ها» فقط برای مدیر */
+ const sel=$('clsSel');
+ if(sel){const o=[...sel.options].find(x=>x.value==='__m');
+  if(t&&o)o.remove();
+  else if(!t&&!o&&sel.options.length&&typeof window.renderCls==='function'){try{window.renderCls()}catch(e){}}}
+ /* «اطلاعات مدرسه و پایه»: برای معلم فقط نام خودش + امضا + کتاب و فصل/مبحث */
+ const ps=$('p_school'),card=ps&&ps.closest('.card');
+ if(card){
+  [...card.children].forEach(c=>{
+   if(c.id==='ra_gr')return;
+   const keep=c.id==='p_teacher'||(c.tagName==='LABEL'&&c.nextElementSibling&&c.nextElementSibling.id==='p_teacher');
+   c.classList.toggle('ra-hide',t&&!keep)});
+  let g=$('ra_gr');
+  if(t){
+   if(!g){g=document.createElement('p');g.id='ra_gr';g.className='sub';g.style.cssText='text-align:right;margin:0 0 8px';card.prepend(g)}
+   const P=window.S&&S.prof||{};
+   g.textContent='پایه‌ی این کلاس: '+(P.grade||'—')+(P.sec?' · شعبه '+P.sec:'')+' — نام مدرسه، پایه، شعبه، نام مدیر و لوگو را فقط مدیر تنظیم می‌کند.';
+   g.classList.remove('ra-hide')}
+  else if(g)g.classList.add('ra-hide')}
+ /* امضا: معلم فقط امضای خودش را می‌بیند */
+ const sg=$('sg_box');
+ if(sg)[...sg.children].forEach(r=>{if(r.querySelector('[data-sgf="sigP"]'))r.classList.toggle('ra-hide',t)});
+ /* تنظیمات: کارت امضا و حذف کامل اطلاعات */
+ const sc=$('sgCard');
+ if(sc){const sp=$('sg_p'),blk=sp&&sp.closest('div[style*="margin-top:12px"]');if(blk)blk.classList.toggle('ra-hide',t);
+  const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
+ const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
+}
+/* هر بار صفحه عوض می‌شود: صفحه‌ی مخصوص مدیر برای معلم باز نمی‌شود */
+const o=window.show;
+window.show=function(id){if(isT()&&BLOCK.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI()}catch(e){}return r};
+/* کارت‌هایی که دیرتر ساخته یا دوباره ساخته می‌شوند */
+const watch=(id)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,{childList:true})};
+['setBody','sg_box','clsSel','prof'].forEach(watch);
+/* ورود/خروج با حساب گوگل نقش را عوض می‌کند (کلید schAcc) */
+let last=isT();
+const cur=()=>{const s=document.querySelector('main section.on');return s?s.id:''};
+setInterval(()=>{const t=isT();if(t===last)return;last=t;try{applyUI()}catch(e){}
+ if(t&&BLOCK.indexOf(cur())>=0)show('home')},800);
+applyUI();
+if(isT()&&BLOCK.indexOf(cur())>=0)show('home');
+}catch(e){console.error('role-access',e)}})();
+</script>
+
 </body>
 </html>

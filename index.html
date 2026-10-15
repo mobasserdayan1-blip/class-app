@@ -1190,6 +1190,7 @@ const bar=(l,v,v2)=>`<div class="br"><span class="bl">${esc2(l)}</span><div clas
 const entry=e=>`<div class="card" style="background:var(--bg2);margin:6px 0;box-shadow:none"><div class="lg" style="margin:0 0 8px">۴ خیلی خوب | ۳ خوب | ۲ قابل قبول | ۱ نیاز به تلاش</div>${S.students.map(s=>{if(absent(e,s.id))return `<div style="opacity:.6;margin-bottom:8px"><b>${esc2(s.name)}</b> <span class="xb" style="background:#e5484d;color:#fff">غایب</span><div class="sum">در این روز غایب بوده و قابل ارزیابی نیست</div></div>`;const v=lvl(nrm(e,s.id));return `<div><b>${esc2(s.name)}</b><div class="lv">${[4,3,2,1].map(k=>`<button class="${v===k?'on'+k:''}" onclick="setLv(${e.id},${s.id},${k})">${fa(k)}<br>${LVW[k]}</button>`).join('')}</div></div>`}).join('')}</div>`;
 window.setLv=(eid,sid,k)=>{const e=S.exams.find(x=>x.id===eid);if(absent(e,sid))return;if(e.max!==4){Object.keys(e.scores).forEach(x=>e.scores[x]=lvl(nrm(e,x)));e.max=4}if(e.scores[sid]===k)delete e.scores[sid];else e.scores[sid]=k;render()};
 window.openE=id=>{openEx=openEx===id?null:id;renderCrs()};
+window.openExNow=id=>{const x=S.exams.find(q=>q.id===id);if(!x)return false;window.__cco=window.__cco||{};window.__cco[x.course]=true;openEx=id;renderCrs();return true};
 window.delCourse=id=>{if(!ask('c'+id))return;S.courses=S.courses.filter(c=>c.id!==id);S.exams=S.exams.filter(e=>e.course!==id);render()};
 window.delExam=id=>{if(!ask('e'+id))return;S.exams=S.exams.filter(e=>e.id!==id);render()};
 $('cadd').onclick=()=>{const n=$('cn').value.trim();if(!n)return;S.courses.push({id:Date.now(),name:n,book:$('cbk').value.trim()});$('cn').value=$('cbk').value='';render()};
@@ -1214,7 +1215,7 @@ function renderCrs(){
  $('crsList').innerHTML=S.courses.length?S.courses.map(c=>{
    const ex=S.exams.filter(e=>e.course===c.id).sort((a,b)=>b.date.localeCompare(a.date)),allv=ex.flatMap(e=>st.map(s=>nrm(e,s.id)).filter(nn)),cav=allv.length?mean(allv):null;
    const op=window.__cco[c.id]!==undefined?window.__cco[c.id]:(S.courses.length===1||ex.some(e=>e.id===openEx));
-   return `<details class="card cc" data-cid="${c.id}"${op?' open':''}><summary><span class="ct"><b>📘 ${esc2(c.name)}</b>${c.book?`<small>${esc2(c.book)}</small>`:''}</span><span class="cm">${ex.length?`${fa(ex.length)} ارزیابی${cav!=null?' · میانگین '+f1(cav):''}`:'بدون ارزیابی'}</span></summary>${ex.map(e=>{const av=mean(st.map(s=>nrm(e,s.id)).filter(nn));return `<div class="row"><div><span class="xb">${e.type}</span><b>${esc2(e.title||'آزمون')}</b><div class="sum">${fmt(new Date(e.date+'T12:00:00Z'))} | میانگین کلاس (از ۴): ${f1(av)}</div></div><div class="btns"><button onclick="openE(${e.id})">${openEx===e.id?'بستن':'ارزیابی'}</button><button onclick="delExam(${e.id})">${pend==='e'+e.id?'مطمئنید؟':'🗑'}</button></div></div>${openEx===e.id?entry(e):''}`}).join('')||'<p class="sub">هنوز آزمونی ثبت نشده</p>'}<div style="margin-top:10px;text-align:left"><button class="del${pend==='c'+c.id?' sure':''}" onclick="delCourse(${c.id})">${pend==='c'+c.id?'مطمئنید؟':'🗑 حذف این درس'}</button></div></details>`}).join(''):'<p class="sub">ابتدا یک درس اضافه کنید</p>';
+   return `<details class="card cc" data-cid="${c.id}"${op?' open':''}><summary><span class="ct"><b>📘 ${esc2(c.name)}</b>${c.book?`<small>${esc2(c.book)}</small>`:''}</span><span class="cm">${ex.length?`${fa(ex.length)} ارزیابی${cav!=null?' · میانگین '+f1(cav):''}`:'بدون ارزیابی'}</span></summary>${ex.map(e=>{const av=mean(st.map(s=>nrm(e,s.id)).filter(nn));return `<div class="row" data-eid="${e.id}"><div><span class="xb">${e.type}</span><b>${esc2(e.title||'آزمون')}</b><div class="sum">${fmt(new Date(e.date+'T12:00:00Z'))} | میانگین کلاس (از ۴): ${f1(av)}</div></div><div class="btns"><button onclick="openE(${e.id})">${openEx===e.id?'بستن':'ارزیابی'}</button><button onclick="delExam(${e.id})">${pend==='e'+e.id?'مطمئنید؟':'🗑'}</button></div></div>${openEx===e.id?entry(e):''}`}).join('')||'<p class="sub">هنوز آزمونی ثبت نشده</p>'}<div style="margin-top:10px;text-align:left"><button class="del${pend==='c'+c.id?' sure':''}" onclick="delCourse(${c.id})">${pend==='c'+c.id?'مطمئنید؟':'🗑 حذف این درس'}</button></div></details>`}).join(''):'<p class="sub">ابتدا یک درس اضافه کنید</p>';
 }
 document.querySelectorAll('.tb2 button').forEach(b=>b.onclick=()=>{repTab=b.dataset.t;renderRep()});
 $('rm').innerHTML='<option value="">کل سال تحصیلی</option>'+SM.map(m=>`<option value="${m}">${MN[m-1]}</option>`).join('');
@@ -3148,7 +3149,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('button');i
  const tag=()=>{const m=[['#cadd','c'],['#eadd','e'],['#ssq','s']];sec.querySelectorAll(':scope>.card').forEach(c=>{if(c.id==='chCard'){c.dataset.ct='h';return}for(const [q,k] of m)if(c.querySelector(q)){c.dataset.ct=k;return}});const l=$('crsList');if(l)l.dataset.ct='c'};
  const apply=k=>{cur=k;tag();sec.querySelectorAll('[data-ct]').forEach(el=>el.style.display=el.dataset.ct===k?'':'none');bar.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.k===k))};
  bar.onclick=e=>{const b=e.target.closest('button');if(b)apply(b.dataset.k)};
- document.addEventListener('click',e=>{if(e.target.closest('#eadd')&&S.exams.length>lastN)apply('c');lastN=S.exams.length;setTimeout(()=>{tag();apply(cur)},0)});apply('e')})();
+ document.addEventListener('click',e=>{if(e.target.closest('#eadd')&&S.exams.length>lastN)apply('c');lastN=S.exams.length;setTimeout(()=>{tag();apply(cur)},0)});window.__crsTab=apply;apply('e')})();
 })();
 </script>
 <script type="text/plain" data-app>
@@ -4325,7 +4326,7 @@ const nz=v=>String(v==null?'':v).replace(/[\u06F0-\u06F9]/g,d=>String.fromCharCo
 const realCls=()=>(S.classes||[]).filter(c=>!c.demo&&window.clsOK(c.id));
 const multi=()=>realCls().length>1&&Object.keys(S.stash||{}).length>0;
 /* معلم: فقط کلاس خودش · مدیر: کل مدرسه (فقط وقتی بیش از یک کلاس ثبت شده باشد) */
-const getRole=()=>{try{return localStorage.getItem(KS)==='school'?'manager':'teacher'}catch(e){return'teacher'}};
+const getRole=()=>{try{if(window.isTeacherRole&&window.isTeacherRole())return'teacher';return localStorage.getItem(KS)==='school'?'manager':'teacher'}catch(e){return'teacher'}};
 const getScope=()=>getRole()==='manager'&&multi()?'school':'class';
 const setScope=v=>{try{localStorage.setItem(KS,v)}catch(e){}};
 const lab=c=>c?(window.clsLab?window.clsLab(c):((c.grade||'')+' '+(c.sec||'')).trim()):'';
@@ -4358,7 +4359,7 @@ fit();addEventListener('resize',fit);setTimeout(fit,500);addEventListener('load'
 
 let R=[],act=0;
 function chips(){const c=$('gs_c');if(!multi()){c.innerHTML='';return}const sc=getScope(),cur=(S.classes||[]).find(x=>x.id===S.cur);
- c.innerHTML='<button data-sc="class" class="'+(sc==='class'?'on':'')+'">👩‍🏫 معلم: کلاس من'+(cur?' ('+E(lab(cur))+')':'')+'</button><button data-sc="school" class="'+(sc==='school'?'on':'')+'">👔 مدیر: کل مدرسه</button>'}
+ c.innerHTML='<button data-sc="class" class="'+(sc==='class'?'on':'')+'">👩‍🏫 معلم: کلاس من'+(cur?' ('+E(lab(cur))+')':'')+'</button>'+((window.isTeacherRole&&window.isTeacherRole())?'':'<button data-sc="school" class="'+(sc==='school'?'on':'')+'">👔 مدیر: کل مدرسه</button>')}
 function draw(){chips();const q=qi.value,sc=getScope(),r=$('gs_r');
  if(!nz(q)){const n=pool(sc).length;R=[];r.innerHTML='<p class="gsm">نام (یا بخشی از آن) یا کد ۵ رقمی دانش‌آموز را بنویسید.<br>جستجو در '+(sc==='school'?'همه‌ی کلاس‌های مدرسه':'کلاس فعلی')+' · '+fa(n)+' دانش‌آموز</p>';return}
  const all=search(q,sc);R=all.slice(0,MAX);if(act>=R.length)act=0;
@@ -4608,6 +4609,17 @@ function submit(){
 function edit(id){const e=P().find(x=>x.id===id);if(!e)return;editId=id;fillCourses();$('exC').value=e.course;$('exT').value=TYPES.includes(e.type)?e.type:TYPES[0];fillTp();$('exTp').value=e.tp?e.ch+':'+e.tp:'';$('exR').value=e.rng||'';fillBells();$('exBl').value=e.bell||'';blTouched=true;setISO(e.date);
  $('exFt').textContent='ویرایش آزمون';$('exAdd').textContent='ذخیره‌ی تغییرات';$('exCan').style.display='';$('exFormCard').scrollIntoView({behavior:'smooth',block:'start'})}
 
+/* ---------- رفتن مستقیم به نمرات همان آزمون (تب «درس‌ها»، باز کردن درس و همان ارزیابی، اسکرول) ---------- */
+function gotoExam(exId){
+ try{window.show('crs')}catch(er){}
+ const go=()=>{try{
+  window.openExNow&&window.openExNow(exId);
+  window.__crsTab&&window.__crsTab('c');
+  const el=document.querySelector('#crsList .row[data-eid="'+exId+'"]');
+  (el||$('crsList')).scrollIntoView({behavior:'smooth',block:'start'});
+ }catch(er){console.warn('gotoExam',er)}};
+ go();setTimeout(go,250);
+}
 /* ---------- تبدیل به ثبت نمره ---------- */
 function convert(id){
  const e=P().find(x=>x.id===id);if(!e||e.st!=='p')return;
@@ -4617,14 +4629,13 @@ function convert(id){
  if(e.tp&&!isFin(e.type)){x.ch=e.ch;x.tp=e.tp;if(!x.title){const q=tpName(e.course,e.tp);if(q)x.title=q[0]+' – '+q[1]}}
  S.exams=S.exams||[];S.exams.push(x);e.st='done';e.exam=x.id;persist();
  toast('آزمون ساخته شد؛ نمرات را وارد کنید 📝');
- try{window.show('crs')}catch(er){}
- setTimeout(()=>{try{window.openE&&window.openE(x.id);const el=document.querySelector('#crsList .card');el&&el.scrollIntoView({behavior:'smooth',block:'start'})}catch(er){}},120);
+ gotoExam(x.id);
 }
 function act(a,id,btn){
  const e=P().find(x=>x.id===id);if(!e)return;
  if(a==='conv')return convert(id);
  if(a==='edit')return edit(id);
- if(a==='view'){try{window.show('crs');setTimeout(()=>window.openE&&window.openE(e.exam),120)}catch(er){}return}
+ if(a==='view'){if(!e.exam||!(S.exams||[]).some(q=>q.id===e.exam)){toast('نمرات این آزمون پیدا نشد؛ ممکن است از بخش درس‌ها حذف شده باشد');return}gotoExam(e.exam);return}
  if(a==='cancel'){e.st='x';persist();hero();list();toast('آزمون لغو شد');return}
  if(a==='back'){e.st='p';persist();hero();list();toast('به برنامه برگشت');return}
  if(a==='del'){if(pend!==id){pend=id;btn.textContent='مطمئنید؟';setTimeout(()=>{if(pend===id){pend=null;list()}},3000);return}
@@ -5170,6 +5181,8 @@ const fe=e=>{const c=e&&e.code||'';
  return (e&&(e.code||e.message))||'خطای نامشخص'};
 const stamp=()=>firebase.firestore.FieldValue.serverTimestamp();
 const roleName=r=>r==='manager'?'مدیر':'معلم';
+/* نقش تأییدشده از سرور برای قفل دسترسی: manager | teacher | pending (در حال بررسی) | null (حالت تک‌کاربره) */
+window.__schRole=()=>{try{if(!ST.user)return null;if(!ST.loaded&&!ST.err)return'pending';if(!ST.mem)return null;return ST.mem.active===false?'teacher':ST.mem.role}catch(e){return null}};
 const myEmail=()=>ST.user?norm(ST.user.email):'';
 const schoolClasses=()=>(ST.school&&ST.school.classes)||{};
 const localClasses=()=>{try{return (S.classes||[]).filter(c=>!c.demo)}catch(e){return[]}};
@@ -5435,14 +5448,18 @@ let n=0;const tm=setInterval(()=>{n++;
 (function(){try{
 const $=id=>document.getElementById(id);
 const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const isT=()=>{try{const a=JSON.parse(localStorage.getItem('schAcc')||'null');return !!a&&a.role==='teacher'}catch(e){return false}};
 const mgrInfo=()=>{try{return JSON.parse(localStorage.getItem('schMgr')||'null')}catch(e){return null}};
+const isT=()=>{try{const r=window.__schRole&&window.__schRole();
+  if(r==='manager')return false;           /* مدیرِ تأییدشده از سرور */
+  if(r==='teacher')return true;            /* معلم یا عضو غیرفعال */
+  if(r==='pending')return !mgrInfo();      /* تا معلوم نشدن نقش، قفل (مگر مدیرِ شناخته‌شده) */
+  const a=JSON.parse(localStorage.getItem('schAcc')||'null');return !!a&&a.role==='teacher'}catch(e){return false}};
 const isM=()=>!isT()&&!!mgrInfo();
 window.isTeacherRole=isT;window.isManagerRole=()=>!isT();window.isSchoolManager=isM;
 const cur=()=>{const s=document.querySelector('main section.on');return s?s.id:''};
-const BLOCK=['cls','dm','tf','bz'];
+const BLOCK=['cls','dm','tf','bz'],GUARD=BLOCK.concat(['sch']);
 const st=document.createElement('style');
-st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz{display:none!important}'
+st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz,body.role-teacher #sch{display:none!important}'
  +'body.role-manager{--p:#2a4d9b;--p2:#4a7ae0;--line:#d8e3fa}body.role-manager .thero{background:linear-gradient(120deg,#1e3a8a,#3b6fd8);box-shadow:0 8px 24px #1e3a8a44}';
 document.head.appendChild(st);
 
@@ -5537,7 +5554,7 @@ function mgrDm(){
   +'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" data-ra-go="home">🏠 داشبورد کلاس فعلی</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button></div></div>');
 }
 document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-ra-go]');if(g)show(g.dataset.raGo)});
-if(typeof window.renderDm==='function'){const rd=window.renderDm;window.renderDm=function(){const r=rd.apply(this,arguments);try{mgrDm()}catch(e){console.warn('ra-dm',e)}return r}}
+if(typeof window.renderDm==='function'){const rd=window.renderDm;window.renderDm=function(){if(isT()){const b=$('dmb');if(b)b.innerHTML='';return}const r=rd.apply(this,arguments);try{mgrDm()}catch(e){console.warn('ra-dm',e)}return r}}
 
 /* ورود به کلاس از پیشخوان → داشبورد همان کلاس (نه صفحه‌ی مدیریت کلاس‌ها) */
 if(typeof window.switchCls==='function'){const sw=window.switchCls;window.switchCls=function(){if(!window.__goto&&cur()==='dm')window.__goto='home';return sw.apply(this,arguments)}}
@@ -5554,7 +5571,7 @@ function syncSel(){const sel=$('clsSel');if(!sel||!isM())return;
 
 /* هر بار صفحه عوض می‌شود: صفحه‌ی مخصوص مدیر برای معلم باز نمی‌شود */
 const o=window.show;
-window.show=function(id){if(isT()&&BLOCK.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
+window.show=function(id){if(isT()&&GUARD.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
 const watch=(id,opt)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,opt||{childList:true})};
 ['setBody','sg_box','clsSel','prof'].forEach(k=>watch(k));
 {const h=$('home');if(h)new MutationObserver(()=>{try{patchHero()}catch(e){}}).observe(h,{childList:true,subtree:true})}
@@ -5569,10 +5586,10 @@ function land(){
 /* ورود/خروج با حساب گوگل نقش را عوض می‌کند (کلیدهای schAcc و schMgr) */
 let lt=isT(),lm=isM();
 setInterval(()=>{const t=isT(),m=isM();if(t===lt&&m===lm)return;lt=t;lm=m;try{applyUI();patchHero()}catch(e){}
- if(t&&BLOCK.indexOf(cur())>=0)show('home');
+ if(t&&GUARD.indexOf(cur())>=0)show('home');
  if(m)land()},800);
 applyUI();patchHero();
-if(isT()&&BLOCK.indexOf(cur())>=0)show('home');
+if(isT()&&GUARD.indexOf(cur())>=0)show('home');
 land();
 }catch(e){console.error('role-access',e)}})();
 </script>

@@ -5222,7 +5222,7 @@ function html(){
  h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="reload">🔄 تازه‌سازی</button></div>';
  return h+(ST.msg?sub(E(ST.msg)):'');
 }
-function render(){const c=$('scCard');if(c)c.innerHTML=html()}
+function render(){const c=$('scCard');if(c)c.innerHTML=html();if(!ST.msg)ST.shown='';else if(ST.msg!==ST.shown){ST.shown=ST.msg;try{window.__raToast&&window.__raToast(ST.msg)}catch(x){}}}
 function say(t){ST.msg=t;render()}
 
 async function load(){
@@ -5264,8 +5264,9 @@ const setV=(id,v)=>{const o=V();o[id]=v;try{localStorage.setItem('schV',JSON.str
 function setAcc(){
  let a=null;try{a=JSON.parse(localStorage.getItem('schAcc')||'null')}catch(x){}
  const me=myEmail(),put=ids=>localStorage.setItem('schAcc',JSON.stringify({role:'teacher',email:me||(a&&a.email)||'',ids}));
+ try{localStorage.removeItem('schMgr')}catch(x){}
  if(ST.mem&&ST.mem.active===false){put([]);return}
- if(ST.mem&&ST.mem.role==='manager'){localStorage.removeItem('schAcc');return}
+ if(ST.mem&&ST.mem.role==='manager'){localStorage.removeItem('schAcc');try{localStorage.setItem('schMgr',JSON.stringify({email:me,name:ST.mem.name||(ST.user&&ST.user.displayName)||'',school:(ST.school&&ST.school.name)||''}))}catch(x){}return}
  if(ST.mem){put(Object.entries(schoolClasses()).filter(([id,v])=>v&&norm(v.teacher)===me).map(([id])=>id));return}
  if(!(a&&a.role==='teacher'))localStorage.removeItem('schAcc');else put([]);
 }
@@ -5306,7 +5307,7 @@ function hookPush(){
  window.cloudPush=function(){try{cp.apply(this,arguments)}catch(e){}sched()};
 }
 function sched(){
- if(!db||!ST.mem||ST.mem.active===false||ST.mem.role!=='teacher')return;
+ if(!db||!ST.mem||ST.mem.active===false||(ST.mem.role!=='teacher'&&ST.mem.role!=='manager'))return;
  clearTimeout(pt);
  pt=setTimeout(()=>{pt=null;const id=S.cur;if(!window.clsOK(id)||!Object.prototype.hasOwnProperty.call(schoolClasses(),String(id)))return;pushCls(id).catch(e=>{ST.msg='❌ همگام‌سازی با مدرسه: '+fe(e);render()})},6000);
 }
@@ -5420,46 +5421,78 @@ card();
 let n=0;const tm=setInterval(()=>{n++;
  if(window.firebase&&firebase.apps&&firebase.apps.length&&typeof firebase.auth==='function'&&typeof firebase.firestore==='function'){
   clearInterval(tm);auth=firebase.auth();db=firebase.firestore();
-  auth.onAuthStateChanged(u=>{if(ST.un){ST.un();ST.un=null}ST.user=u;ST.mem=null;ST.school=null;ST.team=[];ST.loaded=false;ST.err='';ST.msg='';render();if(u)load()});
+  auth.onAuthStateChanged(u=>{if(!u){try{localStorage.removeItem('schMgr')}catch(x){}}if(ST.un){ST.un();ST.un=null}ST.user=u;ST.mem=null;ST.school=null;ST.team=[];ST.loaded=false;ST.err='';ST.msg='';render();if(u)load()});
  }else if(n>120)clearInterval(tm);
 },500);
 }catch(e){console.error('school-team',e)}})();
 </script>
 
 <script type="text/plain" data-app id="role-access-v1">
-/* ===== [ROLE-1] جداسازی دسترسی «معلم» و «مدیر» =====
-   معلم (حساب عضو مدرسه با نقش teacher ← کلید schAcc): فقط کلاس و اطلاعات خودش.
-   مدیر / حالت تک‌کاربره (بدون schAcc): دسترسی کامل به همه‌چیز. */
+/* ===== [ROLE-2] جداسازی دسترسی «معلم» و «مدیر» + پیشخوان مدیریت =====
+   معلم   (schAcc.role==='teacher'): فقط کلاس و اطلاعات خودش.
+   مدیر   (schMgr: عضو فعال مدرسه با نقش manager): پیشخوان مدیریت + دسترسی کامل به همه‌ی کلاس‌ها.
+   تک‌کاربره (بدون هیچ‌کدام): مثل قبل، دسترسی کامل. */
 (function(){try{
 const $=id=>document.getElementById(id);
+const esc=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const isT=()=>{try{const a=JSON.parse(localStorage.getItem('schAcc')||'null');return !!a&&a.role==='teacher'}catch(e){return false}};
-window.isTeacherRole=isT;window.isManagerRole=()=>!isT();
-/* صفحه‌های مخصوص مدیر: مدرسه و کلاس‌ها، داشبورد مدیر، پرونده‌ی معلمان، خروجی گروهی کل مدرسه */
+const mgrInfo=()=>{try{return JSON.parse(localStorage.getItem('schMgr')||'null')}catch(e){return null}};
+const isM=()=>!isT()&&!!mgrInfo();
+window.isTeacherRole=isT;window.isManagerRole=()=>!isT();window.isSchoolManager=isM;
+const cur=()=>{const s=document.querySelector('main section.on');return s?s.id:''};
 const BLOCK=['cls','dm','tf','bz'];
 const st=document.createElement('style');
-st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz{display:none!important}';
+st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz{display:none!important}'
+ +'body.role-manager{--p:#2a4d9b;--p2:#4a7ae0;--line:#d8e3fa}body.role-manager .thero{background:linear-gradient(120deg,#1e3a8a,#3b6fd8);box-shadow:0 8px 24px #1e3a8a44}';
 document.head.appendChild(st);
-/* عنوان‌های مخصوص معلم */
-const TT={prof:'✍️ امضا و کتاب‌های من',mgr:'🧾 گزارش‌های کلاس من'},orig={},origH={};
-function titles(t){
- if(typeof pages!=='undefined')Object.keys(TT).forEach(k=>{const p=pages.find(x=>x[0]===k);if(!p)return;if(!(k in orig))orig[k]=p[1];p[1]=t?TT[k]:orig[k]});
- Object.keys(TT).forEach(k=>{const s=$(k),h=s&&s.querySelector('h2');if(!h)return;if(!(k in origH))origH[k]=h.textContent;h.textContent=t?TT[k]:origH[k]});
+
+/* پیام کوتاه پایین صفحه */
+window.__raToast=function(t){let d=$('ra_toast');
+ if(!d){d=document.createElement('div');d.id='ra_toast';d.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:100000;background:#222;color:#fff;border-radius:14px;padding:12px 14px;font:700 13px Vazirmatn,Tahoma,sans-serif;text-align:right;line-height:1.8;display:none;box-shadow:0 8px 24px #0005';document.body.appendChild(d)}
+ d.textContent=t;d.style.display='block';clearTimeout(d._t);d._t=setTimeout(()=>{d.style.display='none'},5000)};
+
+/* عنوان‌های مخصوص هر نقش */
+const TT={prof:'✍️ امضا و کتاب‌های من',mgr:'🧾 گزارش‌های کلاس من'};
+const TM={dm:'🏛️ پیشخوان مدیریت',home:'🏠 داشبورد کلاس'};
+const ALL=Object.assign({},TT,TM),H2=['prof','mgr','dm'],orig={},origH={};
+const tmap=()=>isT()?TT:isM()?TM:{};
+function titles(){
+ const m=tmap();
+ if(typeof pages!=='undefined')Object.keys(ALL).forEach(k=>{const p=pages.find(x=>x[0]===k);if(!p)return;if(!(k in orig))orig[k]=p[1];p[1]=m[k]||orig[k]});
+ H2.forEach(k=>{const s=$(k),h=s&&s.querySelector('h2');if(!h)return;if(!(k in origH))origH[k]=h.textContent;h.textContent=m[k]||origH[k]});
+ try{const p=typeof pages!=='undefined'&&pages.find(x=>x[0]===cur());if(p&&$('ptl'))$('ptl').textContent=p[1]}catch(e){}
 }
+const SS=()=>typeof S!=='undefined'?S:null;
+const mgrName=()=>{const i=mgrInfo()||{},s=SS();return String(i.name||(s&&s.prof&&s.prof.principal)||'').trim()};
+
 function applyUI(){
- const t=isT();
+ const t=isT(),m=isM();
  document.body.classList.toggle('role-teacher',t);
- titles(t);
- /* منوی اصلی و زیرتب‌ها */
+ document.body.classList.toggle('role-manager',m);
+ titles();
+ /* منوی اصلی */
  const nav=$('nav');
- if(nav)['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
- document.querySelectorAll('#subTabs [data-t]').forEach(b=>{const k=b.dataset.t;
+ if(nav){
+  ['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
+  const sch=nav.querySelector('[data-p="sch"]'),hm=nav.querySelector('[data-p="home"]'),se=nav.querySelector('[data-p="set"]');
+  if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;sch.textContent=m?'🏛️ پیشخوان مدیریت':sch.dataset.o;
+   if(m&&nav.firstElementChild!==sch)nav.insertBefore(sch,nav.firstElementChild);
+   else if(!m&&se&&nav.firstElementChild===sch)nav.insertBefore(sch,se)}
+  if(hm){if(!hm.dataset.o)hm.dataset.o=hm.textContent;hm.textContent=m?'🏠 داشبورد کلاس':hm.dataset.o}
+ }
+ document.querySelectorAll('#subTabs [data-t]').forEach(b=>{const k=b.dataset.t,mp=tmap();
   if(BLOCK.indexOf(k)>=0)b.classList.toggle('ra-hide',t);
-  if(TT[k]&&orig[k])b.textContent=t?TT[k]:orig[k]});
- /* انتخاب کلاس بالای صفحه: گزینه‌ی «مدیریت کلاس‌ها» فقط برای مدیر */
+  if(mp[k])b.textContent=mp[k];else if(orig[k]&&ALL[k])b.textContent=orig[k]});
+ /* انتخاب کلاس بالای صفحه */
  const sel=$('clsSel');
- if(sel){const o=[...sel.options].find(x=>x.value==='__m');
+ if(sel){
+  const o=[...sel.options].find(x=>x.value==='__m'),od=[...sel.options].find(x=>x.value==='__dm');
   if(t&&o)o.remove();
-  else if(!t&&!o&&sel.options.length&&typeof window.renderCls==='function'){try{window.renderCls()}catch(e){}}}
+  else if(!t&&!o&&sel.options.length&&typeof window.renderCls==='function'){try{window.renderCls()}catch(e){}}
+  if(!m&&od)od.remove();
+  if(m&&!od&&sel.options.length){const x=document.createElement('option');x.value='__dm';x.textContent='🏛️ پیشخوان مدیریت';sel.insertBefore(x,sel.firstChild)}
+  try{syncSel()}catch(e){}
+ }
  /* «اطلاعات مدرسه و پایه»: برای معلم فقط نام خودش + امضا + کتاب و فصل/مبحث */
  const ps=$('p_school'),card=ps&&ps.closest('.card');
  if(card){
@@ -5470,32 +5503,77 @@ function applyUI(){
   let g=$('ra_gr');
   if(t){
    if(!g){g=document.createElement('p');g.id='ra_gr';g.className='sub';g.style.cssText='text-align:right;margin:0 0 8px';card.prepend(g)}
-   const P=window.S&&S.prof||{};
+   const P=(SS()&&SS().prof)||{};
    g.textContent='پایه‌ی این کلاس: '+(P.grade||'—')+(P.sec?' · شعبه '+P.sec:'')+' — نام مدرسه، پایه، شعبه، نام مدیر و لوگو را فقط مدیر تنظیم می‌کند.';
    g.classList.remove('ra-hide')}
   else if(g)g.classList.add('ra-hide')}
- /* امضا: معلم فقط امضای خودش را می‌بیند */
  const sg=$('sg_box');
  if(sg)[...sg.children].forEach(r=>{if(r.querySelector('[data-sgf="sigP"]'))r.classList.toggle('ra-hide',t)});
- /* تنظیمات: کارت امضا و حذف کامل اطلاعات */
  const sc=$('sgCard');
  if(sc){const sp=$('sg_p'),blk=sp&&sp.closest('div[style*="margin-top:12px"]');if(blk)blk.classList.toggle('ra-hide',t);
   const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
  const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
 }
+
+/* صفحه‌ی اول کلاس برای مدیر: نام مدیر به‌جای نام معلم */
+function patchHero(){
+ if(!isM())return;
+ const b=document.querySelector('#home .thero>div>b');if(!b)return;
+ const n=mgrName(),want='سلام'+(n?'، '+n:'')+' 👋';
+ if(b.textContent!==want)b.textContent=want;
+ const sp=b.nextElementSibling,P=(SS()&&SS().prof)||{};
+ if(sp&&P.teacher&&sp.textContent.indexOf('معلم کلاس')<0)sp.textContent+=' · معلم کلاس: '+P.teacher;
+}
+
+/* پیشخوان مدیریت: سلام به مدیر + ورود به کلاس + همگام‌سازی */
+function mgrDm(){
+ if(!isM())return;const b=$('dmb');if(!b)return;
+ let wd='';try{wd=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}catch(e){}
+ const i=mgrInfo()||{},n=mgrName();
+ b.insertAdjacentHTML('afterbegin',
+  '<div class="thero" id="ra_hero"><div><b>سلام'+(n?'، '+esc(n):'')+' 👋</b><span>'+esc(wd)+' · مدیر مدرسه'+(i.school?' · '+esc(i.school):'')+'</span></div><div class="tc">پیشخوان مدیریت</div></div>'
+  +'<div class="card" style="margin-top:10px"><b>🏫 ورود به کلاس‌ها</b>'
+  +'<p class="sub" style="text-align:right;margin:6px 0">هر کلاس را از فهرست بالای صفحه یا دکمه‌ی «باز کردن» جدول پایین باز کنید؛ مدیر به همه‌ی بخش‌های هر کلاس دسترسی کامل دارد.</p>'
+  +'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" data-ra-go="home">🏠 داشبورد کلاس فعلی</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button></div></div>');
+}
+document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-ra-go]');if(g)show(g.dataset.raGo)});
+if(typeof window.renderDm==='function'){const rd=window.renderDm;window.renderDm=function(){const r=rd.apply(this,arguments);try{mgrDm()}catch(e){console.warn('ra-dm',e)}return r}}
+
+/* ورود به کلاس از پیشخوان → داشبورد همان کلاس (نه صفحه‌ی مدیریت کلاس‌ها) */
+if(typeof window.switchCls==='function'){const sw=window.switchCls;window.switchCls=function(){if(!window.__goto&&cur()==='dm')window.__goto='home';return sw.apply(this,arguments)}}
+
+/* فهرست بالای صفحه: گزینه‌ی بازگشت به پیشخوان مدیریت */
+{const sel=$('clsSel');if(sel){const oc=sel.onchange;sel.onchange=function(e){const v=e.target.value;
+ if(v==='__dm'){show('dm');return}
+ if(isM()&&v!=='__m'&&String(v)===String(S.cur)){window.__goto=null;show('home');return}
+ return oc&&oc.call(this,e)}}}
+/* مدیر: هنگام بودن در پیشخوان، فهرست بالا روی «پیشخوان» می‌ماند تا انتخاب هر کلاس (حتی کلاس فعال) کار کند */
+function syncSel(){const sel=$('clsSel');if(!sel||!isM())return;
+ const v=cur()==='dm'?'__dm':String(SS()?SS().cur:'');
+ if([...sel.options].some(o=>o.value===v)&&sel.value!==v)sel.value=v}
+
 /* هر بار صفحه عوض می‌شود: صفحه‌ی مخصوص مدیر برای معلم باز نمی‌شود */
 const o=window.show;
-window.show=function(id){if(isT()&&BLOCK.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI()}catch(e){}return r};
-/* کارت‌هایی که دیرتر ساخته یا دوباره ساخته می‌شوند */
-const watch=(id)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,{childList:true})};
-['setBody','sg_box','clsSel','prof'].forEach(watch);
-/* ورود/خروج با حساب گوگل نقش را عوض می‌کند (کلید schAcc) */
-let last=isT();
-const cur=()=>{const s=document.querySelector('main section.on');return s?s.id:''};
-setInterval(()=>{const t=isT();if(t===last)return;last=t;try{applyUI()}catch(e){}
- if(t&&BLOCK.indexOf(cur())>=0)show('home')},800);
-applyUI();
+window.show=function(id){if(isT()&&BLOCK.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
+const watch=(id,opt)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,opt||{childList:true})};
+['setBody','sg_box','clsSel','prof'].forEach(k=>watch(k));
+{const h=$('home');if(h)new MutationObserver(()=>{try{patchHero()}catch(e){}}).observe(h,{childList:true,subtree:true})}
+
+/* مدیر: اولین ورود در هر نشست → پیشخوان مدیریت */
+function land(){
+ if(!isM())return;
+ try{if(sessionStorage.getItem('ra_landed'))return;sessionStorage.setItem('ra_landed','1')}catch(e){}
+ if(cur()==='home')show('dm');
+}
+
+/* ورود/خروج با حساب گوگل نقش را عوض می‌کند (کلیدهای schAcc و schMgr) */
+let lt=isT(),lm=isM();
+setInterval(()=>{const t=isT(),m=isM();if(t===lt&&m===lm)return;lt=t;lm=m;try{applyUI();patchHero()}catch(e){}
+ if(t&&BLOCK.indexOf(cur())>=0)show('home');
+ if(m)land()},800);
+applyUI();patchHero();
 if(isT()&&BLOCK.indexOf(cur())>=0)show('home');
+land();
 }catch(e){console.error('role-access',e)}})();
 </script>
 

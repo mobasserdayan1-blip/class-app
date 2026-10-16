@@ -2698,7 +2698,7 @@ function tdash(){try{
  const gtx=c.gr==null?'—':(c.gr>=.3?'رشد ':c.gr<=-.3?'افت ':'ثابت ')+fa((c.gr>0?'+':'')+c.gr.toFixed(1).replace('.','٫'));
  const lt=st.filter(s=>TA[s.id]==='l').length;
  box.innerHTML=`
- <div class="thero"><div><b>سلام${P.teacher?'، '+esc2(P.teacher):''} 👋</b><span>${wd} ${fmt(tdy())}${sy?' · سال تحصیلی '+sy:''}${P.school?' · '+esc2(P.school):''}</span></div><div class="tc">${Lv[0]==='—'?'وضعیت کلی: داده‌ی کافی نیست':'وضعیت کلی کلاس: '+Lv[0]}</div></div>
+ <div class="thero"><div><b>سلام${P.teacher?'، '+esc2(P.teacher):''} 👋</b><span>${wd} ${fmt(tdy())}${sy?' · سال تحصیلی '+sy:''}${P.school?' · '+esc2(schoolFull(P)):''}</span></div><div class="tc">${Lv[0]==='—'?'وضعیت کلی: داده‌ی کافی نیست':'وضعیت کلی کلاس: '+Lv[0]}</div></div>
  <div class="tk">
   ${kp('👥',fa(c.n),'دانش‌آموز',(rec?fa(pc)+' حاضر · '+fa(ac)+' غایب امروز':hl?'امروز تعطیل است':'حضور امروز ثبت نشده'),'#3b6fd8','all')}
   ${kp('✅',fa(pc),'حاضر امروز',rec?(lt?fa(lt)+' مورد تأخیر':'بدون تأخیر'):'ثبت نشده','#2eaf6b','p')}

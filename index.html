@@ -5530,7 +5530,16 @@ function applyUI(){
  if(sc){const sp=$('sg_p'),blk=sp&&sp.closest('div[style*="margin-top:12px"]');if(blk)blk.classList.toggle('ra-hide',t);
   const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
  const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
+ /* کارت‌های ویژه‌ی مدیر: بازیابی/حذف کامل/ریست (پشتیبان) + نیمسال و تعطیلات مدرسه (تنظیمات) */
+ const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent:'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('📅 نیمسال')===0||x.indexOf('🎉 گزارش تعطیلات')===0||x.indexOf('➕ افزودن کلاس')>=0};
+ document.querySelectorAll('#bkb>.card,#setBody>.card,#rsCard,#hlCard').forEach(c=>c.classList.toggle('ra-hide',t&&(c.id==='rsCard'||c.id==='hlCard'||hd(c))));
 }
+/* سد دوم (اگر کسی دکمه را به‌هر‌طریق دید): در مرحله‌ی capture جلوی عملیات مدیریتی معلم گرفته می‌شود */
+const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,[data-st="sem"],[data-st="semr"],[data-hl]';
+['click','change'].forEach(ev=>document.addEventListener(ev,e=>{
+ if(!isT()||!e.target||!e.target.closest)return;
+ if(e.target.closest(MGR_ONLY)){e.stopImmediatePropagation();e.preventDefault();window.__raToast&&window.__raToast('این بخش فقط برای مدیر مدرسه است.')}
+},true));
 
 /* صفحه‌ی اول کلاس برای مدیر: نام مدیر به‌جای نام معلم */
 function patchHero(){
@@ -5573,7 +5582,7 @@ function syncSel(){const sel=$('clsSel');if(!sel||!isM())return;
 const o=window.show;
 window.show=function(id){if(isT()&&GUARD.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
 const watch=(id,opt)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,opt||{childList:true})};
-['setBody','sg_box','clsSel','prof'].forEach(k=>watch(k));
+['setBody','sg_box','clsSel','prof','bkb'].forEach(k=>watch(k));
 {const h=$('home');if(h)new MutationObserver(()=>{try{patchHero()}catch(e){}}).observe(h,{childList:true,subtree:true})}
 
 /* مدیر: اولین ورود در هر نشست → پیشخوان مدیریت */

@@ -556,7 +556,7 @@ table.at.rk .nm{right:46px;white-space:nowrap;min-width:175px;padding:6px 10px}
 <label class="sum">نام دبستان</label><input id="p_school" placeholder="مثلاً دبستان شهید ...">
 <label class="sum">پایه‌ی تحصیلی</label><select id="p_grade" class="fs"></select>
 <label class="sum">شعبه‌ی کلاس (اختیاری)</label><input id="p_sec" placeholder="مثلاً الف">
-<label class="sum">نام آموزگار</label><input id="p_teacher">
+<label class="sum">نام آموزگار <b style="color:#d9534f">*</b> <small id="p_teacher_w" style="color:#d9534f;font-weight:700"></small></label><input id="p_teacher" required>
 <label class="sum">نام مدیر</label><input id="p_principal">
 <label class="sum">🖼️ لوگوی مدرسه (بالای گوشه‌ی چپ گزارش‌ها، نام مدرسه زیر آن)</label><div id="p_logo" style="display:flex;gap:10px;align-items:center"></div><input type="file" id="p_logof" accept="image/*"><label class="sum">شهر یا منطقه (اختیاری)</label><input id="p_city">
 <p class="sub" style="margin:0">این اطلاعات در صفحه‌ی اصلی و فایل‌های PDF و اکسل نوشته می‌شود</p>
@@ -1317,7 +1317,8 @@ function renderRank(){
 const CURR=g=>{const i=GR.indexOf(g);if(i<0)return[];const a=[['فارسی',i<2?'بخوانیم':'فارسی (بخوانیم)'],['نگارش',i<2?'بنویسیم':'نگارش'],['ریاضی','ریاضی'],['هدیه‌های آسمان','هدیه‌های آسمان'],['قرآن','آموزش قرآن'],['هنر','هنر'],['تربیت بدنی','تربیت بدنی']];if(i>=1)a.splice(3,0,['علوم تجربی','علوم تجربی']);if(i>=2)a.push(['مطالعات اجتماعی','مطالعات اجتماعی'],['کار و فناوری','کار و فناوری']);return a.map(([n,b])=>[n,'کتاب '+b+' پایه '+g])};
 const LESSONS=g=>CURR(g).map(x=>x[0]);const LESSONS_OLD=g=>{const i=GR.indexOf(g);if(i<0)return[];const L=['فارسی','ریاضی','علوم تجربی','هدیه‌های آسمان','قرآن','هنر','تربیت بدنی'];if(i>=2)L.push('مطالعات اجتماعی','کار و فناوری');return L};
 $('p_grade').innerHTML='<option value="">انتخاب کنید</option>'+GR.map(g=>`<option value="${g}">پایه ${g} ابتدایی</option>`).join('');
-['school','sec','teacher','principal','city'].forEach(k=>{$('p_'+k).value=S.prof[k]||'';$('p_'+k).oninput=e=>{S.prof[k]=e.target.value.trim();save();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨'}});
+const chkT=()=>{const i=$('p_teacher'),w=$('p_teacher_w');if(!i)return;const bad=!i.value.trim();i.style.borderColor=bad?'#d9534f':'';if(w)w.textContent=bad?'(اجباری؛ نام آموزگار را بنویسید)':''};
+['school','sec','teacher','principal','city'].forEach(k=>{$('p_'+k).value=S.prof[k]||'';$('p_'+k).oninput=e=>{S.prof[k]=e.target.value.trim();save();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨';if(k==='teacher')chkT()}});chkT();
 $('p_grade').value=S.prof.grade||'';
 function renderProf(){const L=LESSONS(S.prof.grade);$('p_sug').textContent=L.length?'پایه '+S.prof.grade+': '+L.join('، '):'ابتدا پایه را انتخاب کنید'}
 $('p_grade').onchange=e=>{S.prof.grade=e.target.value;save();renderProf();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨'};
@@ -2527,15 +2528,17 @@ const grOpts='<option value="">پایه</option>'+GR.map(g=>`<option value="${g}
 window.renderCls=()=>{fillSel();const by={};VC().forEach(c=>{const g=meta(c).g||'';(by[g]=by[g]||[]).push(c)});let tot=0;VC().forEach(c=>tot+=meta(c).n);
  const sc=S.prof.school?schoolFull():'مدرسه (نام را در «اطلاعات مدرسه و پایه» بنویسید)';
  let h=`<div class="card"><b style="font-size:17px">🏫 ${E(sc)}</b><p class="sub" style="margin:4px 0 0;text-align:right">${fa(VC().length)} کلاس · ${fa(tot)} دانش‌آموز</p>`;
- if(window._opG===undefined){const cu=S.classes.find(c=>c.id===S.cur);window._opG=cu?(meta(cu).g||''):null}Object.keys(by).sort((a,b)=>gOrd(a)-gOrd(b)).forEach(g=>{const op=window._opG===g;h+=`<div class="cgr acc${op?' open':''}"><button class="cgh" data-gh="${E(g)}"><span>📚 ${g?'پایه '+E(g):'بدون پایه'}</span><small>${fa(by[g].length)} کلاس</small><i>⌄</i></button><div class="cgw"><div class="cgi">`+by[g].map(c=>{const m=meta(c),a=c.id===S.cur;return `<div class="crow${a?' on':''}"><div><b>${E(lab(c))}</b><small>آموزگار: ${E(m.t||'—')} · ${fa(m.n)} نفر</small></div>${a?'<span>✅ فعال</span>':`<span style="display:flex;gap:6px"><button data-sw="${c.id}">باز کردن</button><button class="dl" data-cd="${c.id}">🗑</button></span>`}</div>`}).join('')+'</div></div></div>'});
- h+=`</div><div class="card"><b>➕ افزودن کلاس جدید</b><div class="cadd" style="margin-top:8px"><select id="cl_g" class="fs">${grOpts}</select><input id="cl_s" placeholder="شعبه (مثلاً الف)"><input id="cl_t" placeholder="نام آموزگار"></div><button class="big" id="cl_a" style="font-size:15px;padding:12px;margin-top:8px">➕ افزودن کلاس</button><p class="sub" id="cl_m"></p><p class="sub" style="margin:0">هر کلاس دانش‌آموزان، حضور و غیاب، درس‌ها، آزمون‌ها و گزارش‌های جداگانه دارد. کلاس فعال را از بالای صفحه عوض کنید. پایه، شعبه و آموزگار هر کلاس را پس از باز کردن آن در «اطلاعات مدرسه و پایه» ویرایش کنید.</p></div>`;
+ if(window._opG===undefined){const cu=S.classes.find(c=>c.id===S.cur);window._opG=cu?(meta(cu).g||''):null}Object.keys(by).sort((a,b)=>gOrd(a)-gOrd(b)).forEach(g=>{const op=window._opG===g;h+=`<div class="cgr acc${op?' open':''}"><button class="cgh" data-gh="${E(g)}"><span>📚 ${g?'پایه '+E(g):'بدون پایه'}</span><small>${fa(by[g].length)} کلاس</small><i>⌄</i></button><div class="cgw"><div class="cgi">`+by[g].map(c=>{const m=meta(c),a=c.id===S.cur;return `<div class="crow${a?' on':''}"><div><b>${E(lab(c))}</b><small>آموزگار: ${m.t?E(m.t):'<b style="color:#d9534f">⚠️ ثبت نشده (اجباری)</b>'} · ${fa(m.n)} نفر</small></div>${a?'<span>✅ فعال</span>':`<span style="display:flex;gap:6px"><button data-sw="${c.id}">باز کردن</button><button class="dl" data-cd="${c.id}">🗑</button></span>`}</div>`}).join('')+'</div></div></div>'});
+ h+=`</div><div class="card"><b>➕ افزودن کلاس جدید</b><div class="cadd" style="margin-top:8px"><select id="cl_g" class="fs">${grOpts}</select><input id="cl_s" placeholder="شعبه (مثلاً الف)"></div><button class="big" id="cl_a" style="font-size:15px;padding:12px;margin-top:8px">➕ افزودن کلاس</button><p class="sub" id="cl_m"></p><p class="sub" style="margin:0">هر کلاس دانش‌آموزان، حضور و غیاب، درس‌ها، آزمون‌ها و گزارش‌های جداگانه دارد. کلاس فعال را از بالای صفحه عوض کنید. پس از ساخت، کلاس خودکار باز می‌شود تا نام آموزگار (اجباری) را در «اطلاعات مدرسه و پایه» ثبت کنید.</p></div>`;
  $('clsb').innerHTML=h};
 $('clsb').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
  if(t.dataset.gh!==undefined){const g=t.dataset.gh,gr=t.closest('.cgr'),was=gr.classList.contains('open');$('clsb').querySelectorAll('.cgr.open').forEach(x=>x.classList.remove('open'));if(!was)gr.classList.add('open');window._opG=was?null:g;return}
  if(t.dataset.sw)window.switchCls(+t.dataset.sw);
  else if(t.dataset.cd){if(!window.tap2(t))return;const id=+t.dataset.cd;delete S.stash[id];S.classes=S.classes.filter(c=>c.id!==id);save();renderCls()}
- else if(t.id==='cl_a'){const g=$('cl_g').value;if(!g){$('cl_m').textContent='ابتدا پایه را انتخاب کنید';return}const id=Date.now();S.classes.push({id,grade:g,sec:$('cl_s').value.trim(),teacher:$('cl_t').value.trim()});
-  S.stash[id]={students:[],drawn:[],att:{},closed:{},exams:[],courses:[],info:{},hwl:[],notes:{},desc:{},bin:[],activities:[],tnm:[],ai:{},prof:{grade:g,sec:$('cl_s').value.trim(),teacher:$('cl_t').value.trim()}};save();renderCls()}});
+ else if(t.id==='cl_a'){const g=$('cl_g').value;if(!g){$('cl_m').textContent='ابتدا پایه را انتخاب کنید';return}const id=Date.now();S.classes.push({id,grade:g,sec:$('cl_s').value.trim(),teacher:''});
+  S.stash[id]={students:[],drawn:[],att:{},closed:{},exams:[],courses:[],info:{},hwl:[],notes:{},desc:{},bin:[],activities:[],tnm:[],ai:{},prof:{grade:g,sec:$('cl_s').value.trim(),teacher:''}};save();
+  try{sessionStorage.setItem('needTeacher',String(id))}catch(x){}
+  $('cl_m').textContent='✅ کلاس ساخته شد؛ در حال باز کردن برای ثبت نام آموزگار…';window.__goto='prof';window.switchCls(id)}});
 function moveStu(id,to){const s=S.students.find(x=>x.id===id),T=S.stash[to];if(!s||!T)return;T.students=T.students||[];
  let nid=id;while(T.students.some(x=>x.id===nid))nid=Date.now()+Math.floor(Math.random()*1000);
  T.students.push(Object.assign({},s,{id:nid,team:(T.students.length)%Math.max(1,T.nt||3)+1}));
@@ -2802,7 +2805,7 @@ window.renderDm=function(){_d.apply(this,arguments);try{
  const open=id=>id===S.cur?'<span class="chip" style="background:#7e57c2">فعال</span>':`<button data-o="${id}">باز کردن</button>`;
  const unopened=D.length-V.length;
  box.innerHTML=`<div class="tdg">
- <div class="thero"><div><b>داشبورد مدیر 👔</b><span>${wd} ${fmt(tdy())}${sy?' · سال تحصیلی '+sy:''}${P0.school?' · '+esc2(P0.school):''}</span></div><div class="tc">${Lv[0]==='—'?'عملکرد کلی: داده‌ی کافی نیست':'عملکرد کلی مدرسه: '+Lv[0]}</div></div>
+ <div class="thero"><div><b>داشبورد مدیر 👔</b><span>${wd} ${fmt(tdy())}${(window.isSchoolManager&&window.isSchoolManager())?' · مدیر مدرسه':''}${sy?' · سال تحصیلی '+sy:''}${P0.school?' · '+esc2(P0.school):''}</span></div><div class="tc">${Lv[0]==='—'?'عملکرد کلی: داده‌ی کافی نیست':'عملکرد کلی مدرسه: '+Lv[0]}</div></div>
  <div class="tk k7">
   ${kp('🏫',fa(D.length),'کلاس',unopened?fa(unopened)+' کلاس بدون اطلاعات':'همه‌ی کلاس‌ها دارای آمار','#7e57c2','cls')}
   ${kp('👥',fa(N),'دانش‌آموز',unopened?'بدون '+fa(unopened)+' کلاس بدون اطلاعات':(AB?fa(AB)+' غایب امروز':'مجموع همه کلاس‌ها'),'#3b6fd8','stu')}
@@ -3108,24 +3111,25 @@ const dmb=nav.querySelector('[data-p="dm"]');if(dmb)dmb.after(nb);else nav.appen
 const css=document.createElement('style');css.textContent='.tfc{display:flex;gap:12px;align-items:flex-start}.tfc img{width:72px;height:72px;border-radius:18px;object-fit:cover;flex:none;border:2px solid var(--line);cursor:pointer}.tfc>div{min-width:0;flex:1}.tfc b{font-size:16px}.tfi{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px 12px;margin:8px 0;font-size:13px}.tfi span{color:var(--mut)}.tfi div{overflow-wrap:anywhere}.tfa{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.tfa button{flex:1 1 140px}.tff{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin-top:10px}.tff label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}.tff input,.tff select,.tff textarea{width:100%;margin:0}.tff .w{grid-column:1/-1}';document.head.appendChild(css);
 const names=()=>{const o=[];S.classes.filter(c=>!c.demo&&window.clsOK(c.id)).forEach(c=>{const t=String(clsMeta(c).t||'').trim();if(t&&!o.includes(t))o.push(t)});return o};
 const cls=t=>S.classes.filter(c=>!c.demo&&String(clsMeta(c).t||'').trim()===t);
-const prof=t=>{const c=cls(t).find(x=>x.tp);return c?c.tp:{}};
+const selfOf=t=>{for(const c of cls(t)){const P=c.id===S.cur?S.prof:((S.stash[c.id]||{}).prof);if(P&&P.tself)return P.tself}return{}};
+const prof=t=>{const c=cls(t).find(x=>x.tp),tp=c?c.tp:{},me=selfOf(t),a=(me.upd||0)>(tp.upd||0)?[tp,me]:[me,tp],o={};a.forEach(q=>Object.keys(q).forEach(k=>{if(q[k]!==''&&q[k]!=null)o[k]=q[k]}));return o};
 const courses=c=>{const d=c.id===S.cur?S:(S.stash[c.id]||{});return(d.courses||[]).map(x=>x.name).filter(Boolean)};
 const av=(t,p)=>p.photo||'data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><rect width="72" height="72" fill="#e6dcf7"/><circle cx="36" cy="28" r="13" fill="#b79be0"/><path d="M10 72c2-18 14-26 26-26s24 8 26 26z" fill="#9b6fd0"/></svg>');
 let ed=null,op=null;
 window.renderTf=()=>{const L=names(),b=$('tfb');
- if(!L.length){b.innerHTML='<div class="card"><p class="sub">هنوز نام آموزگاری برای کلاس‌ها ثبت نشده است. در «🏫 مدرسه و کلاس‌ها» یا «🏫 اطلاعات مدرسه و پایه» نام آموزگار هر کلاس را بنویسید.</p></div>';return}
+ if(!L.length){b.innerHTML='<div class="card"><p class="sub">هنوز نام آموزگاری برای کلاس‌ها ثبت نشده است. هر کلاس را باز کنید و در «🏫 اطلاعات مدرسه و پایه» نام آموزگار (اجباری) را بنویسید.</p></div>';return}
  if(op!=null&&!L.includes(op)){op=null;ed=null}
  const chipH=on=>`<span class="chip" style="background:${on?'#2eaf6b':'#8a7aa6'}">${on?'فعال':'غیرفعال'}</span>`;
  const tile=t=>{const p=prof(t),C=cls(t),on=p.active!==false;
   return `<div class="tl-t" role="button" tabindex="0" data-tf="v" data-t="${E(t)}"><img src="${E(av(t,p))}" alt=""><b>${E(t)}</b>${chipH(on)}<small>${E(C.map(c=>clsLab(c)).join('، ')||'—')}</small></div>`};
  const full=t=>{const p=prof(t),C=cls(t),cr=[...new Set([].concat(...C.map(courses)))],on=p.active!==false;
   const row=(k,v)=>`<div><span>${k}</span><br>${v?E(v):'—'}</div>`;
-  let h=`<div class="tfc"><img src="${E(av(t,p))}" data-tp="${E(t)}" alt="" title="تغییر عکس"><div><b>${E(t)}</b> ${chipH(on)}<div class="tfi">${row('نام کاربری',p.user)}${row('شماره تماس',p.tel)}${row('تماس ضروری',p.em)}${row('محل زندگی',p.addr)}${row('سابقه',p.exp)}${row('کلاس‌ها',C.map(c=>clsLab(c)+' ('+fa(clsMeta(c).n)+' نفر)').join('، '))}${row('دروس',cr.join('، '))}</div>${p.note?`<div style="font-size:13px"><span style="color:var(--mut)">توضیحات:</span> ${E(p.note)}</div>`:''}</div></div>`;
-  if(ed===t)h+=`<div class="tff"><div><label>نام کاربری</label><input id="tf_u" value="${E(p.user)}"></div><div><label>وضعیت حساب</label><select id="tf_a"><option value="1"${on?' selected':''}>فعال</option><option value="0"${on?'':' selected'}>غیرفعال</option></select></div><div><label>شماره تماس</label><input id="tf_t" inputmode="tel" value="${E(p.tel)}"></div><div><label>تماس ضروری</label><input id="tf_e" value="${E(p.em)}"></div><div class="w"><label>محل زندگی</label><input id="tf_d" value="${E(p.addr)}"></div><div class="w"><label>سابقه / اطلاعات تکمیلی</label><input id="tf_x" value="${E(p.exp)}"></div><div class="w"><label>توضیحات</label><textarea id="tf_n" rows="2">${E(p.note)}</textarea></div></div><div class="tfa"><button class="big" data-tf="s" data-t="${E(t)}" style="font-size:14px;padding:10px">💾 ذخیره</button><button class="sm" data-tf="c">انصراف</button></div>`;
+  let h=`<div class="tfc"><img src="${E(av(t,p))}" data-tp="${E(t)}" alt="" title="تغییر عکس"><div><b>${E(t)}</b> ${chipH(on)}<div class="tfi">${row('نام کاربری',p.user)}${row('شماره تماس',p.tel)}${row('تماس ضروری',p.em)}${row('محل زندگی',p.addr)}${row('تحصیلات',[p.edu,p.major].filter(Boolean).join(' · '))}${row('دانشگاه / مرکز',p.uni)}${row('سال‌های خدمت',p.yrs?fa(p.yrs)+' سال':'')}${row('سابقه',p.exp)}${row('کلاس‌ها',C.map(c=>clsLab(c)+' ('+fa(clsMeta(c).n)+' نفر)').join('، '))}${row('دروس',cr.join('، '))}</div>${p.note?`<div style="font-size:13px"><span style="color:var(--mut)">توضیحات:</span> ${E(p.note)}</div>`:''}</div></div>`;
+  if(ed===t)h+=`<div class="tff"><div><label>نام کاربری</label><input id="tf_u" value="${E(p.user)}"></div><div><label>وضعیت حساب</label><select id="tf_a"><option value="1"${on?' selected':''}>فعال</option><option value="0"${on?'':' selected'}>غیرفعال</option></select></div><div><label>شماره تماس</label><input id="tf_t" inputmode="tel" value="${E(p.tel)}"></div><div><label>تماس ضروری</label><input id="tf_e" value="${E(p.em)}"></div><div><label>تحصیلات</label><input id="tf_edu" value="${E(p.edu)}"></div><div><label>رشته</label><input id="tf_mj" value="${E(p.major)}"></div><div><label>دانشگاه / مرکز</label><input id="tf_un" value="${E(p.uni)}"></div><div><label>سال‌های خدمت</label><input id="tf_y" inputmode="numeric" value="${E(p.yrs)}"></div><div class="w"><label>محل زندگی</label><input id="tf_d" value="${E(p.addr)}"></div><div class="w"><label>سابقه / اطلاعات تکمیلی</label><input id="tf_x" value="${E(p.exp)}"></div><div class="w"><label>توضیحات</label><textarea id="tf_n" rows="2">${E(p.note)}</textarea></div></div><div class="tfa"><button class="big" data-tf="s" data-t="${E(t)}" style="font-size:14px;padding:10px">💾 ذخیره</button><button class="sm" data-tf="c">انصراف</button></div>`;
   else h+=`<div class="tfa"><button class="sm" data-tf="e" data-t="${E(t)}">✏️ ویرایش پرونده</button><button class="big" data-tf="o" data-t="${E(t)}" style="font-size:14px;padding:10px">🏠 باز کردن داشبورد</button></div>`;
   return h};
  b.innerHTML='<p class="sub">'+fa(L.length)+' معلم · برای دیدن اطلاعات، روی هر معلم بزنید.</p><div class="tl-grid">'+L.map(tile).join('')+'</div>'+(op!=null?`<div class="act-ov"><div class="act-sh">${full(op)}<button class="sm" data-tf="x" style="width:100%;margin-top:10px">✖ بستن</button></div></div>`:'')+'<p class="sub" style="margin-top:12px">کلاس‌ها و دروس هر معلم خودکار از روی «نام آموزگار» کلاس‌ها ساخته می‌شود. نام کاربری و وضعیت حساب فعلاً فقط ثبت می‌شود و ورود جداگانه‌ای با آن‌ها وجود ندارد.</p>'};
-const setP=(t,f)=>{const C=cls(t),p=Object.assign({},prof(t));f(p);C.forEach(c=>c.tp=p);save()};
+const setP=(t,f)=>{const C=cls(t),p=Object.assign({},prof(t));f(p);p.upd=Date.now();C.forEach(c=>c.tp=p);save()};
 const fi=document.createElement('input');fi.type='file';fi.accept='image/*';let pt=null;
 fi.onchange=()=>{const f=fi.files[0];if(!f||!pt)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const n=220,k=Math.min(1,n/Math.min(im.width,im.height)),cv=document.createElement('canvas');cv.width=cv.height=n;const g=cv.getContext('2d'),w=im.width*Math.max(k,n/Math.min(im.width,im.height)),h=im.height*Math.max(k,n/Math.min(im.width,im.height));g.drawImage(im,(n-w)/2,(n-h)/2,w,h);const u=cv.toDataURL('image/jpeg',.82);setP(pt,p=>p.photo=u);renderTf()};im.src=r.result};r.readAsDataURL(f);fi.value=''};
 $('tfb').addEventListener('click',e=>{if(e.target.classList.contains('act-ov')){op=null;ed=null;renderTf();return}
@@ -3133,7 +3137,7 @@ $('tfb').addEventListener('click',e=>{if(e.target.classList.contains('act-ov')){
  const t=e.target.closest('[data-tf]');if(!t)return;const a=t.dataset.tf,n=t.dataset.t;
  if(a==='v'){op=n;ed=null;renderTf()}else if(a==='x'){op=null;ed=null;renderTf()}
  else if(a==='e'){op=n;ed=n;renderTf()}else if(a==='c'){ed=null;renderTf()}
- else if(a==='s'){setP(n,p=>{p.user=$('tf_u').value.trim();p.active=$('tf_a').value==='1';p.tel=$('tf_t').value.trim();p.em=$('tf_e').value.trim();p.addr=$('tf_d').value.trim();p.exp=$('tf_x').value.trim();p.note=$('tf_n').value.trim()});ed=null;renderTf()}
+ else if(a==='s'){setP(n,p=>{p.user=$('tf_u').value.trim();p.active=$('tf_a').value==='1';p.tel=$('tf_t').value.trim();p.em=$('tf_e').value.trim();p.addr=$('tf_d').value.trim();p.edu=$('tf_edu').value.trim();p.major=$('tf_mj').value.trim();p.uni=$('tf_un').value.trim();p.yrs=$('tf_y').value.trim();p.exp=$('tf_x').value.trim();p.note=$('tf_n').value.trim()});ed=null;renderTf()}
  else if(a==='o'){op=null;ed=null;renderTf();const c=cls(n).find(x=>x.id===S.cur)||cls(n)[0];if(!c)return;if(c.id===S.cur)show('home');else{window.__goto='home';switchCls(c.id)}}});
 $('tfb').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.classList&&e.target.classList.contains('tl-t')){e.preventDefault();e.target.click()}});
 const _s=window.show;window.show=function(id){_s.apply(this,arguments);if(id==='tf')renderTf()};
@@ -3836,15 +3840,68 @@ const _sh=window.show;window.show=function(id){const r=_sh.apply(this,arguments)
 }catch(e){console.warn('bulkzip',e)}})();
 
 </script>
+<script type="text/plain" data-app id="tme-v1">
+(function(){try{
+const $=id=>document.getElementById(id),E=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+pages.push(['tme','👤 پروفایل من']);
+$('set').insertAdjacentHTML('beforebegin','<section id="tme"><h2>👤 پروفایل من</h2><div id="tmeb"></div></section>');
+const css=document.createElement('style');
+css.textContent='.tme-h{display:flex;gap:14px;align-items:center}.tme-h img{width:96px;height:96px;border-radius:24px;object-fit:cover;flex:none;border:2px solid var(--line);cursor:pointer}.tme-h>div{min-width:0;flex:1}.tme-bar{height:8px;border-radius:8px;background:var(--line);overflow:hidden;margin:6px 0 2px}.tme-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--p),var(--p2))}.tme-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:12px}.tme-g label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}.tme-g input,.tme-g select,.tme-g textarea{width:100%;margin:0;box-sizing:border-box}.tme-g .w{grid-column:1/-1}.tme-req{color:#d9534f;font-weight:700}';
+document.head.appendChild(css);
+const DEF='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72"><rect width="72" height="72" fill="#e6dcf7"/><circle cx="36" cy="28" r="13" fill="#b79be0"/><path d="M10 72c2-18 14-26 26-26s24 8 26 26z" fill="#9b6fd0"/></svg>');
+const EDU=['','دیپلم','کاردانی','کارشناسی','کارشناسی ارشد','دکتری'];
+const get=()=>((S.prof||{}).tself)||{};
+const pct=()=>{const T=get(),P=S.prof||{},k=[P.teacher,T.photo,T.edu,T.major,T.yrs,T.tel,T.em,T.addr,T.exp];return Math.round(k.filter(x=>String(x==null?'':x).trim()).length/k.length*100)};
+let msg='';
+function rnd(){const b=$('tmeb');if(!b)return;const T=get(),P=S.prof||{},nm=P.teacher||'',p=pct();
+ const inp=(id,l,v,x)=>'<div><label>'+l+'</label><input id="'+id+'" value="'+E(v)+'" '+(x||'')+'></div>';
+ b.innerHTML='<div class="card"><div class="tme-h"><img id="tme_img" src="'+E(T.photo||DEF)+'" alt="" title="تغییر عکس"><div><b style="font-size:17px">'+(nm?E(nm):'نام خود را وارد کنید')+'</b><div class="tme-bar"><i style="width:'+p+'%"></i></div><small class="sub" style="margin:0">پروفایل '+fa(p)+'٪ کامل است</small><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sm" id="tme_ph">📷 '+(T.photo?'تغییر عکس':'افزودن عکس')+'</button>'+(T.photo?'<button class="sm" id="tme_pd">حذف عکس</button>':'')+'</div></div></div></div>'
+ +'<div class="card"><b>✏️ مشخصات من</b><div class="tme-g">'
+ +'<div class="w"><label>نام و نام‌خانوادگی <span class="tme-req">* اجباری</span></label><input id="tme_name" value="'+E(nm)+'"></div>'
+ +'<div><label>تحصیلات (آخرین مدرک)</label><select id="tme_edu" class="fs">'+EDU.map(x=>'<option value="'+x+'"'+(T.edu===x?' selected':'')+'>'+(x||'انتخاب کنید')+'</option>').join('')+'</select></div>'
+ +inp('tme_major','رشته‌ی تحصیلی',T.major)+inp('tme_uni','دانشگاه / مرکز آموزشی',T.uni)+inp('tme_yrs','سابقه‌ی خدمت (سال)',T.yrs,'inputmode="numeric"')
+ +inp('tme_tel','شماره تماس',T.tel,'inputmode="tel"')+inp('tme_em','تماس ضروری',T.em)
+ +'<div class="w"><label>محل زندگی</label><input id="tme_addr" value="'+E(T.addr)+'"></div>'
+ +'<div class="w"><label>سوابق کاری و دوره‌های آموزشی</label><textarea id="tme_exp" rows="3">'+E(T.exp)+'</textarea></div>'
+ +'<div class="w"><label>درباره‌ی من / توضیحات</label><textarea id="tme_note" rows="2">'+E(T.note)+'</textarea></div></div>'
+ +'<button class="big" id="tme_s" style="font-size:15px;padding:12px;margin-top:12px">💾 ذخیره‌ی پروفایل</button><p class="sub" id="tme_m" style="text-align:right">'+E(msg)+'</p>'
+ +'<p class="sub" style="text-align:right;margin:0">پس از همگام‌سازی با مدرسه، مدیر این اطلاعات را در «پرونده‌ی معلمان» می‌بیند.</p></div>';
+ msg=''}
+function sv(){const n=$('tme_name'),m=$('tme_m'),name=n.value.trim();
+ if(!name){m.textContent='❌ نام و نام‌خانوادگی اجباری است.';n.style.borderColor='#d9534f';n.focus();return}
+ const old=String(S.prof.teacher||'').trim(),g=id=>$(id).value.trim();
+ const t={photo:get().photo||'',edu:$('tme_edu').value,major:g('tme_major'),uni:g('tme_uni'),yrs:g('tme_yrs'),tel:g('tme_tel'),em:g('tme_em'),addr:g('tme_addr'),exp:g('tme_exp'),note:g('tme_note'),upd:Date.now()};
+ S.prof.teacher=name;S.prof.tself=t;
+ const cl=(S.classes||[]).find(c=>c.id===S.cur);if(cl)cl.teacher=name;
+ if(old)Object.keys(S.stash||{}).forEach(id=>{const st=S.stash[id],sp=st&&st.prof;if(sp&&String(sp.teacher||'').trim()===old){sp.teacher=name;sp.tself=t;const c2=(S.classes||[]).find(c=>String(c.id)===String(id));if(c2)c2.teacher=name}});
+ const pi=$('p_teacher');if(pi){pi.value=name;pi.style.borderColor='';const w=$('p_teacher_w');if(w)w.textContent=''}
+ try{$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨'}catch(e){}
+ save();msg='✅ پروفایل ذخیره شد.';rnd()}
+function setPhoto(u){const t=Object.assign({},get(),{photo:u,upd:Date.now()});S.prof.tself=t;
+ const old=String(S.prof.teacher||'').trim();if(old)Object.keys(S.stash||{}).forEach(id=>{const sp=(S.stash[id]||{}).prof;if(sp&&String(sp.teacher||'').trim()===old)sp.tself=t});
+ save();rnd()}
+const fi=document.createElement('input');fi.type='file';fi.accept='image/*';
+fi.onchange=()=>{const f=fi.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const n=220,k=n/Math.min(im.width,im.height),cv=document.createElement('canvas');cv.width=cv.height=n;const c=cv.getContext('2d'),w=im.width*k,h=im.height*k;c.drawImage(im,(n-w)/2,(n-h)/2,w,h);setPhoto(cv.toDataURL('image/jpeg',.82))};im.src=r.result};r.readAsDataURL(f);fi.value=''};
+$('tmeb').addEventListener('click',e=>{const t=e.target;if(t.id==='tme_img'||t.id==='tme_ph')fi.click();else if(t.id==='tme_pd')setPhoto('');else if(t.id==='tme_s')sv()});
+const _s=window.show;window.show=function(id){
+ try{const need=sessionStorage.getItem('needTeacher');
+  if(need){if(String(S.cur)!==need)sessionStorage.removeItem('needTeacher');
+   else if(String(S.prof.teacher||'').trim())sessionStorage.removeItem('needTeacher');
+   else if(id!=='prof'){window.__raToast&&window.__raToast('نام آموزگار اجباری است؛ ابتدا آن را بنویسید.');id='prof'}}}catch(e){}
+ const r=_s.call(this,id);if(id==='tme')rnd();return r};
+}catch(e){console.error('tme',e)}})();
+</script>
 <script type="text/plain" data-app>
 (function(){try{
 const nav=document.getElementById('nav'),$=id=>document.getElementById(id);
-const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و حضور',['att','act','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['mot','🎮 امتیاز و انگیزش',['mot']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['set','⚙️ تنظیمات و پشتیبان',['set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
+const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و حضور',['att','act','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['mot','🎮 امتیاز و انگیزش',['mot']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['me','👤 پروفایل من',['tme']],['set','⚙️ تنظیمات و پشتیبان',['set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
 const known=new Set(H.flatMap(h=>h.ids));[...document.querySelectorAll('section[id]')].forEach(s=>{if(!known.has(s.id)&&s.id!=='sc'&&s.id!=='mot2'){H[H.length-1].ids.push(s.id);known.add(s.id)}});
+const MGI=['prof','mgr','bk'],isMg=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
+const gid=h=>{if(!isMg())return h.ids;if(h.k==='sch')return['dm','cls','tf','prof','mgr','bz','bk'].filter(i=>$(i));return h.ids.filter(i=>MGI.indexOf(i)<0)};
 const title=i=>{const p=(typeof pages!=='undefined'?pages:[]).find(x=>x[0]===i);return p?p[1]:i},last={};
-nav.innerHTML='';H.filter(h=>h.ids.length).forEach(h=>{const b=document.createElement('button');b.textContent=h.t;b.dataset.p=h.k;b.onclick=()=>show(last[h.k]||h.ids[0]);nav.appendChild(b)});
-function deco(id){const h=H.find(x=>x.ids.includes(id));nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',!!h&&b.dataset.p===h.k));const old=$('subTabs');if(old)old.remove();if(!h)return;last[h.k]=id;if(h.ids.length<2)return;
- const bar=document.createElement('div');bar.id='subTabs';bar.innerHTML=h.ids.map(i=>`<button data-t="${i}" class="${i===id?'on':''}">${title(i)}</button>`).join('');bar.onclick=e=>{const b=e.target.closest('[data-t]');if(b)show(b.dataset.t)};$(id).before(bar)}
+nav.innerHTML='';H.filter(h=>h.ids.length).forEach(h=>{const b=document.createElement('button');b.textContent=h.t;b.dataset.p=h.k;b.onclick=()=>{const g=gid(h);show(g.includes(last[h.k])?last[h.k]:g[0])};nav.appendChild(b)});
+function deco(id){const h=H.find(x=>gid(x).includes(id));nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',!!h&&b.dataset.p===h.k));const old=$('subTabs');if(old)old.remove();if(!h)return;last[h.k]=id;const gs=gid(h);if(gs.length<2)return;
+ const bar=document.createElement('div');bar.id='subTabs';bar.innerHTML=gs.map(i=>`<button data-t="${i}" class="${i===id?'on':''}">${title(i)}</button>`).join('');bar.onclick=e=>{const b=e.target.closest('[data-t]');if(b)show(b.dataset.t)};$(id).before(bar)}
 const o=window.show;window.show=function(id){if(id==='sc')id='mot';const r=o.call(this,id);try{deco(id);if(id==='home')homeKpi()}catch(e){}return r};
 function homeKpi(){const hm=$('home');if(!hm||!window.S||!S.students)return;let b=$('hk');if(!b){b=document.createElement('div');b.id='hk';const h2=hm.querySelector('h2');h2?h2.after(b):hm.prepend(b)}
  const n=S.students.length,fx=x=>typeof fa==='function'?fa(x):x,T=iso(tdy()),A=S.att&&S.att[T]||{},pres=S.students.filter(s=>A[s.id]==='p'||A[s.id]==='l').length,has=S.students.some(s=>A[s.id]);
@@ -3853,7 +3910,7 @@ function homeKpi(){const hm=$('home');if(!hm||!window.S||!S.students)return;let 
  const low=per.filter(v=>v!=null&&v<2).length,k=(i,t,v,cl)=>`<div class="hk-k" style="--c:${cl}"><i>${i}</i><b>${v}</b><span>${t}</span></div>`;
  b.innerHTML=k('👥','دانش‌آموزان کلاس',fx(n),'#7e57c2')+k('✅','حضور امروز',has?fx(Math.round(pres/n*100))+'٪':'ثبت نشده','#1a8f55')+k('📘','میانگین آزمون‌ها (از ۴)',c?fx((sum/c).toFixed(1)):'—','#2b8bd6')+k('📝','تکالیف انجام‌شده',ht?fx(Math.round(hd/ht*100))+'٪':'—','#f0a030')+k('💡','نیازمند توجه',fx(low),'#d9534f')}
 const _R=window.render;if(typeof _R==='function'){window.render=function(){const r=_R.apply(this,arguments);try{if($('home')&&$('home').classList.contains('on'))homeKpi()}catch(e){}return r}}
-const cur=document.querySelector('section.on');deco(cur?cur.id:'home');homeKpi();
+window.__deco=deco;const cur=document.querySelector('section.on');deco(cur?cur.id:'home');homeKpi();
 }catch(e){console.error('menu',e)}})();
 </script>
 <script type="text/plain" data-app>
@@ -5336,6 +5393,7 @@ function applyUI(){
  const nav=$('nav');
  if(nav){
   ['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
+  {const meb=nav.querySelector('[data-p="me"]');if(meb)meb.classList.toggle('ra-hide',m)}
   const sch=nav.querySelector('[data-p="sch"]'),hm=nav.querySelector('[data-p="home"]'),se=nav.querySelector('[data-p="set"]');
   if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;{const nx=m?'🏛️ پیشخوان مدیریت':sch.dataset.o;if(sch.textContent!==nx)sch.textContent=nx}
    if(m&&nav.firstElementChild!==sch)nav.insertBefore(sch,nav.firstElementChild);
@@ -5395,11 +5453,11 @@ function mgrDm(){
  if(!isM())return;const b=$('dmb');if(!b)return;
  let wd='';try{wd=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}catch(e){}
  const i=mgrInfo()||{},n=mgrName();
- b.insertAdjacentHTML('afterbegin',
-  '<div class="thero" id="ra_hero"><div><b>سلام'+(n?'، '+esc(n):'')+' 👋</b><span>'+esc(wd)+' · مدیر مدرسه'+(i.school?' · '+esc(i.school):'')+'</span></div><div class="tc">پیشخوان مدیریت</div></div>'
-  +'<div class="card" style="margin-top:10px"><b>🏫 ورود به کلاس‌ها</b>'
+ const _h=b.querySelector('.thero'),_html=
+  '<div class="card"><b>🏫 ورود به کلاس‌ها</b>'
   +'<p class="sub" style="text-align:right;margin:6px 0">هر کلاس را از فهرست بالای صفحه یا دکمه‌ی «باز کردن» جدول پایین باز کنید؛ مدیر به همه‌ی بخش‌های هر کلاس دسترسی کامل دارد.</p>'
-  +'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" data-ra-go="home">🏠 داشبورد کلاس فعلی</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button></div></div>');
+  +'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="sm" data-ra-go="home">🏠 داشبورد کلاس فعلی</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button></div></div>';
+ if(_h)_h.insertAdjacentHTML('afterend',_html);else b.insertAdjacentHTML('afterbegin',_html);
 }
 document.addEventListener('click',e=>{const g=e.target.closest&&e.target.closest('[data-ra-go]');if(g)show(g.dataset.raGo)});
 if(typeof window.renderDm==='function'){const rd=window.renderDm;window.renderDm=function(){if(isT()){const b=$('dmb');if(b)b.innerHTML='';return}const r=rd.apply(this,arguments);try{mgrDm()}catch(e){console.warn('ra-dm',e)}return r}}
@@ -5427,7 +5485,7 @@ function land(){
 }
 
 let lt=isT(),lm=isM();
-setInterval(()=>{const t=isT(),m=isM();if(t===lt&&m===lm)return;lt=t;lm=m;try{applyUI();patchHero()}catch(e){}
+setInterval(()=>{const t=isT(),m=isM();if(t===lt&&m===lm)return;lt=t;lm=m;try{applyUI();patchHero()}catch(e){}try{window.__deco&&window.__deco(cur())}catch(e){}
  if(t&&GUARD.indexOf(cur())>=0)show('home');
  if(m)land()},800);
 applyUI();patchHero();

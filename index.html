@@ -85,7 +85,6 @@ section{display:none}section.on{display:block}
 #cpan p{margin:8px 0;font-size:14px;line-height:1.8}
 #cpan button{display:block;width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:700 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #cpan button.pr{background:var(--p);color:#fff;border-color:var(--p)}
-#cpan input{display:block;width:100%;box-sizing:border-box;margin-top:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:14px Vazirmatn,Tahoma,sans-serif}
 </style>
 <style>
 .dt{background:linear-gradient(135deg,#d6f6e5,#bfe9f2);color:#24493d}
@@ -416,7 +415,7 @@ Promise.all([boot().catch(e=>console.warn('idb',e)),ready]).then(()=>{
 </div></div>
 <div id="cpan"><div class="box"><b style="font-size:17px">☁️ ذخیره‌ی ابری</b>
 <p id="cst"></p>
-<div id="cfm"><input id="cph" type="tel" inputmode="numeric" dir="ltr" autocomplete="username" placeholder="شماره موبایل (09123456789)"><input id="cpw" type="password" dir="ltr" autocomplete="current-password" placeholder="رمز عبور (حداقل ۶ کاراکتر)"><button class="pr" id="cin">ورود</button><button id="cup">ساخت حساب جدید</button></div>
+<button class="pr" id="cin">ورود با حساب گوگل (Gmail)</button>
 <button id="csy">🔄 همگام‌سازی الآن</button>
 <button id="cout">خروج از حساب</button>
 <button id="ccl">بستن</button></div></div>
@@ -927,8 +926,6 @@ const ui=(t,c)=>{$('cst').textContent=t;$('cb').dataset.s=c||''};
 const ref=()=>db.collection('users').doc(user.uid);
 window.cloudWipe=async()=>{if(!user)return false;const sn=await ref().collection('parts').get();await Promise.all(sn.docs.map(d=>d.ref.delete()));await ref().delete();return true};
 const fmtT=t=>t?new Date(t).toLocaleString('fa-IR'):'—';
-window.__pm=s=>{s=String(s||'').trim();if(/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(s))return s.toLowerCase();let p=s.replace(/[۰-۹]/g,c=>c.charCodeAt(0)-1776).replace(/[٠-٩]/g,c=>c.charCodeAt(0)-1632).replace(/\D/g,'');if(/^989\d{9}$/.test(p))p='0'+p.slice(2);else if(/^9\d{9}$/.test(p))p='0'+p;return/^09\d{9}$/.test(p)?p+'@class.app':null};
-window.__pshow=e=>String(e||'').replace(/@class\.app$/,'');
 async function applyCloud(d){try{if(d.v===2){const sn=await ref().collection('parts').get(),m={},ix=Object.assign({},d.idx,d.fx||{});sn.forEach(x=>{const q=x.data();(m[q.p]=m[q.p]||[])[q.i]=q.d});
  const g=k=>{if(!ix[k])return undefined;const a=m[k];if(!a||a.length!==ix[k].n||a.some(x=>x==null))throw new Error('incomplete');return JSON.parse(a.join(''))};
  const ns=window.__stor.join(g,Object.keys(d.idx).filter(k=>k[0]==='c').map(k=>k.slice(1)));localStorage.setItem('cl1',JSON.stringify(ns))}else localStorage.setItem('cl1',d.data);
@@ -942,7 +939,7 @@ async function push(){if(!user)return;let note='';try{ui('در حال ذخیره
   await Promise.all(W);const stale=[];if(lastIdx)Object.keys(lastIdx).forEach(k=>{const n=idx[k]?idx[k].n:0;for(let i=n;i<lastIdx[k].n;i++)stale.push(col.doc(k+'~'+i).delete())});
   const ix1={},fx1={};Object.keys(idx).forEach(k=>(k[0]==='s'?fx1:ix1)[k]=idx[k]);await ref().set({v:2,idx:ix1,fx:fx1,ts:ts0,by});await Promise.all(stale);lastIdx=idx}catch(e){if(e.code==='permission-denied'){v2=false;await legacy();note='\n⚠️ حالت قدیمی (تک‌سند). قوانین Firestore را برای ذخیره‌ی بخش‌بخش اصلاح کنید.'}else throw e}}
  else{await legacy();note='\n⚠️ حالت قدیمی (تک‌سند). قوانین Firestore را اصلاح کنید.'}
- ui('✅ ذخیره شد · '+__pshow(user.email)+'\nآخرین ذخیره: '+fmtT(ts())+note,'ok')}catch(e){ui('❌ ذخیره نشد (اینترنت، دسترسی یا حجم): '+(e.code||e.message),'err')}}
+ ui('✅ ذخیره شد · '+user.email+'\nآخرین ذخیره: '+fmtT(ts())+note,'ok')}catch(e){ui('❌ ذخیره نشد (اینترنت، دسترسی یا حجم): '+(e.code||e.message),'err')}}
 let dirty=false;
 window.cloudPush=()=>{if(!user)return;dirty=true;clearTimeout(timer);timer=setTimeout(()=>{dirty=false;push()},1200)};
 let waitOn=false;
@@ -963,20 +960,18 @@ async function sync(first){
     if(first&&lt===0&&localStorage.getItem('cl1')&&!confirm('در حساب ابری شما اطلاعات ذخیره شده است.\n\nOK = اطلاعات ابری روی این دستگاه بیاید\nCancel = اطلاعات همین دستگاه جایگزین ابری شود')){localStorage.setItem('cl1_ts',Date.now());await push()}
     else if(first)applyCloud(d);else wait()
    }else if(d.ts<lt){await push()}
-   else ui('✅ همه‌چیز به‌روز است · '+__pshow(user.email)+'\nآخرین تغییر: '+fmtT(lt),'ok')}
+   else ui('✅ همه‌چیز به‌روز است · '+user.email+'\nآخرین تغییر: '+fmtT(lt),'ok')}
  }catch(e){ui('❌ خطا در همگام‌سازی: '+(e.code||e.message),'err')}
  busy=false}
-function open(){$('cpan').classList.add('open');$('cfm').style.display=user?'none':'';$('csy').style.display=$('cout').style.display=user?'':'none'}
+function open(){$('cpan').classList.add('open');$('cin').style.display=user?'none':'';$('csy').style.display=$('cout').style.display=user?'':'none'}
 $('cb').onclick=open;$('ccl').onclick=()=>$('cpan').classList.remove('open');
 $('cpan').onclick=e=>{if(e.target.id==='cpan')$('cpan').classList.remove('open')};
-if(!CFG.apiKey){ui('ذخیره‌ی ابری هنوز تنظیم نشده است. کلیدهای Firebase باید در فایل قرار بگیرد.','off');$('cfm').style.display=$('csy').style.display=$('cout').style.display='none';return}
+if(!CFG.apiKey){ui('ذخیره‌ی ابری هنوز تنظیم نشده است. کلیدهای Firebase باید در فایل قرار بگیرد.','off');$('cin').style.display=$('csy').style.display=$('cout').style.display='none';return}
 ui('در حال اتصال…','');
 ld(B+'firebase-app-compat.js').then(()=>Promise.all([ld(B+'firebase-auth-compat.js'),ld(B+'firebase-firestore-compat.js')])).then(()=>{
  firebase.initializeApp(CFG);auth=firebase.auth();db=firebase.firestore();
- let un=null;auth.onAuthStateChanged(u=>{user=u;if(un){try{un()}catch(e){}un=null}if(u){try{un=ref().onSnapshot(sn=>{if(!sn.exists||sn.metadata.hasPendingWrites||busy||dirty)return;const d=sn.data();if(d&&ts()>0&&d.ts>ts())wait()},()=>{})}catch(e){}$('cfm').style.display='none';$('csy').style.display=$('cout').style.display='';sync(true)}else{ui('وارد نشده‌اید. با شماره موبایل و رمز وارد شوید تا اطلاعات شما در هر دستگاهی در دسترس باشد.','');$('cfm').style.display='';$('csy').style.display=$('cout').style.display='none'}});
- const MSG={'auth/invalid-credential':'شماره یا رمز اشتباه است. اگر حساب ندارید «ساخت حساب جدید» را بزنید.','auth/wrong-password':'رمز اشتباه است.','auth/user-not-found':'این شماره ثبت نشده است؛ «ساخت حساب جدید» را بزنید.','auth/email-already-in-use':'این شماره قبلاً ثبت شده است؛ «ورود» را بزنید.','auth/weak-password':'رمز باید حداقل ۶ کاراکتر باشد.','auth/operation-not-allowed':'در Firebase ← Authentication ← Sign-in method گزینه‌ی Email/Password را فعال کنید.','auth/network-request-failed':'اینترنت قطع یا ضعیف است؛ دوباره تلاش کنید.','auth/too-many-requests':'تلاش‌های زیاد؛ چند دقیقه صبر کنید.','auth/unauthorized-domain':'دامنه‌ی این صفحه در Firebase مجاز نشده است.'};
- const go=up=>{const em=window.__pm($('cph').value),pw=$('cpw').value;if(!em){ui('❌ شماره موبایل را درست بنویسید (مثلاً 09123456789).','err');return}if(pw.length<6){ui('❌ رمز باید حداقل ۶ کاراکتر باشد.','err');return}ui('در حال ورود…','');(up?auth.createUserWithEmailAndPassword(em,pw):auth.signInWithEmailAndPassword(em,pw)).then(()=>{$('cpw').value=''}).catch(e=>ui('❌ '+(MSG[e.code]||e.code),'err'))};
- $('cin').onclick=()=>go(false);$('cup').onclick=()=>go(true);
+ let un=null;auth.onAuthStateChanged(u=>{user=u;if(un){try{un()}catch(e){}un=null}if(u){try{un=ref().onSnapshot(sn=>{if(!sn.exists||sn.metadata.hasPendingWrites||busy||dirty)return;const d=sn.data();if(d&&ts()>0&&d.ts>ts())wait()},()=>{})}catch(e){}$('cin').style.display='none';$('csy').style.display=$('cout').style.display='';sync(true)}else{ui('وارد نشده‌اید. با ورود به حساب گوگل، اطلاعات شما در هر دستگاهی در دسترس است.','');$('cin').style.display='';$('csy').style.display=$('cout').style.display='none'}});
+ $('cin').onclick=()=>{const pr=new firebase.auth.GoogleAuthProvider();pr.setCustomParameters({prompt:'select_account'});const MSG={'auth/popup-blocked':'پنجره‌ی ورود توسط مرورگر مسدود شد. اجازه‌ی پاپ‌آپ (Allow popups) را برای این سایت بدهید و دوباره بزنید.','auth/popup-closed-by-user':'پنجره‌ی ورود بسته شد. دوباره بزنید و ورود را تا آخر کامل کنید.','auth/cancelled-popup-request':'ورود قبلی هنوز باز است؛ آن را ببندید و دوباره بزنید.','auth/network-request-failed':'اتصال به گوگل برقرار نشد. اینترنت یا فیلترشکن را بررسی کنید.','auth/internal-error':'اتصال به سرویس ورود گوگل ناموفق بود. فیلترشکن را بررسی کنید یا مرورگر Chrome را امتحان کنید.','auth/unauthorized-domain':'دامنه‌ی این صفحه در Firebase مجاز نشده است.','auth/web-storage-unsupported':'مرورگر ذخیره‌ی اطلاعات را مسدود کرده است. کوکی‌ها را برای این سایت مجاز کنید.'};auth.signInWithPopup(pr).catch(e=>{ui('❌ ورود انجام نشد: '+(MSG[e.code]||e.code),'err')})};
  $('csy').onclick=()=>sync(false);
  $('cout').onclick=()=>auth.signOut();
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)sync(false);else if(dirty&&user){clearTimeout(timer);dirty=false;push()}});
@@ -2560,10 +2555,10 @@ const $=id=>document.getElementById(id),z=n=>String(n).padStart(2,'0');let pend=
 const cnt=d=>{let n=(d.students||[]).length;Object.values(d.stash||{}).forEach(c=>n+=(c.students||[]).length);return{k:(d.classes||[1]).length,n}};
 const last=()=>{try{return localStorage.getItem('cl_bk')}catch(e){return null}};
 window.renderBk=()=>{const c=cnt(S),l=last();
- $('bkb').innerHTML=`<div class="card"><b>💾 پشتیبان کامل</b><p class="sub" style="text-align:right;margin:6px 0">یک فایل با پسوند «.school» که همهٔ اطلاعات برنامه را دارد: ${fa(c.k)} کلاس، ${fa(c.n)} دانش‌آموز، حضور و غیاب، آزمون‌ها، تکالیف، پرونده‌ها، عکس‌ها و لوگو. این فایل مستقل از حساب ابری است؛ آن را روی گوشی، فلش یا ایمیل خودتان نگه دارید.</p><button class="big" id="bk_s" style="font-size:16px;padding:13px">💾 گرفتن پشتیبان</button><p class="sub" id="bk_m">${l?'آخرین پشتیبان: '+E2(l):'⚠️ هنوز پشتیبانی گرفته نشده است'}</p></div>
+ $('bkb').innerHTML=`<div class="card"><b>💾 پشتیبان کامل</b><p class="sub" style="text-align:right;margin:6px 0">یک فایل با پسوند «.school» که همهٔ اطلاعات برنامه را دارد: ${fa(c.k)} کلاس، ${fa(c.n)} دانش‌آموز، حضور و غیاب، آزمون‌ها، تکالیف، پرونده‌ها، عکس‌ها و لوگو. این فایل مستقل از حساب گوگل است؛ آن را روی گوشی، فلش یا ایمیل خودتان نگه دارید.</p><button class="big" id="bk_s" style="font-size:16px;padding:13px">💾 گرفتن پشتیبان</button><p class="sub" id="bk_m">${l?'آخرین پشتیبان: '+E2(l):'⚠️ هنوز پشتیبانی گرفته نشده است'}</p></div>
  ${abCard()}
  <div class="card"><b>♻️ بازیابی پشتیبان</b><p class="sub" style="text-align:right;margin:6px 0">فایل «.school» را انتخاب کنید. اطلاعات فعلی با محتوای فایل جایگزین می‌شود (با دکمهٔ ↩️ بالای صفحه می‌توانید برگردید).</p><input type="file" id="bk_f"><div id="bk_i"></div></div>
- <div class="card"><b>🗑️ حذف کامل اطلاعات</b><p class="sub" style="text-align:right;margin:6px 0">همه‌ی اطلاعات این دستگاه پاک می‌شود و برگشت‌پذیر نیست؛ اگر به حساب ابری (☁️) وارد باشید، نسخه‌ی ابری هم پاک می‌شود. قبل از حذف حتماً پشتیبان بگیرید.</p><button class="big" id="bk_reset" style="font-size:15px;padding:12px;background:linear-gradient(90deg,#e5484d,#f97316)">🗑️ حذف کامل همه‌ی اطلاعات</button><p class="sub" id="bk_rm"></p></div>`};
+ <div class="card"><b>🗑️ حذف کامل اطلاعات</b><p class="sub" style="text-align:right;margin:6px 0">همه‌ی اطلاعات این دستگاه پاک می‌شود و برگشت‌پذیر نیست؛ اگر به حساب گوگل (☁️) وارد باشید، نسخه‌ی ابری هم پاک می‌شود. قبل از حذف حتماً پشتیبان بگیرید.</p><button class="big" id="bk_reset" style="font-size:15px;padding:12px;background:linear-gradient(90deg,#e5484d,#f97316)">🗑️ حذف کامل همه‌ی اطلاعات</button><p class="sub" id="bk_rm"></p></div>`};
 const E2=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const LS=k=>{try{return localStorage.getItem(k)}catch(e){return null}},SL=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
 const sig=s=>{let h=0;for(let i=0;i<s.length;i+=7)h=(h*31+s.charCodeAt(i))|0;return s.length+':'+h};
@@ -2938,7 +2933,7 @@ $('lk_b').onclick=async()=>{const x=lst();if(x.until&&Date.now()<x.until){$('lk_
  try{if(await loginOK()){root.classList.remove('locked');try{localStorage.removeItem(LK)}catch(e){}$('lk_m').textContent='';$('lk_p').value='';idle()}
   else{const y=fail();$('lk_m').textContent=y.until&&y.until>Date.now()?waitTx(y.until):(hasU()?'نام کاربری یا رمز اشتباه است':'رمز اشتباه است');$('lk_p').value=''}}catch(e){$('lk_m').textContent='قفل در این محیط کار نمی‌کند (آدرس https لازم است)'}};
 $('lk_p').onkeydown=e=>{if(e.key==='Enter')$('lk_b').click()};
-$('lk_f').onclick=async()=>{if(!confirm('فراموشی رمز\n\nبرای برداشتن قفل باید اطلاعات ذخیره‌شده روی همین دستگاه پاک شود. اگر قبلاً با حساب ابری در بخش ☁️ ذخیره کرده‌اید، بعد از ورود دوباره همه‌چیز برمی‌گردد؛ در غیر این صورت فقط با فایل پشتیبان قابل بازیابی است.\n\nادامه می‌دهید؟'))return;
+$('lk_f').onclick=async()=>{if(!confirm('فراموشی رمز\n\nبرای برداشتن قفل باید اطلاعات ذخیره‌شده روی همین دستگاه پاک شود. اگر قبلاً با حساب گوگل در بخش ☁️ ذخیره کرده‌اید، بعد از ورود دوباره همه‌چیز برمی‌گردد؛ در غیر این صورت فقط با فایل پشتیبان قابل بازیابی است.\n\nادامه می‌دهید؟'))return;
  if((prompt('برای تأیید، کلمه‌ی «حذف» را بنویسید')||'').trim()!=='حذف')return;
  try{const ks=[];for(let i=0;i<localStorage.length;i++)ks.push(localStorage.key(i));ks.forEach(k=>{if(/^(cl1|cl2_|cl_pin|cl_salt|cl_lkout|cl_usr)/.test(k))localStorage.removeItem(k)})}catch(e){}
  try{indexedDB.deleteDatabase('cl_hist')}catch(e){}
@@ -2953,7 +2948,7 @@ const _b=window.renderBk;window.renderBk=function(){_b();const has=!!localStorag
  ${window.__idbStore?'<!--':''}<div class="card"><b>📊 فضای ذخیره‌سازی این دستگاه</b><p class="sub" style="margin:6px 0 0">${act?'اطلاعات هر کلاس، پرونده‌ی دانش‌آموزان و عکس‌ها جداگانه ذخیره می‌شوند:':'⚠️ فضای دستگاه برای جدا کردن خودکار کافی نبود و هنوز همه‌ی اطلاعات به‌صورت یک تکه ذخیره می‌شود. اگر هر ذخیره‌ی تازه، کل این تکه را دوباره می‌نویسد و با پر شدن حافظه خطر از دست رفتن تغییر آخر هست. راه‌حل: ابتدا بالا پشتیبان بگیرید، سپس دکمه‌ی زیر را بزنید تا اطلاعات هر کلاس، پرونده‌ها و عکس‌ها جداجدا ذخیره شوند (بعد از آن فقط بخش تغییرکرده نوشته می‌شود). برنامه پس از جدا کردن، درستی همه‌چیز را کنترل می‌کند و اگر مشکلی باشد، اطلاعات قبلی را دست‌نخورده برمی‌گرداند. توجه: سقف کل حافظه‌ی مرورگر (حدود ۵ مگابایت) با این کار بیشتر نمی‌شود.'}</p>`+
  (act?`<div class="wrap"><table class="at">${sz.map(([n,v])=>`<tr><td class="nm">${lb(n)}</td><td>${kb(v)} KB</td></tr>`).join('')}</table></div>`:`<button class="big" id="sx_up" style="font-size:15px;padding:12px;margin-top:8px">🧩 جدا کردن ذخیره‌سازی</button>`)+
  `<p class="sub" style="margin:8px 0 0">جمع: حدود ${kb(tot)} کیلوبایت از حدود ۵٬۰۰۰ مجاز${tot/1024>3500?' — ⚠️ نزدیک به سقف است؛ پشتیبان بگیرید و کلاس‌های قدیمی را بایگانی کنید':''}</p>${leg?`<p class="sub" style="margin:8px 0 0">یک نسخه‌ی ایمنی از ذخیره‌ی قدیمی تا ۱۴ روز نگه داشته می‌شود و اگر فضا کم شود خودکار پاک می‌شود. <button class="sm" id="sx_ld">پاک کردن همین حالا</button></p>`:''}<p class="sub" id="sx_m"></p></div>${window.__idbStore?'-->':''}
-<div class="card" id="rsCard"><b>🧹 شروع از نو (ریست برنامه)</b><p class="sub" style="text-align:right;margin:6px 0">برای شروع با اطلاعات و داده‌های تازه: همهٔ دانش‌آموزان، حضور و غیاب، آزمون‌ها، تکالیف، تنظیمات و عکس‌ها از این دستگاه پاک می‌شود (و اگر به حساب ابری ☁️ وارد باشید، از نسخهٔ ابری هم). نام کاربری و رمز ورود برنامه حفظ می‌شود. قبل از ریست حتماً از همین صفحه پشتیبان بگیرید؛ حذف برگشت‌پذیر نیست.</p><button class="big" id="bk_reset" style="font-size:15px;padding:12px;background:linear-gradient(90deg,#e5484d,#f97316)">🗑️ حذف کامل اطلاعات و ریست برنامه</button><p class="sub" id="bk_rm"></p></div>`)};
+<div class="card" id="rsCard"><b>🧹 شروع از نو (ریست برنامه)</b><p class="sub" style="text-align:right;margin:6px 0">برای شروع با اطلاعات و داده‌های تازه: همهٔ دانش‌آموزان، حضور و غیاب، آزمون‌ها، تکالیف، تنظیمات و عکس‌ها از این دستگاه پاک می‌شود (و اگر به حساب گوگل ☁️ وارد باشید، از نسخهٔ ابری هم). نام کاربری و رمز ورود برنامه حفظ می‌شود. قبل از ریست حتماً از همین صفحه پشتیبان بگیرید؛ حذف برگشت‌پذیر نیست.</p><button class="big" id="bk_reset" style="font-size:15px;padding:12px;background:linear-gradient(90deg,#e5484d,#f97316)">🗑️ حذف کامل اطلاعات و ریست برنامه</button><p class="sub" id="bk_rm"></p></div>`)};
 document.addEventListener('click',e=>{const t=e.target,m=x=>{const q=$('sx_m');if(q)q.textContent=x};
  if(t.id==='sx_ld'){try{localStorage.removeItem('cl1_legacy');localStorage.removeItem('cl1_legacy_t')}catch(x){}renderBk()}
  if(t.id==='sx_up'){if(Date.now()-(+sessionStorage.getItem('bk_ok')||0)>3600000){m('⚠️ اول در همین صفحه یک پشتیبان کامل بگیرید.');return}
@@ -3049,7 +3044,7 @@ function dcCard(){const b=$('setBody');if(!b)return;const old=$('dcCard');if(old
  b.insertAdjacentHTML('beforeend',`<div class="card" id="dcCard"><b>🗄️ مدیریت اطلاعات</b><p class="sub" style="text-align:right;margin:6px 0">خروجی گرفتن و بازیابی اطلاعات حالا فقط در بخش «پشتیبان و امنیت» است. اینجا فقط حذف کامل اطلاعات مانده است.</p>
  <button class="big" id="dc_go" style="font-size:15px;padding:12px">💾 رفتن به «پشتیبان و امنیت» (خروجی و بازیابی)</button>
  <button class="big" id="dc_x" style="font-size:15px;padding:12px;margin-top:14px;background:linear-gradient(90deg,#e5484d,#f97316)">🗑️ حذف کامل همهٔ اطلاعات</button>
- <p class="sub" id="dc_m"></p><p class="sub" style="text-align:right;font-size:12px">وارد کردن، اطلاعات فعلی را جایگزین می‌کند و تا چند روز در «↩️ بازگشت» نگه‌داری می‌شود. حذف کامل برگشت‌پذیر نیست؛ اگر به حساب ابری (☁️) وارد باشید، نسخهٔ ابری هم پاک می‌شود. قبل از حذف حتماً خروجی بگیرید.</p></div>`)}
+ <p class="sub" id="dc_m"></p><p class="sub" style="text-align:right;font-size:12px">وارد کردن، اطلاعات فعلی را جایگزین می‌کند و تا چند روز در «↩️ بازگشت» نگه‌داری می‌شود. حذف کامل برگشت‌پذیر نیست؛ اگر به حساب گوگل (☁️) وارد باشید، نسخهٔ ابری هم پاک می‌شود. قبل از حذف حتماً خروجی بگیرید.</p></div>`)}
 const _r=window.renderSet;window.renderSet=function(){_r&&_r.apply(this,arguments);sgCard()};
 const dm=x=>{['dc_m','bk_rm'].forEach(id=>{const m=$(id);if(m)m.textContent=x})};
 document.addEventListener('change',e=>{const t=e.target,f=t.files&&t.files[0];if(!f)return;
@@ -3065,7 +3060,7 @@ document.addEventListener('click',async e=>{const t=e.target.closest('button');i
  if(t.id==='dc_e'){try{const q=jp(tdy()),z=n=>String(n).padStart(2,'0'),name='backup-'+q.y+'-'+z(q.m)+'-'+z(q.d)+'.school',json=JSON.stringify({app:'school',v:1,ts:Date.now(),data:S}),b=new Blob([json],{type:'application/octet-stream'}),f=new File([b],name);
    const dlA=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{a.remove();URL.revokeObjectURL(a.href)},4000)};
    if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f],title:name}).catch(x=>{if(x&&x.name!=='AbortError')dlA()});else dlA();dm('✅ خروجی ساخته شد: '+name+' ('+Math.round(json.length/1024)+' کیلوبایت)')}catch(x){dm('❌ ساخت خروجی انجام نشد')}return}
- if(t.id==='dc_x'||t.id==='bk_reset'){if(!confirm('حذف کامل همهٔ اطلاعات\n\nهمهٔ دانش‌آموزان، حضور و غیاب، آزمون‌ها، تکالیف، تنظیمات و عکس‌ها از این دستگاه پاک می‌شود (و اگر به حساب ابری وارد باشید، از نسخهٔ ابری هم). این کار برگشت ندارد.\n\nآیا خروجی گرفته‌اید و ادامه می‌دهید؟'))return;
+ if(t.id==='dc_x'||t.id==='bk_reset'){if(!confirm('حذف کامل همهٔ اطلاعات\n\nهمهٔ دانش‌آموزان، حضور و غیاب، آزمون‌ها، تکالیف، تنظیمات و عکس‌ها از این دستگاه پاک می‌شود (و اگر به حساب گوگل وارد باشید، از نسخهٔ ابری هم). این کار برگشت ندارد.\n\nآیا خروجی گرفته‌اید و ادامه می‌دهید؟'))return;
   if((prompt('برای تأیید، کلمهٔ «حذف» را بنویسید')||'').trim()!=='حذف')return;dm('در حال حذف…');
   try{if(window.cloudWipe)await window.cloudWipe()}catch(x){}
   const si=Storage.prototype.setItem;Storage.prototype.setItem=function(k){if(/^(cl1|cl2_)/.test(k))return;return si.apply(this,arguments)};
@@ -5033,9 +5028,9 @@ const $=id=>document.getElementById(id),E=t=>String(t==null?'':t).replace(/&/g,'
 const ST={user:null,mem:null,school:null,team:[],busy:false,loaded:false,msg:'',err:''};
 let db=null,auth=null;
 const norm=s=>String(s||'').trim().toLowerCase();
-const shw=e=>window.__pshow?__pshow(e):e;
+const okMail=s=>/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(s);
 const fe=e=>{const c=e&&e.code||'';
- if(c==='permission-denied')return 'دسترسی مجاز نیست. اگر قوانین Firestore را هنوز جایگزین نکرده‌اید ابتدا آن را انجام دهید؛ یا این شماره در مدرسه‌ی دیگری ثبت شده است.';
+ if(c==='permission-denied')return 'دسترسی مجاز نیست. اگر قوانین Firestore را هنوز جایگزین نکرده‌اید ابتدا آن را انجام دهید؛ یا این ایمیل در مدرسه‌ی دیگری ثبت شده است.';
  if(c==='unavailable')return 'اتصال اینترنت برقرار نیست.';
  return (e&&(e.code||e.message))||'خطای نامشخص'};
 const stamp=()=>firebase.firestore.FieldValue.serverTimestamp();
@@ -5050,21 +5045,21 @@ function html(){
  const sub=t=>'<p class="sub" style="text-align:right;margin:6px 0">'+t+'</p>';
  let h='<b>🏫 مدرسه و معلم‌ها</b>';
  if(!auth)return h+sub('در حال اتصال به Firebase… اگر اینترنت قطع است این بخش کار نمی‌کند.');
- if(!ST.user)return h+sub('برای استفاده از این بخش ابتدا با شماره موبایل و رمز وارد شوید.')+'<button class="big" data-sc="login" style="font-size:15px;padding:12px">☁️ ورود / ساخت حساب</button>';
+ if(!ST.user)return h+sub('برای استفاده از این بخش ابتدا با حساب گوگل (Gmail) وارد شوید.')+'<button class="big" data-sc="login" style="font-size:15px;padding:12px">☁️ ورود با حساب گوگل</button>';
  if(ST.busy&&!ST.loaded)return h+sub('در حال دریافت اطلاعات مدرسه…');
  if(ST.err)return h+sub('❌ '+E(ST.err))+'<button class="sm" data-sc="reload">🔄 تلاش دوباره</button>';
  if(!ST.mem){
   const nm=(window.schoolFull?(()=>{try{return schoolFull()}catch(e){return ''}})():'');
-  return h+sub('حساب شما ('+E(shw(myEmail()))+') هنوز عضو هیچ مدرسه‌ای نیست.')+
-   sub('<b>اگر مدیر مدرسه هستید:</b> مدرسه را بسازید؛ بعد شماره موبایل معلم‌ها را اضافه کنید.')+
+  return h+sub('حساب شما ('+E(myEmail())+') هنوز عضو هیچ مدرسه‌ای نیست.')+
+   sub('<b>اگر مدیر مدرسه هستید:</b> مدرسه را بسازید؛ بعد ایمیل گوگل معلم‌ها را اضافه کنید.')+
    '<div class="cadd" style="margin-top:8px"><input id="sc_name" placeholder="نام مدرسه" value="'+E(nm)+'"></div>'+
    '<button class="big" data-sc="create" style="font-size:15px;padding:12px;margin-top:8px">🏫 ساخت مدرسه (من مدیر هستم)</button>'+
-   sub('<b>اگر معلم هستید:</b> از مدیر بخواهید همین شماره ('+E(shw(myEmail()))+') را به عنوان معلم اضافه کند، سپس «تازه‌سازی» را بزنید.')+
+   sub('<b>اگر معلم هستید:</b> از مدیر بخواهید همین ایمیل ('+E(myEmail())+') را به عنوان معلم اضافه کند، سپس «تازه‌سازی» را بزنید.')+
    '<button class="sm" data-sc="reload">🔄 تازه‌سازی</button>'+(ST.msg?sub(E(ST.msg)):'');
  }
- if(ST.mem.active===false)return h+sub('دسترسی حساب شما ('+E(shw(myEmail()))+') توسط مدیر غیرفعال شده است.')+'<button class="sm" data-sc="reload">🔄 تازه‌سازی</button>';
+ if(ST.mem.active===false)return h+sub('دسترسی حساب شما ('+E(myEmail())+') توسط مدیر غیرفعال شده است.')+'<button class="sm" data-sc="reload">🔄 تازه‌سازی</button>';
  const sc=ST.school||{},mgr=ST.mem.role==='manager';
- h+=sub('مدرسه: <b>'+E(sc.name||'—')+'</b><br>حساب شما: '+E(shw(myEmail()))+' · نقش: <b>'+roleName(ST.mem.role)+'</b>');
+ h+=sub('مدرسه: <b>'+E(sc.name||'—')+'</b><br>حساب شما: '+E(myEmail())+' · نقش: <b>'+roleName(ST.mem.role)+'</b>');
  if(!mgr){
   const mine=Object.entries(schoolClasses()).filter(([id,v])=>v&&norm(v.teacher)===myEmail());
   h+='<b style="display:block;margin-top:10px">کلاس‌های شما</b>'+
@@ -5075,18 +5070,18 @@ function html(){
  const me=myEmail();
  h+='<b style="display:block;margin-top:10px">👥 اعضای مدرسه</b>'+
   (ST.team.map(m=>{const self=norm(m.email)===me;
-   return '<div class="crow"><div><b'+(m.active===false?' style="opacity:.5"':'')+'>'+E(m.name||shw(m.email))+'</b><small>'+E(shw(m.email))+' · '+roleName(m.role)+(m.active===false?' · غیرفعال':'')+(self?' · شما':'')+'</small></div>'+
+   return '<div class="crow"><div><b'+(m.active===false?' style="opacity:.5"':'')+'>'+E(m.name||m.email)+'</b><small>'+E(m.email)+' · '+roleName(m.role)+(m.active===false?' · غیرفعال':'')+(self?' · شما':'')+'</small></div>'+
     (self?'':'<span style="display:flex;gap:6px"><button class="sm" data-sc="tg" data-e="'+E(m.email)+'">'+(m.active===false?'فعال کردن':'غیرفعال')+'</button><button class="dl" data-sc="rm" data-e="'+E(m.email)+'">حذف</button></span>')+'</div>'}).join('')||sub('هنوز عضوی نیست.'))+
   '<b style="display:block;margin-top:12px">➕ افزودن معلم</b>'+
-  '<div class="cadd" style="margin-top:8px"><input id="sc_em" type="tel" inputmode="numeric" dir="ltr" placeholder="شماره موبایل معلم (09123456789)"><input id="sc_nm" placeholder="نام معلم (اختیاری)"><select id="sc_rl" class="fs"><option value="teacher">معلم</option><option value="manager">مدیر</option></select></div>'+
+  '<div class="cadd" style="margin-top:8px"><input id="sc_em" type="email" inputmode="email" dir="ltr" placeholder="ایمیل گوگل معلم"><input id="sc_nm" placeholder="نام معلم (اختیاری)"><select id="sc_rl" class="fs"><option value="teacher">معلم</option><option value="manager">مدیر</option></select></div>'+
   '<button class="big" data-sc="add" style="font-size:15px;padding:12px;margin-top:8px">➕ افزودن</button>';
  const lc=localClasses(),sch=schoolClasses();
  h+='<b style="display:block;margin-top:14px">📚 معلم هر کلاس</b>';
  if(!lc.length)h+=sub('هنوز کلاسی در این دستگاه ثبت نشده است.');
  else{
   h+=lc.map(c=>{const cur=norm((sch[c.id]||{}).teacher);
-   const opts='<option value="">— بدون معلم —</option>'+ST.team.map(m=>'<option value="'+E(norm(m.email))+'"'+(norm(m.email)===cur?' selected':'')+'>'+E((m.name||shw(m.email))+(m.active===false?' (غیرفعال)':''))+'</option>').join('')+
-    (cur&&!ST.team.some(m=>norm(m.email)===cur)?'<option value="'+E(cur)+'" selected>'+E(shw(cur))+'</option>':'');
+   const opts='<option value="">— بدون معلم —</option>'+ST.team.map(m=>'<option value="'+E(norm(m.email))+'"'+(norm(m.email)===cur?' selected':'')+'>'+E((m.name||m.email)+(m.active===false?' (غیرفعال)':''))+'</option>').join('')+
+    (cur&&!ST.team.some(m=>norm(m.email)===cur)?'<option value="'+E(cur)+'" selected>'+E(cur)+'</option>':'');
    return '<div class="crow"><div><b>'+E(clsName(c))+'</b></div><select class="fs" data-sca="'+E(c.id)+'">'+opts+'</select></div>'}).join('')+
    sub('تغییر هر کلاس همان لحظه ذخیره می‌شود. با اختصاص کلاس به معلم، اطلاعات همان کلاس به مدرسه ارسال می‌شود و فقط روی دستگاه همان معلم نصب می‌شود.');
  }
@@ -5256,9 +5251,9 @@ document.addEventListener('click',ev=>{
  if(a==='up'){act(async()=>{let n=0;for(const id of Object.keys(schoolClasses())){if((S.classes||[]).some(c=>String(c.id)===id)){await pushCls(id,true);n++}}ST.msg='✅ '+n+' کلاس به مدرسه ارسال شد.'});return}
  if(a==='down'){act(()=>managerDown());return}
  if(a==='add'){
-  const e2=window.__pm($('sc_em').value)||'',nm=($('sc_nm').value||'').trim(),rl=$('sc_rl').value==='manager'?'manager':'teacher';
-  if(!e2){say('شماره موبایل را درست وارد کنید (مثلاً 09123456789).');return}
-  if(ST.team.some(m=>norm(m.email)===e2)){say('این شماره قبلاً اضافه شده است.');return}
+  const e2=norm($('sc_em').value),nm=($('sc_nm').value||'').trim(),rl=$('sc_rl').value==='manager'?'manager':'teacher';
+  if(!okMail(e2)){say('ایمیل را درست وارد کنید (مثلاً name@gmail.com).');return}
+  if(ST.team.some(m=>norm(m.email)===e2)){say('این ایمیل قبلاً اضافه شده است.');return}
   act(async()=>{await db.collection('members').doc(e2).set({email:e2,schoolId:sid,role:rl,active:true,name:nm,addedAt:stamp()})});return}
  if(a==='tg'){
   const m=ST.team.find(x=>norm(x.email)===em);if(!m||em===myEmail())return;

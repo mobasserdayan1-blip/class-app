@@ -754,7 +754,10 @@ const names=['دانش‌آموز ۱','دانش‌آموز ۲','دانش‌آم�
 let NT=3;function tname(n,d){const v=((S&&S.tnm)||[])[n-1];return v&&String(v).trim()?String(v).trim():d}
 let S={students:names.map((n,i)=>({id:i+1,name:n,score:1000,team:i%NT+1,att:''})),drawn:[]};
 try{const r=localStorage.getItem('cl1');if(r)S=JSON.parse(r)}catch(e){}NT=Math.max(1,S.nt||3);
-const save=()=>{try{const had=localStorage.getItem('cl1');window.binChk&&window.binChk(had);const j=JSON.stringify(S);if(j===had)return;window.histPush&&window.histPush(had);localStorage.setItem('cl1',j);if(had!==null&&(!window.__auto||+localStorage.getItem('cl1_ts'))){localStorage.setItem('cl1_ts',Date.now());window.cloudPush&&window.cloudPush()}}catch(e){}};
+/* [CHG-9] ذخیره‌ی مطمئن: خطا دیگر پنهان نمی‌ماند و حافظه‌ی پایدار درخواست می‌شود */
+let __pa=0;function askPersist(){if(__pa)return;__pa=1;try{const N=navigator.storage;if(N&&N.persist)(N.persisted?N.persisted():Promise.resolve(false)).then(p=>p||N.persist()).then(g=>{window.__persist=g}).catch(()=>{})}catch(e){}}
+let __sfT=0;function saveFail(e){try{console.error('save failed',e);if(Date.now()-__sfT<20000)return;__sfT=Date.now();const q=e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014);let b=document.getElementById('saveErr');if(!b){b=document.createElement('div');b.id='saveErr';b.setAttribute('role','alert');b.style.cssText='position:fixed;z-index:99999;top:10px;right:10px;left:10px;max-width:520px;margin:auto;background:#d9534f;color:#fff;padding:12px 14px;border-radius:14px;font-weight:700;font-size:14px;line-height:1.9;box-shadow:0 6px 24px rgba(0,0,0,.3);cursor:pointer;text-align:right';b.onclick=()=>b.remove();document.body.appendChild(b)}b.textContent='⚠️ ذخیره‌ی اطلاعات ناموفق بود'+(q?' (فضای مرورگر پر است)':'')+'. تغییرات اخیر ممکن است از بین برود؛ همین حالا از «پشتیبان و امنیت» پشتیبان بگیرید. (برای بستن لمس کنید)';clearTimeout(b._t);b._t=setTimeout(()=>b.remove(),12000);askPersist()}catch(_){}}
+const save=()=>{try{const had=localStorage.getItem('cl1');try{window.binChk&&window.binChk(had)}catch(x){console.warn(x)}const j=JSON.stringify(S);if(j===had)return;try{window.histPush&&window.histPush(had)}catch(x){console.warn(x)}localStorage.setItem('cl1',j);askPersist();if(had!==null&&(!window.__auto||+localStorage.getItem('cl1_ts'))){localStorage.setItem('cl1_ts',Date.now());try{window.cloudPush&&window.cloudPush()}catch(x){console.warn(x)}}}catch(e){saveFail(e)}};
 const today=new Date().toLocaleDateString('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit'});
 $('d2').textContent='امروز: '+today;
 const nav=$('nav');
@@ -1988,7 +1991,11 @@ window.renderMk=rm;
   const autoCx=()=>{const A=wsNow(),c=cfg();if(!A||!A.cid||!crs().some(x=>x.id===A.cid))return A;if(c.wsKey!==A.key){c.wsKey=A.key;if(c.course!==A.cid){c.course=A.cid;c.tp=''}save()}return A};
   const wsHint=cx=>{const A=wsNow();if(!A)return '';const L=A.ids.filter(id=>id!==cx.course&&crs().some(z=>z.id===id)),lb=A.state==='cur'?'الان':A.state==='prev'?'زنگ قبلی':'زنگ بعدی';
    return `<p class="sub" style="margin:0 0 6px;font-size:12px">🕘 ${lb}: زنگ ${fa(A.i+1)} — ${esc2(A.name)}${L.map(id=>` <button class="sm" type="button" data-cxauto="${id}">استفاده: ${esc2(crs().find(z=>z.id===id).name)}</button>`).join('')}</p>`};
-  window.ACTX={isAcad,cfg,oral,partScore,wkStart,ACAD,where,kl,setCourse:id=>{const c=cfg();c.course=+id||0;c.tp='';const A=wsNow();if(A)c.wsKey=A.key;save()}};
+  /* [CHG-9] آمار مشارکت برای هشدارها: فاصله از آخرین نوبت، افت فعالیت، نیاز به تمرین جبرانی */
+  function pstat(id){const T=today(),A=S.activities||[];if(!A.length)return null;let first=T;A.forEach(x=>{if(x.date<first)first=x.date});
+   const ls=lastTurn(id),o=oral(id),ac=A.filter(x=>x.sid===id&&isAcad(x.kind)).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:(a.ts||a.id)-(b.ts||b.id)).slice(-3);
+   return{span:dayDiff(first,T),gap:ls?dayDiff(ls,T):null,r:turnsIn(id,addD(T,-13),T),p:turnsIn(id,addD(T,-27),addD(T,-14)),o,eff:ac.filter(x=>x.type==='effort').length,n3:ac.length}}
+  window.ACTX={isAcad,cfg,oral,partScore,wkStart,ACAD,where,kl,pstat,setCourse:id=>{const c=cfg();c.course=+id||0;c.tp='';const A=wsNow();if(A)c.wsKey=A.key;save()}};
  const css=document.createElement('style');
  css.textContent=`.act-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
  .act-st{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:16px;padding:12px 8px;font:inherit;font-weight:700;cursor:pointer;text-align:center}
@@ -2225,6 +2232,14 @@ function bulkCard(st,kind,TA){const at=(S.att||{})[today()]||{},L=st.filter(s=>a
   st.forEach(s=>{const A=window.ACTX;if(!A)return;const o=A.oral(s.id),e=avg(vals(s.id));if(e==null||o.t<3)return;const d=o.score-e,n=esc2(s.name);
    if(d>=1)R.push([2,'🟠',`${n}: عملکرد کلاسی (${f1(o.score)} از ۴) از نمره‌ی آزمون‌ها (${f1(e)}) بالاتر است؛ شاید بازآزمایی یا بررسی شرایط آزمون لازم باشد`]);
    else if(d<=-1)R.push([2,'🟠',`${n}: نمره‌ی آزمون‌ها (${f1(e)}) از عملکرد کلاسی (${f1(o.score)} از ۴) بالاتر است؛ تسلط واقعی را بررسی کنید`])});
+  /* [CHG-9] هشدارهای مشارکت و فعالیت کلاسی */
+  try{const A=window.ACTX;if(A&&(S.activities||[]).length){const idle=[];
+   st.forEach(s=>{if(run(s.id,'a')>=3)return;const x=A.pstat(s.id);if(!x)return;const n=esc2(s.name);
+    if(x.span>=7&&(x.gap==null||x.gap>=8))idle.push([s,x.gap==null?999:x.gap]);
+    if(x.span>=28&&x.p>=3&&x.r<=Math.floor(x.p/2))R.push([2,'📉',`${n}: فعالیت کلاسی کاهش یافته (${fa(x.r)} نوبت در ۱۴ روز اخیر، در مقابل ${fa(x.p)} نوبت در ۱۴ روز قبل از آن)`]);
+    if((x.o.t>=3&&x.o.mast<=.5)||(x.n3>=3&&x.eff>=2))R.push([2,'🔄',`${n}: در پرسش‌های درسی اخیر بیشتر «نیاز به تمرین» ثبت شده؛ تمرین جبرانی یا آزمون جبرانی پیشنهاد می‌شود`])});
+   if(idle.length){idle.sort((a,b)=>b[1]-a[1]);const nm=idle.slice(0,4).map(x=>esc2(x[0].name)).join('، ');
+    R.push([2,'🙋',`${fa(idle.length)} دانش‌آموز بیش از ۷ روز است نوبت پرسش یا فعالیت کلاسی نگرفته‌اند (${nm}${idle.length>4?' و …':''}) — در «نوبت امروز» اولویت با آن‌هاست`])}}}catch(e){console.warn('part alerts',e)}
   return R.sort((a,b)=>a[0]-b[0])}
  const alHtml=L=>L.map(x=>`<div class="sc-al p${x[0]}">${x[1]} ${x[2]}</div>`).join('');
  /* ---- صفحه ---- */
@@ -3999,7 +4014,24 @@ function upd(){try{navigator.storage.estimate().then(e=>{EST=e;draw()});navigato
 const o=window.show;window.show=function(id){const r=o.apply(this,arguments);try{if(id==='bk')upd()}catch(e){}return r};
 }catch(e){console.error('storage meter',e)}})();
 </script>
-<script type="text/plain" data-app>if('serviceWorker' in navigator&&location.protocol.startsWith('http'))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}))</script>
+<script type="text/plain" data-app>/* [CHG-8] پیام «نسخه‌ی جدید آماده است» به‌جای فعال‌سازی ناگهانی */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))(function(){
+const hadCtl=!!navigator.serviceWorker.controller;let reloading=false;
+navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!hadCtl||reloading)return;reloading=true;location.reload()});
+function offer(w){if(document.getElementById('swUpd'))return;const b=document.createElement('div');b.id='swUpd';b.setAttribute('role','status');
+ b.style.cssText='position:fixed;z-index:99998;bottom:14px;right:12px;left:12px;max-width:520px;margin:auto;background:#2f2a55;color:#fff;padding:12px 14px;border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.35);display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;font-weight:700;line-height:1.8;text-align:right';
+ b.innerHTML='<span style="flex:1;min-width:180px">🔄 نسخه‌ی جدید برنامه آماده است.</span>';
+ const u=document.createElement('button'),l=document.createElement('button');u.textContent='به‌روزرسانی';l.textContent='بعداً';
+ u.style.cssText='background:#fff;color:#2f2a55;border:0;border-radius:12px;padding:8px 16px;font:inherit;font-weight:800;cursor:pointer';
+ l.style.cssText='background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5);border-radius:12px;padding:8px 14px;font:inherit;cursor:pointer';
+ u.onclick=()=>{u.disabled=true;u.textContent='در حال به‌روزرسانی…';Promise.resolve(window.__flushStore&&window.__flushStore()).catch(()=>{}).then(()=>{try{w.postMessage({type:'SKIP_WAITING'})}catch(e){location.reload()}})};
+ l.onclick=()=>b.remove();b.appendChild(u);b.appendChild(l);document.body.appendChild(b)}
+function go(){navigator.serviceWorker.register('sw.js').then(reg=>{
+ if(reg.waiting&&navigator.serviceWorker.controller)offer(reg.waiting);
+ reg.addEventListener('updatefound',()=>{const n=reg.installing;if(n)n.addEventListener('statechange',()=>{if(n.state==='installed'&&navigator.serviceWorker.controller)offer(n)})});
+ const chk=()=>reg.update().catch(()=>{});setInterval(chk,30*60*1000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')chk()})
+}).catch(()=>{})}
+if(document.readyState==='complete')go();else addEventListener('load',go)})()</script>
 <script type="text/plain" data-app>
 /* ===== هنر و تربیت بدنی (ارزشیابی توصیفی) + گزارش نموداری فعالیت کلاسی ===== */
 (function(){try{

@@ -327,6 +327,22 @@ nav button{transition:background .2s,transform .12s}nav button:not(.on):hover{ba
 }
 @media (prefers-reduced-motion:reduce){section>h2,section>h2::before,section>h2::after,section.on>.card,section.on>#crsList>.card{animation:none!important}}
 </style>
+<style id="nav-collapse">
+/* منوی جمع‌شونده: نوار آیکن‌ها؛ با هاور (ماوس) یا لمس/دکمه‌ی ☰ باز می‌شود */
+@media (min-width:900px){
+ #mb{visibility:visible!important;pointer-events:auto!important}
+ nav{width:64px!important;padding:12px 8px!important;overflow-x:hidden;transition:width .22s ease,box-shadow .22s ease;z-index:7}
+ main{margin:0 64px 0 0!important}
+ nav.nx{width:250px!important;box-shadow:-8px 0 30px #7e57c244}
+ nav button,nav summary{display:flex!important;align-items:center;gap:6px;white-space:nowrap;overflow:hidden}
+ nav .ni{flex:none;width:34px;text-align:center;font-size:20px;line-height:1}
+ nav .nt{flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;max-width:0;opacity:0;transition:opacity .15s ease .05s}
+ nav.nx .nt{max-width:210px;opacity:1}
+ nav:not(.nx) details>*:not(summary){display:none!important}
+ nav:not(.nx) summary::marker,nav:not(.nx) summary::-webkit-details-marker{display:none}
+}
+@media (min-width:1400px){nav{width:64px!important}nav.nx{width:280px!important}main{margin:0 64px 0 0!important}nav.nx .nt{max-width:240px}}
+</style>
 </head>
 <body>
 <script>window.stN=t=>/دخترانه/.test(t||'')?'دخترانه':/پسرانه/.test(t||'')?'پسرانه':'';window.schoolFull=P=>{P=P||(window.S&&S.prof)||{};if(!P.school)return'';const nm=String(P.school).replace(/^\s*(دبستان|مدرسه)\s*(پسرانه|دخترانه)?\s*/,'').trim(),t=stN(P.stype);return 'دبستان '+(t?t+' ':'')+nm};window.bidi=t=>String(t==null?'':t).replace(/\(/g,'\u200F(').replace(/\)/g,')\u200F')</script>
@@ -5492,10 +5508,10 @@ function applyUI(){
  if(nav){
   ['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
   const sch=nav.querySelector('[data-p="sch"]'),hm=nav.querySelector('[data-p="home"]'),se=nav.querySelector('[data-p="set"]');
-  if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;sch.textContent=m?'🏛️ پیشخوان مدیریت':sch.dataset.o;
+  if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;{const nx=m?'🏛️ پیشخوان مدیریت':sch.dataset.o;if(sch.textContent!==nx)sch.textContent=nx}
    if(m&&nav.firstElementChild!==sch)nav.insertBefore(sch,nav.firstElementChild);
    else if(!m&&se&&nav.firstElementChild===sch)nav.insertBefore(sch,se)}
-  if(hm){if(!hm.dataset.o)hm.dataset.o=hm.textContent;hm.textContent=m?'🏠 داشبورد کلاس':hm.dataset.o}
+  if(hm){if(!hm.dataset.o)hm.dataset.o=hm.textContent;{const nx=m?'🏠 داشبورد کلاس':hm.dataset.o;if(hm.textContent!==nx)hm.textContent=nx}}
  }
  document.querySelectorAll('#subTabs [data-t]').forEach(b=>{const k=b.dataset.t,mp=tmap();
   if(BLOCK.indexOf(k)>=0)b.classList.toggle('ra-hide',t);
@@ -5531,8 +5547,8 @@ function applyUI(){
   const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
  const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
  /* کارت‌های ویژه‌ی مدیر: بازیابی/حذف کامل/ریست (پشتیبان) + نیمسال و تعطیلات مدرسه (تنظیمات) */
- const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent:'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('📅 نیمسال')===0||x.indexOf('🎉 گزارش تعطیلات')===0||x.indexOf('➕ افزودن کلاس')>=0};
- document.querySelectorAll('#bkb>.card,#setBody>.card,#rsCard,#hlCard').forEach(c=>c.classList.toggle('ra-hide',t&&(c.id==='rsCard'||c.id==='hlCard'||hd(c))));
+ const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent.trim():'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('نیمسال تحصیلی')>=0||x.indexOf('گزارش تعطیلات')>=0||x.indexOf('➕ افزودن کلاس')>=0};
+ document.querySelectorAll('#bkb .card,#setBody .card,#rsCard,#hlCard').forEach(c=>c.classList.toggle('ra-hide',t&&(c.id==='rsCard'||c.id==='hlCard'||hd(c))));
 }
 /* سد دوم (اگر کسی دکمه را به‌هر‌طریق دید): در مرحله‌ی capture جلوی عملیات مدیریتی معلم گرفته می‌شود */
 const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,[data-st="sem"],[data-st="semr"],[data-hl]';
@@ -5603,5 +5619,47 @@ land();
 }catch(e){console.error('role-access',e)}})();
 </script>
 
+<script id="nav-collapse-js">
+(function(){
+ const nav=document.getElementById('nav'),mb=document.getElementById('mb');if(!nav)return;
+ const wide=()=>window.matchMedia('(min-width:900px)').matches;
+ const RX=/^((?:\p{Extended_Pictographic}\uFE0F?(?:\u200d\p{Extended_Pictographic}\uFE0F?)*|[\u2600-\u27BF]\uFE0F?))(\s*)([\s\S]*)$/u;
+ let busy=false;
+ function wrap(){
+  if(busy)return;busy=true;
+  try{nav.querySelectorAll('button,summary').forEach(b=>{
+   if(b.querySelector(':scope>.ni'))return;
+   const txt=b.textContent;if(!txt.trim())return;
+   const m=RX.exec(txt.trim());
+   const ic=m?m[1]:'•',rest=m?m[3]:txt.trim();
+   b.title=rest;
+   b.textContent='';
+   const i=document.createElement('span');i.className='ni';i.textContent=ic;
+   const n=document.createElement('span');n.className='nt';n.textContent=(m?m[2]:'')+rest;
+   b.appendChild(i);b.appendChild(n);
+  })}catch(e){console.warn('nav wrap',e)}
+  busy=false;
+ }
+ let pin=false,lastPT='mouse',tmr=null;
+ const open=()=>{clearTimeout(tmr);nav.classList.add('nx')};
+ const close=()=>{clearTimeout(tmr);nav.classList.remove('nx');pin=false};
+ document.addEventListener('pointerdown',e=>{lastPT=e.pointerType||'mouse'},true);
+ nav.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'&&wide())open()});
+ nav.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&!pin)tmr=setTimeout(()=>{if(!pin)nav.classList.remove('nx')},140)});
+ nav.addEventListener('focusin',()=>{if(wide()&&lastPT==='mouse')open()});
+ /* لمس: اگر منو بسته است، اولین لمس فقط آن را باز می‌کند (دکمه اجرا نمی‌شود) */
+ nav.addEventListener('click',e=>{
+  if(!wide())return;
+  if(lastPT!=='mouse'&&!nav.classList.contains('nx')){e.stopPropagation();e.preventDefault();open();pin=true;return}
+  if(e.target.closest('button[data-p]')&&lastPT!=='mouse')close();
+ },true);
+ if(mb)mb.addEventListener('click',e=>{if(!wide())return;e.stopPropagation();if(nav.classList.contains('nx')&&pin)close();else{pin=true;open()}},true);
+ document.addEventListener('click',e=>{if(!wide())return;if(nav.classList.contains('nx')&&!nav.contains(e.target)&&!(mb&&mb.contains(e.target)))close()});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+ window.addEventListener('resize',()=>{if(!wide())close()});
+ new MutationObserver(()=>wrap()).observe(nav,{childList:true,subtree:true,characterData:true});
+ wrap();
+})();
+</script>
 </body>
 </html>

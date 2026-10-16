@@ -6,7 +6,10 @@
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#7e57c2"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <title>برنامه جامع دانش‌آموزی</title>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="preload" href="fonts/Vazirmatn-VF.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* فونت وزیرمتن محلی: فایل fonts/Vazirmatn-VF.woff2 (اگر نبود، فونت گوگل بالا جایگزین می‌شود) */
+@font-face{font-family:Vazirmatn;src:url(fonts/Vazirmatn-VF.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 :root{--bg1:#fde8ee;--bg2:#efe6fb;--card:#fff;--tx:#3b2a55;--mut:#8a7aa6;--p:#7e57c2;--p2:#9b6fd0;--ok:#2eaf6b;--no:#e5484d;--wa:#f59e0b;--line:#eadff7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1e1629;--bg2:#171224;--card:#271e38;--tx:#f0e9fb;--mut:#b4a6cf;--line:#3a2d52}}
 :root[data-theme="dark"]{--bg1:#1e1629;--bg2:#171224;--card:#271e38;--tx:#f0e9fb;--mut:#b4a6cf;--line:#3a2d52}
@@ -5547,11 +5550,11 @@ function applyUI(){
   const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
  const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
  /* کارت‌های ویژه‌ی مدیر: بازیابی/حذف کامل/ریست (پشتیبان) + نیمسال و تعطیلات مدرسه (تنظیمات) */
- const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent.trim():'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('نیمسال تحصیلی')>=0||x.indexOf('گزارش تعطیلات')>=0||x.indexOf('➕ افزودن کلاس')>=0};
+ const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent.trim():'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('نیمسال تحصیلی')>=0||x.indexOf('گزارش تعطیلات')>=0||x.indexOf('➕ افزودن کلاس')>=0||x.indexOf('🔒 قفل و ورود')>=0||x.indexOf('🔐 حساب و ورود')>=0||x.indexOf('📊 فضای ذخیره')>=0};
  document.querySelectorAll('#bkb .card,#setBody .card,#rsCard,#hlCard').forEach(c=>c.classList.toggle('ra-hide',t&&(c.id==='rsCard'||c.id==='hlCard'||hd(c))));
 }
 /* سد دوم (اگر کسی دکمه را به‌هر‌طریق دید): در مرحله‌ی capture جلوی عملیات مدیریتی معلم گرفته می‌شود */
-const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,[data-st="sem"],[data-st="semr"],[data-hl]';
+const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,[data-st="sem"],[data-st="semr"],[data-st="chg"],[data-st="on"],[data-st="off"],[data-st="now"],#st_lk,#sx_up,#sx_ld,[data-hl]';
 ['click','change'].forEach(ev=>document.addEventListener(ev,e=>{
  if(!isT()||!e.target||!e.target.closest)return;
  if(e.target.closest(MGR_ONLY)){e.stopImmediatePropagation();e.preventDefault();window.__raToast&&window.__raToast('این بخش فقط برای مدیر مدرسه است.')}

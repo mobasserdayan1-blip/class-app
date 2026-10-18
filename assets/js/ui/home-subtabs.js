@@ -1,10 +1,10 @@
 /* زیرتب‌های صفحه‌ی اصلی */
 (function(){try{
 const nav=document.getElementById('nav'),$=id=>document.getElementById(id);
-const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و حضور',['att','act','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['mot','🎮 امتیاز و انگیزش',['mot']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['me','👤 پروفایل من',['tme']],['set','⚙️ تنظیمات و پشتیبان',['set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
+const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و فعالیت',['att','act','mot','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['set','⚙️ پروفایل و تنظیمات',['tme','set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
 const known=new Set(H.flatMap(h=>h.ids));[...document.querySelectorAll('section[id]')].forEach(s=>{if(!known.has(s.id)&&s.id!=='sc'&&s.id!=='mot2'){H[H.length-1].ids.push(s.id);known.add(s.id)}});
-const MGI=['prof','mgr','bk'],isMg=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
-const gid=h=>{if(!isMg())return h.ids;if(h.k==='sch')return['dm','cls','tf','prof','mgr','bz','bk'].filter(i=>$(i));return h.ids.filter(i=>MGI.indexOf(i)<0)};
+const MGI=['prof','mgr','bk','tme'],isTc=()=>{try{return !!(window.isTeacherRole&&window.isTeacherRole())}catch(e){return false}},isMg=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
+const gid=h=>{if(!isMg())return h.ids.filter(i=>!(i==='bk'&&isTc()));if(h.k==='sch')return['dm','cls','tf','prof','mgr','bz','bk'].filter(i=>$(i));return h.ids.filter(i=>MGI.indexOf(i)<0)};
 const title=i=>{const p=(typeof pages!=='undefined'?pages:[]).find(x=>x[0]===i);return p?p[1]:i},last={};
 nav.innerHTML='';H.filter(h=>h.ids.length).forEach(h=>{const b=document.createElement('button');b.textContent=h.t;b.dataset.p=h.k;b.onclick=()=>{const g=gid(h);show(g.includes(last[h.k])?last[h.k]:g[0])};nav.appendChild(b)});
 function deco(id){const h=H.find(x=>gid(x).includes(id));nav.querySelectorAll('button').forEach(b=>b.classList.toggle('on',!!h&&b.dataset.p===h.k));const old=$('subTabs');if(old)old.remove();if(!h)return;last[h.k]=id;const gs=gid(h);if(gs.length<2)return;

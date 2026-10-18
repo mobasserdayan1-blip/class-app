@@ -37,5 +37,8 @@ window.APP_MODULES=[
   {src:'assets/js/features/exam-schedule.js'},
   {src:'assets/js/features/weekly-timetable.js'},
   {src:'assets/js/features/school-team.js',id:'school-team-v1'},
-  {src:'assets/js/features/role-access.js',id:'role-access-v1'}
+  {src:'assets/js/features/role-access.js',id:'role-access-v1'},
+  {src:'assets/js/features/dashboard-simplify.js',id:'dash-v1'},
+  {src:'assets/js/features/quick-attendance.js'},
+  {src:'assets/js/features/parent-contact-log.js'}
 ];

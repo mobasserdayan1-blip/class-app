@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v83';
+const C='cl-v85';
 const A=[
   './',
   './index.html',
@@ -62,7 +62,10 @@ const A=[
   './assets/js/features/exam-schedule.js',
   './assets/js/features/weekly-timetable.js',
   './assets/js/features/school-team.js',
-  './assets/js/features/role-access.js'
+  './assets/js/features/role-access.js',
+  './assets/js/features/dashboard-simplify.js',
+  './assets/js/features/quick-attendance.js',
+  './assets/js/features/parent-contact-log.js'
 ];
 /* [CHG-7] کتابخانه‌های PDF/اکسل بعد از اولین بارگذاری موفق، آفلاین هم کار می‌کنند */
 const CDN=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',

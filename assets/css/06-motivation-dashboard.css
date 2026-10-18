@@ -1,0 +1,14 @@
+/* داشبورد انگیزشی — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+/* [CHG-3] استایل داشبورد انگیزشی */
+#mot .ov-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(120deg,var(--p),var(--p2));color:#fff;border-radius:22px;padding:18px;margin-bottom:12px;box-shadow:0 8px 22px #7e57c244}
+#mot .ov-hero h3{margin:4px 0;font-size:18px}#mot .ov-hero small,#mot .ov-hero p{opacity:.92;margin:0;font-size:12.5px;line-height:1.8}
+#mot .ov-ring{flex:none;width:84px;height:84px;border-radius:50%;background:conic-gradient(#fff calc(var(--p)*1%),#ffffff33 0);display:grid;place-items:center;position:relative}
+#mot .ov-ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--p)}#mot .ov-ring b{position:relative;font-size:22px}
+#mot .ov-kp{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+#mot .ov-k{background:var(--card);border-radius:18px;padding:12px;border-top:4px solid var(--c);box-shadow:0 4px 12px #7e57c21a;display:flex;flex-direction:column;gap:2px}
+#mot .ov-k i{font-style:normal;font-size:20px}#mot .ov-k b{font-size:21px}#mot .ov-k span{color:var(--mut);font-size:12px}
+#mot .ov-bar{height:9px;background:var(--bg2);border-radius:9px;overflow:hidden}#mot .ov-bar i{display:block;height:9px;border-radius:9px;background:linear-gradient(90deg,var(--p),var(--p2))}
+#mot .ov-pod{display:flex;justify-content:center;align-items:flex-end;gap:8px;margin-top:10px}
+#mot .ov-p{flex:1;max-width:120px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px}#mot .ov-p .md{font-size:28px}#mot .ov-p b{font-size:13px}#mot .ov-p small{color:var(--mut);font-size:11.5px}
+#mot .ov-p .st{width:100%;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--p),var(--p2));color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px}
+#mot .ov-p.p1 .st{background:linear-gradient(180deg,#f7c948,#e8a317)}#mot .ov-p.p2 .st{background:linear-gradient(180deg,#c9ced6,#9aa3b0)}#mot .ov-p.p3 .st{background:linear-gradient(180deg,#d9a066,#b57a3e)}

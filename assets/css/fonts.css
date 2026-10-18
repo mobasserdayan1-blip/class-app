@@ -1,0 +1,2 @@
+/* فونت وزیرمتن (محلی). فایل فونت باید در assets/fonts/Vazirmatn-VF.woff2 باشد؛ اگر نبود، فونت گوگل جایگزین می‌شود */
+@font-face{font-family:Vazirmatn;src:url(../fonts/Vazirmatn-VF.woff2) format("woff2");font-weight:100 900;font-style:normal;font-display:swap}

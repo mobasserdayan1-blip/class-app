@@ -1,0 +1,11 @@
+/* رفع مشکل رنگ متن در قرعه‌کشی — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+/* رفع قرعه‌کشی: استایل سراسری .chip رنگ متن را سفید می‌کرد و اسامی روی کارت روشن دیده نمی‌شدند */
+#chips .chip{display:block;color:var(--tx);border-radius:12px;padding:10px 6px;font-size:14px;font-weight:700;white-space:normal;background:var(--card)}
+#chips .chip.done{opacity:.4;text-decoration:line-through}
+/* انتخاب‌گرهای یکدست (وزیر، مدرن، سازگار با حالت تاریک) */
+select:not([multiple]){-webkit-appearance:none;appearance:none;font-family:Vazirmatn,Tahoma,sans-serif!important;font-weight:700;font-size:14px;color:var(--tx);background-color:var(--card);
+background-image:linear-gradient(45deg,transparent 50%,var(--p) 50%),linear-gradient(135deg,var(--p) 50%,transparent 50%);background-position:calc(0% + 18px) 52%,calc(0% + 13px) 52%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+border:2px solid var(--line);border-radius:12px;padding:10px 12px 10px 34px;min-height:42px;cursor:pointer;transition:border-color .15s,box-shadow .15s;text-align:right}
+select:not([multiple]):hover{border-color:var(--p)}
+select:not([multiple]):focus{outline:0;border-color:var(--p);box-shadow:0 0 0 3px #7e57c233}
+select:not([multiple]) option{font-family:Tahoma,'Segoe UI',Arial,sans-serif!important;font-weight:400;font-size:14px;color:#24223a;background:#fff}

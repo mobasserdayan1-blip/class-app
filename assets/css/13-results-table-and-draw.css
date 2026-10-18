@@ -1,0 +1,48 @@
+/* جدول نتایج، چیدمان داشبورد انگیزشی و قرعه‌کشی — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+/* [CHG-UI1] جدول نتایج: ستون رتبه باریک، ستون نام پهن و تک‌خطی */
+table.at.rk th:first-child,table.at.rk td:first-child{width:46px;min-width:46px;max-width:46px;padding:6px 2px;position:sticky;right:0;z-index:2;background:var(--card)}
+table.at.rk th:first-child{background:var(--p)}
+table.at.rk .nm{right:46px;white-space:nowrap;min-width:175px;padding:6px 10px}
+/* [CHG-UI1] تب‌های داشبورد انگیزشی و قرعه‌کشی: یک‌ردیف و هم‌اندازه */
+#mot .tabs,#motDraw .tabs{display:flex;flex-wrap:wrap;gap:6px}
+#mot .tabs button,#motDraw .tabs button{flex:1 1 auto;white-space:nowrap;padding:10px 14px}
+/* چیدمان داشبورد انگیزشی */
+#motBody{display:block}
+#mot #motBody>.ov-hero,#mot #motBody>.ov-kp{margin:0 0 12px}
+@media (min-width:900px){
+#motBody{columns:2;column-gap:12px}
+#motBody>*{break-inside:avoid;margin-top:0;margin-bottom:12px}
+#motBody>.ov-hero,#motBody>.ov-kp,#motBody>.card:first-child{column-span:all}
+#mot .ov-kp{grid-template-columns:repeat(4,1fr)}
+}
+/* قرعه‌کشی */
+#motDraw .dz-p{text-align:right;margin:4px 0 10px}
+#motDraw .dz-l{font-size:13px;color:var(--mut);margin:2px 0 6px;font-weight:700}
+#motDraw .dz-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:10px}
+#motDraw .dz-row label{display:block;font-size:13px;color:var(--mut);font-weight:700;margin-bottom:4px}
+#motDraw .dz-row select{width:100%;margin:0}
+#motDraw .dz-st{background:var(--bg2);color:var(--tx);border-radius:14px;padding:12px;margin-top:12px;text-align:right;font-size:13px;line-height:2}
+#motDraw .dz-sm{color:var(--mut);font-size:12px;line-height:1.9;margin-top:4px}
+#draw .dz-t{display:block;margin:14px 0 8px}
+#draw .pick{background:var(--bg2);border-radius:18px;padding:14px;min-height:70px;display:flex;flex-direction:column;justify-content:center;gap:4px;font-size:22px}
+#draw #chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:8px}
+#draw #chips .chip{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:9px 10px;text-align:right}
+#draw #chips .chip i{font-style:normal;flex:none;background:var(--bg2);border-radius:10px;padding:1px 8px;font-size:12px}
+@media (min-width:900px){
+#draw.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+#draw>h2,#draw>.sub{grid-column:1/-1}
+#draw>.card{margin:0}
+}
+/* اطلاعات مدرسه و پایه: بدون فاصله‌ی خالی بین کارت‌ها */
+@media (min-width:900px){
+#prof.on{display:block;columns:2;column-gap:14px}
+#prof>h2{column-span:all}
+#prof>.card{break-inside:avoid;margin:0 0 14px}
+}
+/* پرونده‌ی معلمان */
+.tl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.tl-t{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;padding:14px 10px;min-width:0;border-radius:18px;border:2px solid var(--line);background:linear-gradient(160deg,var(--card),var(--bg2));color:var(--tx);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.tl-t:hover,.tl-t:active{transform:translateY(-2px);box-shadow:0 8px 18px #7e57c233;border-color:var(--p)}
+.tl-t img{width:64px;height:64px;border-radius:18px;object-fit:cover;border:2px solid var(--line)}
+.tl-t b{font-size:15px;overflow-wrap:anywhere}
+.tl-t small{display:block;color:var(--mut);font-size:12px;line-height:1.7}

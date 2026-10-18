@@ -1,0 +1,11 @@
+/* تب‌های گزارش مدیر و اصلاحات واکنش‌گرا — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+#mgr .tb2 button.on{background:var(--p);color:#fff}
+html{-webkit-text-size-adjust:100%}body{min-height:100vh;min-height:100dvh}img,svg{max-width:100%}
+@media (max-width:899px){#mgr,#mgr *{min-width:0}#mgr table{display:block;overflow-x:auto;white-space:nowrap}#mbody>div{overflow-x:auto}}
+@media (min-width:900px){
+.stats{grid-template-columns:repeat(3,1fr)}
+#editList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+#crs.on,#prof.on{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 14px;align-items:start}
+#crs>h2,#prof>h2{grid-column:1/-1}
+}
+@media (min-width:1500px){#editList{grid-template-columns:repeat(3,minmax(0,1fr))}}

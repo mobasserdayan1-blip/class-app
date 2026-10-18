@@ -1,0 +1,10 @@
+/* واکنش‌گرایی (نسخه‌ی ۲): تب‌ها و چیپ‌ها — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+/* تب‌ها و چیپ‌ها: اگر جا نشد، به خط بعد می‌روند (بدون بریدگی و اسکرول افقی) */
+#subTabs{flex-wrap:wrap;overflow:visible}
+#subTabs button{flex:1 1 auto;white-space:normal;min-width:0;max-width:100%}
+@media(max-width:700px){#subTabs{position:static}}
+.tabs,.tb2,.rpseg,.rpact,.chips2,.lv,.lg{flex-wrap:wrap}
+.tabs button,.tb2 button{flex:1 1 30%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.rpseg,.rpact{display:flex}.rpseg button,.rpact button{flex:1 1 220px}
+.kc table{width:100%;table-layout:auto}
+.kc th,.kc td{overflow-wrap:anywhere;word-break:break-word}

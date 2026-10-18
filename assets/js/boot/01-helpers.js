@@ -1,0 +1,2 @@
+/* توابع کمکی عمومی (نام دبستان، جهت پرانتز) — باید قبل از همه اجرا شود */
+window.stN=t=>/دخترانه/.test(t||'')?'دخترانه':/پسرانه/.test(t||'')?'پسرانه':'';window.schoolFull=P=>{P=P||(window.S&&S.prof)||{};if(!P.school)return'';const nm=String(P.school).replace(/^\s*(دبستان|مدرسه)\s*(پسرانه|دخترانه)?\s*/,'').trim(),t=stN(P.stype);return 'دبستان '+(t?t+' ':'')+nm};window.bidi=t=>String(t==null?'':t).replace(/\(/g,'\u200F(').replace(/\)/g,')\u200F')

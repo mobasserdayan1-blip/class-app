@@ -1,0 +1,43 @@
+/* پرونده‌ی دانش‌آموز و آواتار — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+.av{display:inline-flex;width:30px;height:30px;border-radius:50%;object-fit:cover;background:var(--p2);color:#fff;align-items:center;justify-content:center;font-weight:800;font-size:14px;vertical-align:middle;margin-left:8px;flex-shrink:0}
+.sfh{display:flex;gap:14px;align-items:center}.sfh img,.sfh .ph0{width:84px;height:104px;border-radius:14px;object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0}
+.sfg{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:10px}.sfg button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:14px;padding:13px 8px;font:700 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer}.sfg button:hover{background:var(--p);color:#fff;border-color:var(--p)}
+@media(min-width:640px){.sfg{grid-template-columns:repeat(3,1fr)}}
+#sf.on{max-width:none}#sfb{display:grid;gap:10px}#sfb .card,#sfb .stats{margin:0}#sfb .sfg{margin:0}
+@media(min-width:900px){#sfb{grid-template-columns:340px 1fr;align-items:start}#sfb .sfh{grid-row:1/3}#sfb .stats,#sfb .sfg{grid-column:2}#sfb .stats{grid-template-columns:repeat(4,1fr)}#sfb .sfg{grid-template-columns:repeat(3,1fr)}}
+.card{padding:13px;margin-bottom:10px}h2{margin-bottom:8px}.sub{margin-bottom:8px}
+@media(min-width:900px){main{padding:14px 24px!important}section.on>.card+.card{margin-top:0}}
+@media(max-width:480px){main{padding:8px!important}.card{padding:11px;border-radius:16px}.stats{gap:8px}.st{padding:10px}}
+#actBody .card{border-radius:22px}
+#actBody .act-grid{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))!important;gap:10px!important}
+#actBody .act-st{display:flex!important;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:12px 8px!important;border-radius:18px!important;border:2px solid var(--line)!important;background:linear-gradient(160deg,var(--card),var(--bg2))!important;color:var(--tx);font:800 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer;transition:transform .12s,box-shadow .12s}
+#actBody .act-st:hover,#actBody .act-st:active{transform:translateY(-2px);box-shadow:0 8px 18px #7e57c233;border-color:var(--p)!important}
+#actBody .act-st .av{width:44px;height:44px;margin:0 0 4px;font-size:19px}
+#actBody .act-st small{display:block;font-weight:400;color:var(--mut);font-size:11.5px}
+#actBody .act-it{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-top:8px;border-radius:14px;background:var(--bg2)}
+#actBody .act-it small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+#clsSel{flex:1;min-width:0;max-width:260px;margin:0 6px;background:#ffffff33;color:#fff;border:0;border-radius:10px;padding:7px 6px;font:700 13px Vazirmatn,Tahoma,sans-serif;text-overflow:ellipsis}#clsSel option{color:#222}
+@media(max-width:480px){#clsSel{max-width:36%;font-size:12px}}
+.cgr{margin-top:10px}.cgr>b{display:block;color:var(--p);margin-bottom:6px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;margin-bottom:6px;border-radius:14px;background:var(--bg2);border:2px solid transparent}.crow.on{border-color:var(--ok)}.crow small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.crow button{border:0;border-radius:10px;padding:8px 12px;font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;background:var(--p);color:#fff}.crow button.dl{background:#e5484d1f;color:var(--no)}
+.cadd{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}.cadd>*{margin:0!important}
+#lk{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;padding:16px;background:linear-gradient(160deg,var(--bg1),var(--bg2))}.locked #lk{display:flex}.locked header,.locked nav,.locked main{visibility:hidden}.locked #cpan,.locked #hpan,.locked #spro,.locked #lpan,.locked #jcal{display:none!important}#lk .fg{background:none;border:0;color:var(--mut);font:700 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin-top:6px;padding:6px}
+#lk .box{background:var(--card);border-radius:22px;padding:20px;width:100%;max-width:340px;text-align:center;box-shadow:0 12px 40px #0004}#lk input{text-align:center;letter-spacing:0;font-size:17px;margin:8px 0}
+<style>
+/* ---- درس‌ها و آزمون‌ها ---- */
+label.fl{display:block;margin:8px 2px 4px;font-size:12.5px;color:var(--mut)}
+summary.adds{cursor:pointer;font-weight:800;list-style:none}summary.adds::-webkit-details-marker{display:none}
+details.cc{padding:0}details.cc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 14px}details.cc>summary::-webkit-details-marker{display:none}
+details.cc>summary::after{content:'▾';color:var(--mut);margin-right:2px}details.cc[open]>summary::after{content:'▴'}
+details.cc>summary .ct{display:flex;flex-direction:column;flex:1;min-width:0}details.cc>summary .ct small{color:var(--mut);font-size:12px;margin-top:2px}
+details.cc>summary .cm{font-size:12px;color:var(--mut);white-space:nowrap}
+details.cc[open]>summary{border-bottom:1px dashed var(--line)}details.cc>:not(summary){margin-right:14px;margin-left:14px}details.cc>:last-child{margin-bottom:14px}
+/* درخت فصل ← مبحث (راست‌به‌چپ: فلش به سمت نوشته) */
+.tpw{margin:6px 12px 0 0;border-right:2px solid #b9a8e0}
+.tpi{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 30px 5px 0;font-size:14px}
+.tpi::before{content:'';position:absolute;right:0;top:50%;width:18px;border-top:2px solid #b9a8e0}
+.tpi::after{content:'';position:absolute;right:15px;top:calc(50% - 5px);border-style:solid;border-width:5px 7px 5px 0;border-color:transparent #b9a8e0 transparent transparent}
+.tpb{display:flex;gap:4px;flex-shrink:0}
+/* امضا */
+.al-more{width:100%;margin-top:8px}

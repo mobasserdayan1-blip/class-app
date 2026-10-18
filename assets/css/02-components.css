@@ -1,0 +1,48 @@
+/* تب‌ها، چیپ‌ها، جدول‌ها، شمارنده‌ها، رده‌بندی و شمارش معکوس — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+.dt{background:linear-gradient(135deg,#d6f6e5,#bfe9f2);color:#24493d}
+.tabs{display:flex;gap:6px;background:#ffffffaa;border-radius:14px;padding:4px;margin-bottom:10px}
+.tabs button{flex:1;border:0;border-radius:10px;padding:9px;font:700 14px Vazirmatn,Tahoma,sans-serif;background:none;color:#24493d;cursor:pointer}
+.tabs button.on{background:var(--p);color:#fff}
+.nv{display:flex;justify-content:space-between;align-items:center;gap:6px;margin-bottom:8px;text-align:center}
+.sel{display:flex;gap:6px}
+.sel select{flex:1;min-width:0;padding:9px 4px;border-radius:10px;border:2px solid #4cc58f;font:inherit;background:#fff;color:#24493d}
+.chips2{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips2 button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:20px;padding:6px 12px;font:700 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.chips2 button.on{background:var(--p);color:#fff;border-color:var(--p)}
+table.at{font-size:12px;min-width:100%}
+table.at th,table.at td{padding:6px 3px;text-align:center}
+table.at .nm{position:sticky;right:0;background:var(--card);text-align:right;font-weight:700;min-width:105px;z-index:1}
+table.at th.nm{background:var(--p)}
+.c{cursor:pointer;min-width:26px;font-weight:800}
+.c.p{color:#fff;background:var(--ok)}.c.a{color:#fff;background:var(--no)}.c.l{color:#fff;background:var(--wa)}
+th.fr{background:#d9534f}
+.sum{font-size:12px;color:var(--mut);white-space:nowrap}
+.ex{font-size:14px;padding:12px}
+.cnts{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.cn{border-radius:12px;padding:6px 10px;font:700 13px Vazirmatn,Tahoma,sans-serif;color:#fff}
+.cn.p{background:var(--ok)}.cn.a{background:var(--no)}.cn.l{background:var(--wa)}.cn.n{background:#8a7aa6}
+.br{display:flex;align-items:center;gap:8px;margin:7px 0;font-size:13px}
+.bl{width:84px;font-weight:700;flex-shrink:0}
+.bt{flex:1}.bt i{display:block;height:10px;border-radius:6px;margin:2px 0;min-width:2px}.bt i.g2{background:#b9b0cf}
+.br b{width:40px;text-align:left}
+.tb2{display:flex;gap:6px;background:var(--bg2);border-radius:14px;padding:4px;margin-bottom:10px}
+.tb2 button{flex:1;border:0;border-radius:10px;padding:9px;font:700 14px Vazirmatn,Tahoma,sans-serif;background:none;color:var(--tx);cursor:pointer}
+.tb2 button.on{background:var(--p);color:#fff}
+select.fs{width:100%;border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:11px;font:inherit;margin-bottom:8px}
+.xb{display:inline-block;background:var(--bg2);border-radius:8px;padding:2px 8px;font-size:12px;margin-left:6px;font-weight:700}
+.lg{font-size:12px;color:var(--mut);margin-top:6px}
+.card label.sum{display:block;margin-bottom:3px;margin-top:4px}
+.cd{background:linear-gradient(135deg,#6b7ee8,#8f5bc4);color:#fff;text-align:center}
+.cdg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0 6px}
+.cdg div{background:#ffffff2e;border-radius:12px;padding:8px 2px;font-size:22px;font-weight:800}.cdg small{display:block;font-size:11px;font-weight:400}
+.cdi{font-size:12px;opacity:.9}
+.rkl{display:flex;flex-direction:column;gap:8px}.rkp{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin-bottom:6px}.rkp>div{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;border-radius:16px;padding:10px 4px;background:var(--card);box-shadow:0 4px 12px #7e57c21f}.rkp .p1{padding-bottom:22px;background:linear-gradient(#fff3c4,var(--card))}.rkp b{font-size:12.5px}.rkp em{font-style:normal;font-size:12px;color:var(--mut)}.rkp .mdl{font-size:22px}
+.rki{background:var(--card);border-radius:14px;box-shadow:0 2px 8px #7e57c214}.rki summary{list-style:none;display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer}.rki summary::-webkit-details-marker{display:none}.rki .no{min-width:26px;text-align:center;font-weight:800}.rki .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.rki .nm b{font-size:14px}.rki .nm small,.rki .sc small{font-size:11px;color:var(--mut);font-weight:400}.rki .bar{display:block;height:6px;border-radius:6px;background:var(--line);overflow:hidden}.rki .bar u{display:block;height:100%;border-radius:6px}.rki .sc{font-weight:800;font-size:17px;display:flex;flex-direction:column;align-items:center}.rkd{display:flex;flex-wrap:wrap;gap:6px;padding:0 10px 10px}.rkd span{border:1.5px solid var(--line);border-radius:10px;padding:3px 8px;font-size:12px}
+.cgr.acc{background:var(--card);border-radius:16px;margin-top:8px;box-shadow:0 2px 8px #7e57c214;overflow:hidden}.cgh{width:100%;display:flex;align-items:center;gap:8px;background:none;border:0;padding:13px 14px;font:inherit;font-weight:800;font-size:15px;color:var(--tx);cursor:pointer;text-align:right}.cgh span{flex:1}.cgh small{color:var(--mut);font-weight:500}.cgh i{font-style:normal;transition:transform .35s cubic-bezier(.4,0,.2,1);font-size:18px}.cgr.open .cgh i{transform:rotate(180deg)}.cgr.open .cgh{color:var(--p)}.cgw{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s cubic-bezier(.4,0,.2,1)}.cgr.open .cgw{grid-template-rows:1fr}.cgi{overflow:hidden;min-height:0;padding:0 10px;opacity:0;transform:translateY(-10px);transition:opacity .35s ease,transform .4s cubic-bezier(.4,0,.2,1)}.cgr.open .cgi{opacity:1;transform:none;padding:0 10px 10px}
+table.rk th,table.rk td{font-size:12.5px}
+.tm{display:inline-block;background:#e7f0ff;color:#2a5db0;border-radius:10px;padding:0 7px;font-size:10.5px;margin-top:2px}
+tr.g1 .nm{background:#ffe9a8}tr.g2 .nm{background:#e6e6ee}tr.g3 .nm{background:#f6d2b4}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin:4px 0 8px}
+.lv button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px;padding:7px 2px;font:700 11.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.lv button.on4{background:#1a8f55;color:#fff;border-color:#1a8f55}.lv button.on3{background:#5fa83a;color:#fff;border-color:#5fa83a}.lv button.on2{background:#f59e0b;color:#fff;border-color:#f59e0b}.lv button.on1{background:#e5484d;color:#fff;border-color:#e5484d}
+.dcol{font-size:11px;color:#6b5b85;max-width:88px;white-space:normal;line-height:1.25}

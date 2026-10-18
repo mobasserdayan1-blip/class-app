@@ -1,0 +1,32 @@
+/* واکنش‌گرایی (نسخه‌ی ۱): جلوگیری از بیرون‌زدن متن — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+/* ===== واکنش‌گرایی کامل: هیچ متنی از کادر بیرون نمی‌زند، متن طولانی به خط بعد می‌رود ===== */
+html,body{max-width:100%;overflow-x:hidden}
+main,section,.card,.row,.btns,.sel,.team,.st,.chip,[class*=grid]{min-width:0;max-width:100%}
+.card,.row,.chip,.st,label,summary,h1,h2,h3,p,li,span,b,div{overflow-wrap:anywhere}
+.row,.btns,.sel,.team h3,#ttl,header{flex-wrap:wrap}
+input,select,textarea,button{max-width:100%}
+img,svg,canvas,video{max-width:100%;height:auto}
+pre,code{white-space:pre-wrap;overflow-wrap:anywhere}
+.sum,details.cc>summary .cm,.dm-t th,.dm-t td{white-space:normal!important}
+table{max-width:100%}
+th,td{white-space:normal!important;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;min-width:0}
+.sc-nm{white-space:normal!important}
+.wrap,#mbody>div{max-width:100%;overflow-x:auto}
+#mgr table{display:table!important;white-space:normal!important;width:100%}
+/* متن‌های کوتاه‌شده با ... (در صفحه و خروجی‌ها) → شکستن به خط بعد */
+[style*="text-overflow"],.rpA4 .hb i,.rpA4 .g-st b,.rpA4 .rlv,.rpA4 .g-pl{white-space:normal!important;text-overflow:clip!important;overflow:visible!important;height:auto!important;overflow-wrap:anywhere}
+.rpA4 td,.rpA4 th,.kc td,.kc th{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere;word-break:break-word}
+/* جدول‌های ماتریسی (ستون زیاد): فشرده و بدون اسکرول افقی */
+table.rt-fit{table-layout:fixed;width:100%;font-size:clamp(9px,2.6vw,14px)}
+table.rt-fit th,table.rt-fit td{padding:4px 2px}
+table.rt-fit th:first-child,table.rt-fit td:first-child{width:26%}
+/* جدول‌های ساده روی موبایل: هر ردیف یک کارت، هر ستون یک خط */
+@media(max-width:560px){
+ table.rt-stack,table.rt-stack tbody,table.rt-stack tr,table.rt-stack td{display:block;width:100%}
+ table.rt-stack thead{display:none}
+ table.rt-stack tr{border:1px solid var(--line);border-radius:12px;margin:0 0 8px;padding:4px 8px}
+ table.rt-stack td{display:flex;justify-content:space-between;gap:10px;text-align:left;border-bottom:1px dashed var(--line);padding:6px 0}
+ table.rt-stack td:last-child{border-bottom:0}
+ table.rt-stack td::before{content:attr(data-label);font-weight:800;color:var(--mut);flex:0 0 38%;text-align:right}
+ table.rt-stack td[data-label=""]::before{display:none}
+}

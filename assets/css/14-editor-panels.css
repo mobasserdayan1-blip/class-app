@@ -1,0 +1,16 @@
+/* کارت‌های ویرایش و پنل‌های کشویی — ترتیب بارگذاری این فایل‌ها مهم است (شماره‌ی ابتدای نام) */
+.ed{background:var(--card);border-radius:18px;padding:12px;margin-bottom:10px;box-shadow:0 4px 12px #7e57c21a}
+.ed .f{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.ed label{font-size:12px;color:var(--mut);display:block;margin-bottom:3px}
+.ed input,.ed select{margin:0;padding:9px;width:100%;border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px;font:inherit}
+.ed .top{display:flex;gap:8px;align-items:flex-end}
+.ed .top div{flex:1}
+.del{border:0;background:#e5484d1f;color:var(--no);border-radius:10px;padding:10px 12px;font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;white-space:nowrap}
+.del.sure{background:var(--no);color:#fff}
+#hpan,#spro{position:fixed;inset:0;z-index:998;display:none;align-items:center;justify-content:center;background:rgba(30,20,50,.45);padding:14px;overflow:auto}
+#hpan.open,#spro.open{display:flex}
+#hpan .box,#spro .box{background:var(--card);color:var(--tx);border-radius:20px;padding:16px;width:100%;max-width:520px;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+#hpan button:not(.sm),#spro select{width:100%;margin-top:8px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:700 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#hpan button.pr{background:var(--p);color:#fff;border-color:var(--p)}
+#lpan{position:fixed;inset:0;z-index:998;display:none;align-items:center;justify-content:center;background:rgba(30,20,50,.45);padding:14px;overflow:auto}#lpan.open{display:flex}#lpan .box{background:var(--card);color:var(--tx);border-radius:20px;padding:16px;width:100%;max-width:480px;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.3)}
+#spro label{display:block;font-size:12px;color:var(--mut);margin:8px 0 3px}

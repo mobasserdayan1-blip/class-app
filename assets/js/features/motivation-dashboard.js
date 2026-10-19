@@ -15,7 +15,7 @@ const inP=(k,p)=>k<=T()&&(p==='y'||(p==='d'?k===T():p==='w'?k>=ago(6):mo(k)===mo
 const dl=k=>{try{return fmt(new Date(k+'T12:00:00Z'))}catch(e){return k}},lab=c=>{try{return window.clsLab?clsLab(c):(c.name||'کلاس')}catch(e){return 'کلاس'}};
 function calcS(X,s,p,cfg){const id=s.id,tg=Math.max(1,Math.round(cfg.tgt*K[p])),ex=(X.mot||{}).exc||{};let ap=0,al=0,aa=0,ae=0,raw=0;
  Object.keys(X.att||{}).forEach(k=>{if(!inP(k,p)||(X.closed||{})[k])return;const v=(X.att[k]||{})[id];if(!v)return;
-  if(v==='p'){ap++;raw+=2}else if(v==='l'){al++;raw+=1}else if(ex[k]&&ex[k][id]){ae++;raw+=1}else aa++});
+  if(v==='p'){ap++;raw+=2}else if(v==='l'){al++;raw+=1}else if((ex[k]&&ex[k][id])||(X.attx&&(X.attx[k]||{})[id]!==undefined)){ae++;raw+=1}else aa++});
  const an=ap+al+aa,att=an?(ap+.7*al)/an*100:null;let hd=0,hp=0,hn=0;
  (X.hwl||[]).forEach(h=>{if(!inP(h.date,p))return;const v=h.st&&h.st[id];v==='d'?hd++:v==='p'?hp++:v==='n'&&hn++});
  const hc=hd+hp+hn,hw=hc?(hd+hp*.5)/hc*100:null;raw+=hd*3+hp*1.5;

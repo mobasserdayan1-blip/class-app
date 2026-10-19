@@ -33,7 +33,7 @@ function moveStu(id,to){const s=S.students.find(x=>x.id===id),T=S.stash[to];if(!
  let nid=id;while(T.students.some(x=>x.id===nid))nid=Date.now()+Math.floor(Math.random()*1000);
  T.students.push(Object.assign({},s,{id:nid,team:(T.students.length)%Math.max(1,T.nt||3)+1}));
  if(S.info[id]){T.info=T.info||{};T.info[nid]=S.info[id]}if(S.notes[id]){T.notes=T.notes||{};T.notes[nid]=S.notes[id]}if(S.desc[id]){T.desc=T.desc||{};T.desc[nid]=S.desc[id]}
- T.att=T.att||{};Object.keys(S.att).forEach(k=>{if(S.att[k][id]){(T.att[k]=T.att[k]||{})[nid]=S.att[k][id];delete S.att[k][id]}});
+ T.att=T.att||{};Object.keys(S.att).forEach(k=>{if(S.att[k][id]){(T.att[k]=T.att[k]||{})[nid]=S.att[k][id];delete S.att[k][id]}});T.attx=T.attx||{};Object.keys(S.attx||{}).forEach(k=>{if((S.attx[k]||{})[id]!==undefined){(T.attx[k]=T.attx[k]||{})[nid]=S.attx[k][id];delete S.attx[k][id]}});
  S.students=S.students.filter(x=>x.id!==id);delete S.info[id];delete S.notes[id];delete S.desc[id];S.drawn=(S.drawn||[]).filter(x=>x!==id);save();$('spro').classList.remove('open');render()}
 document.addEventListener('click',e=>{const t=e.target;if(!t.dataset)return;
  if(t.dataset.a==='mv'&&t.closest('#sfb')){const id=window.__sfid,o=VC().filter(c=>c.id!==S.cur);$('spro').innerHTML='<div class="box"><b>🔀 انتقال به کدام کلاس؟</b><p class="sub">مشخصات، یادداشت‌ها و حضور و غیاب منتقل می‌شود؛ نمره‌های آزمون در کلاس فعلی می‌ماند (درس‌های دو کلاس یکی نیست).</p>'+o.map(c=>`<button data-mvto="${c.id}" data-sid="${id}">${E(lab(c))}</button>`).join('')+'<button id="spx">انصراف</button></div>';$('spro').classList.add('open')}

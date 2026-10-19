@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v85';
+const C='cl-v88';
 const A=[
   './',
   './index.html',
@@ -22,6 +22,8 @@ const A=[
   './assets/css/12-manager-tabs-and-reset.css',
   './assets/css/13-results-table-and-draw.css',
   './assets/css/14-editor-panels.css',
+  './assets/css/15-excused-and-theme-toggle.css',
+  './assets/css/16-etoud-ui.css',
   './assets/js/boot/01-helpers.js',
   './assets/js/boot/02-lock-flash.js',
   './assets/js/boot/modules.js',
@@ -65,7 +67,10 @@ const A=[
   './assets/js/features/role-access.js',
   './assets/js/features/dashboard-simplify.js',
   './assets/js/features/quick-attendance.js',
-  './assets/js/features/parent-contact-log.js'
+  './assets/js/features/parent-contact-log.js',
+  './assets/js/features/homework-review.js',
+  './assets/js/features/theme-toggle.js',
+  './assets/js/features/etoud-ui.js'
 ];
 /* [CHG-7] کتابخانه‌های PDF/اکسل بعد از اولین بارگذاری موفق، آفلاین هم کار می‌کنند */
 const CDN=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',

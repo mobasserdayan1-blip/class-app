@@ -82,7 +82,7 @@ function pages2(s){const id=s.id,I=(S.info||{})[id]||{},P=S.prof||{},C=S.courses
  const ex=(S.exams||[]).map(e=>({e,v:nz(e)})).filter(x=>x.v!=null).sort((a,b)=>a.e.date<b.e.date?-1:1);
  const byC={};ex.forEach(x=>(byC[x.e.course]=byC[x.e.course]||[]).push(x.v));const av=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
  const cr=Object.keys(byC).map(k=>({n:cn(+k)||cn(k),a:av(byC[k]),c:byC[k].length})).sort((x,y)=>y.a-x.a),ov=av(cr.map(x=>x.a));
- let p=0,a=0,l=0;const mo={};Object.keys(S.att||{}).forEach(k=>{const v=(S.att[k]||{})[id];if(!v)return;if(v==='p')p++;else if(v==='a')a++;else if(v==='l')l++;const jj=jp(new Date(k+'T12:00:00Z')),m=String(jj.y*100+jj.m);(mo[m]=mo[m]||[0,0]);mo[m][1]++;if(v!=='a')mo[m][0]++});
+ let p=0,a=0,l=0;const mo={};Object.keys(S.att||{}).forEach(k=>{const v=(S.att[k]||{})[id];if(!v)return;if(v==='p')p++;else if(v==='a'){if(!isExc(k,id))a++}else if(v==='l')l++;const jj=jp(new Date(k+'T12:00:00Z')),m=String(jj.y*100+jj.m);(mo[m]=mo[m]||[0,0]);mo[m][1]++;if(v!=='a')mo[m][0]++});
  const T=p+a+l,ap=T?Math.round((p+l)/T*100):null;
  let hd=0,hp=0,hn=0;(S.hwl||[]).forEach(h=>{const v=h.st&&h.st[id];if(v==='d')hd++;else if(v==='p')hp++;else if(v==='n')hn++});const HT=hd+hp+hn,hpc=HT?Math.round((hd+hp*.5)/HT*100):null;
  const AC=(S.activities||[]).filter(x=>x.sid===id),ak={};AC.forEach(x=>ak[x.kind||'سایر']=(ak[x.kind||'سایر']||0)+1);const akl=Object.entries(ak).sort((x,y)=>y[1]-x[1]).slice(0,5),apos=AC.filter(x=>x.type==='positive').length,aef=AC.length-apos;

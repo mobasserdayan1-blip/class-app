@@ -2,14 +2,14 @@
 (function(){
 const $=id=>document.getElementById(id),E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;'),K='cl_pin',KS='cl_salt',root=document.documentElement;
 const gi=g=>{const i=GR.indexOf(g);return i<0?9:i};
-function calc(){const st=S.students;let p=0,t=0;Object.values(S.att||{}).forEach(d=>st.forEach(s=>{const v=d[s.id];if(v){t++;if(v!=='a')p++}}));
+function calc(){const st=S.students;let p=0,t=0;Object.keys(S.att||{}).forEach(k=>{const d=S.att[k];st.forEach(s=>{const v=d[s.id];if(v){t++;if(v!=='a'||isExc(k,s.id))p++}})});
  const ov=id=>mean(S.courses.map(c=>cAvg(id,c.id,S.exams)).filter(nn));
  const av=st.map(s=>ov(s.id)).filter(nn),T=iso(tdy()),TA=S.att[T]||{};
  let gd=[];try{gd=progList().map(x=>x.P.d)}catch(e){}
  let hd=0,ht=0;(S.hwl||[]).forEach(h=>Object.values(h.st||{}).forEach(v=>{if(v==='d'||v==='p'||v==='n'){ht++;if(v==='d')hd++}}));
  const cr=S.courses.map(c=>({n:c.name,a:mean(S.exams.filter(e=>e.course===c.id).flatMap(e=>st.map(s=>nrm(e,s.id))).filter(nn))})).filter(x=>x.a!=null).sort((a,b)=>b.a-a.a);
  const rk=st.map(s=>({n:s.name,o:ov(s.id)})).filter(x=>x.o!=null).sort((a,b)=>b.o-a.o);
- return{n:st.length,avg:av.length?Math.round(mean(av)*100)/100:null,att:t?Math.round(p/t*100):null,low:av.filter(v=>v<2.5).length,hi:av.filter(v=>v>=3.5).length,ta:st.filter(s=>TA[s.id]==='a').length,d:T,
+ return{n:st.length,avg:av.length?Math.round(mean(av)*100)/100:null,att:t?Math.round(p/t*100):null,low:av.filter(v=>v<2.5).length,hi:av.filter(v=>v>=3.5).length,ta:st.filter(s=>TA[s.id]==='a'&&!isExc(T,s.id)).length,d:T,
   gr:gd.length?Math.round(mean(gd)*100)/100:null,up:gd.filter(v=>v>=.3).length,dn:gd.filter(v=>v<=-.3).length,hw:ht?Math.round(hd/ht*100):null,ex:S.exams.length,
   bc:cr.length?cr[0].n:null,wc:cr.length>1?cr[cr.length-1].n:null,tp:rk.slice(0,3).map(x=>x.n)}}
 let tmr;function upd(){clearTimeout(tmr);tmr=setTimeout(()=>{try{const c=(S.classes||[]).find(x=>x.id===S.cur);if(!c)return;const o=calc();if(JSON.stringify(o)!==JSON.stringify(c.sum)){c.sum=o;save()}}catch(e){}},500)}
@@ -80,12 +80,12 @@ function tdash(){try{
  if(!box){box=document.createElement('div');box.id='tdash2';box.className='tdg';home.insertBefore(box,document.getElementById('stats'))}
  home.classList.add('tdon');
  const T=iso(tdy()),c=calc(),TA=S.att[T]||{},rec=Object.keys(TA).length>0,hl=hol(tdy());
- const pc=st.filter(s=>TA[s.id]==='p'||TA[s.id]==='l').length,ac=st.filter(s=>TA[s.id]==='a').length;
+ const pc=st.filter(s=>TA[s.id]==='p'||TA[s.id]==='l').length,ac=st.filter(s=>TA[s.id]==='a'&&!isExc(T,s.id)).length;
  const ex=S.exams.slice().sort((a,b)=>a.date.localeCompare(b.date));
  const dk=Object.keys(S.att).filter(k=>k<=T&&!S.closed[k]&&!hol(new Date(k+'T12:00:00Z'))&&st.some(s=>(S.att[k]||{})[s.id])).sort();
  const ser=id=>ex.map(e=>nrm(e,id)).filter(nn),ov=id=>mean(S.courses.map(q=>cAvg(id,q.id,S.exams)).filter(nn));
- const R=[];st.forEach(s=>{const why=[];let run=0;for(let i=dk.length-1;i>=0;i--){if((S.att[dk[i]]||{})[s.id]==='a')run++;else break}
-  if(run>=3)why.push(fa(run)+' غیبت متوالی');const l10=dk.slice(-10),a10=l10.filter(k=>(S.att[k]||{})[s.id]==='a').length;if(run<3&&a10>=3)why.push(fa(a10)+' غیبت در '+fa(l10.length)+' روز اخیر');
+ const R=[];st.forEach(s=>{const why=[];let run=0;for(let i=dk.length-1;i>=0;i--){if((S.att[dk[i]]||{})[s.id]==='a'&&!isExc(dk[i],s.id))run++;else break}
+  if(run>=3)why.push(fa(run)+' غیبت متوالی');const l10=dk.slice(-10),a10=l10.filter(k=>(S.att[k]||{})[s.id]==='a'&&!isExc(k,s.id)).length;if(run<3&&a10>=3)why.push(fa(a10)+' غیبت در '+fa(l10.length)+' روز اخیر');
   const v=ser(s.id),av=mean(v);if(av!=null&&av<2.5)why.push('میانگین '+f1(av));
   if(v.length>=4){const h=Math.floor(v.length/2);if(mean(v.slice(h))-mean(v.slice(0,h))<=-.5)why.push('روند نزولی')}
   if(why.length)R.push({s,why,u:why.length>=2||(av!=null&&av<2)||run>=5})});
@@ -319,7 +319,7 @@ document.addEventListener('click',async e=>{const t=e.target;if(t.id!=='ar_b')re
  const Y=syLab(SY),rk=classTable().rk,act=S.classes.find(c=>c.id===S.cur);S.archive=S.archive||{};
  const st=S.students.map(s=>{let p=0,l=0,a=0;Object.values(S.att).forEach(d=>{const v=d[s.id];if(v==='p')p++;else if(v==='l')l++;else if(v==='a')a++});const n=p+l+a;return{id:s.id,name:s.name,fn:((S.info||{})[s.id]||{}).fn||'',avg:overall(s.id),att:n?Math.round((p+l)/n*100):null,ab:a,rank:rk.findIndex(r=>r.s.id===s.id)+1}});
  (S.archive[Y]=S.archive[Y]||{})[S.cur]={label:clsLab(act),grade:S.prof.grade,sec:S.prof.sec,teacher:S.prof.teacher,st};
- S.att={};S.closed={};S.exams=[];S.hwl=[];S.activities=[];S.desc={};S.notes={};S.drawn=[];S.ai={};if(S.mot){S.mot.log=[];S.mot.exc={}}S.students.forEach(s=>{s.score=1000});
+ S.att={};S.attx={};S.closed={};S.exams=[];S.hwl=[];S.activities=[];S.desc={};S.notes={};S.drawn=[];S.ai={};if(S.mot){S.mot.log=[];S.mot.exc={}}S.students.forEach(s=>{s.score=1000});
  let msg='✅ بایگانی شد؛ کلاس برای سال جدید آماده است';
  if($('ar_p').checked){const i=GR.indexOf(S.prof.grade);if(i>=0&&i<GR.length-1){S.prof.grade=GR[i+1];S.courses=[];msg+=' · پایه به «'+S.prof.grade+'» ارتقا یافت'}else msg+=' · پایه ارتقا نیافت (آخرین پایه یا انتخاب‌نشده)'}
  save();render();window.renderCls();$('ar_m').textContent=msg});

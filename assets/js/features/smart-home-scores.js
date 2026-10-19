@@ -7,8 +7,8 @@
  const T=()=>iso(tdy()),dd=k=>new Date(k+'T12:00:00Z'),mon=k=>{const q=jp(dd(k));return q.y*100+q.m},curM=()=>mon(T());
  let per='m',sel=null;const inP=k=>per==='y'||mon(k)===curM();
  const attKeys=id=>Object.keys(S.att||{}).filter(k=>k<=T()&&!(S.closed||{})[k]&&(S.att[k]||{})[id]).sort();
- const attSt=(id,f)=>{let p=0,a=0,l=0;attKeys(id).filter(f||(()=>true)).forEach(k=>{const v=S.att[k][id];v==='p'?p++:v==='a'?a++:l++});const n=p+a+l;return{p,a,l,n,pct:n?(p+l)/n*100:null}};
- const run=(id,key)=>{let n=0;for(const k of attKeys(id).reverse()){if(S.att[k][id]===key)n++;else break}return n};
+ const attSt=(id,f)=>{let p=0,a=0,l=0;attKeys(id).filter(f||(()=>true)).forEach(k=>{const v=S.att[k][id];(v==='p'||(v==='a'&&isExc(k,id)))?p++:v==='a'?a++:l++});const n=p+a+l;return{p,a,l,n,pct:n?(p+l)/n*100:null}};
+ const run=(id,key)=>{let n=0;for(const k of attKeys(id).reverse()){if(S.att[k][id]===key&&!(key==='a'&&isExc(k,id)))n++;else break}return n};
  const exs=()=>S.exams.slice().sort((a,b)=>a.date.localeCompare(b.date));
  const vals=(id,f)=>exs().filter(f||(()=>true)).map(e=>nrm(e,id)).filter(v=>v!=null);
  const prog=(id,f)=>{const v=vals(id,f);if(v.length<2)return null;const h=Math.floor(v.length/2),b=avg(v.slice(0,h)),a=avg(v.slice(h));return{d:a-b,pct:b?(a-b)/b*100:null}};
@@ -34,7 +34,7 @@
    if(ra>=2)R.push([ra>=3?1:2,ra>=3?'🔴':'🟠',`${n}: ${fa(ra)} روز متوالی غایب`]);
    if(rl>=2)R.push([2,'🟠',`${n}: ${fa(rl)} تأخیر متوالی`]);else if(m.l>=3)R.push([2,'🟠',`${n}: ${fa(m.l)} تأخیر در این ماه`]);
    if(m.n>=3&&m.pct<85)R.push([m.pct<75?1:2,'⚠️',`حضور ${n} در ماه جاری ${r0(m.pct)}٪ است`]);
-   const l10=attKeys(id).slice(-10),a10=l10.filter(k=>S.att[k][id]==='a').length;if(a10>=3&&ra<3)R.push([2,'⚠️',`${n}: ${fa(a10)} غیبت در ${fa(l10.length)} روز اخیر`]);
+   const l10=attKeys(id).slice(-10),a10=l10.filter(k=>S.att[k][id]==='a'&&!isExc(k,id)).length;if(a10>=3&&ra<3)R.push([2,'⚠️',`${n}: ${fa(a10)} غیبت در ${fa(l10.length)} روز اخیر`]);
    S.courses.forEach(c=>{const v=exs().filter(e=>e.course===c.id).map(e=>nrm(e,id)).filter(x=>x!=null).slice(-3);if(v.length===3&&v[0]>v[1]&&v[1]>v[2])R.push([1,'⚠️',`${n} در سه آزمون اخیر «${esc2(c.name)}» روند نزولی داشته است`])})});
   (S.hwl||[]).filter(h=>h.date===t).forEach(h=>{const k=st.filter(s=>h.st&&h.st[s.id]==='n').length;if(k)R.push([2,'⚠️',`${fa(k)} دانش‌آموز تکلیف «${esc2(h.title||'')}» را امروز انجام نداده‌اند`])});
   const P=st.map(s=>({s,p:prog(s.id,e=>mon(e.date)===cm)})).filter(x=>x.p&&x.p.d>=.3).sort((a,b)=>b.p.d-a.p.d)[0];

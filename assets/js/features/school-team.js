@@ -2,7 +2,8 @@
 (function(){try{
 const $=id=>document.getElementById(id),E=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const ST={user:null,mem:null,school:null,team:[],busy:false,loaded:false,msg:'',err:''};
-let db=null,auth=null;
+let db=null,auth=null,LA=Date.now();
+['pointerdown','keydown','touchstart','input'].forEach(ev=>addEventListener(ev,()=>{LA=Date.now()},{capture:true,passive:true}));
 const norm=s=>String(s||'').trim().toLowerCase();
 const okMail=s=>/^[^\s@\/]+@[^\s@\/]+\.[^\s@\/]+$/.test(s);
 const fe=e=>{const c=e&&e.code||'';
@@ -61,7 +62,8 @@ function html(){
    return '<div class="crow"><div><b>'+E(clsName(c))+'</b></div><select class="fs" data-sca="'+E(c.id)+'">'+opts+'</select></div>'}).join('')+
    sub('تغییر هر کلاس همان لحظه ذخیره می‌شود. با اختصاص کلاس به معلم، اطلاعات همان کلاس به مدرسه ارسال می‌شود و فقط روی دستگاه همان معلم نصب می‌شود.');
  }
- h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button><button class="sm" data-sc="down">⬇️ دریافت تغییرات معلم‌ها</button><button class="sm" data-sc="reload">🔄 تازه‌سازی</button></div>';
+ h+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sm" data-sc="up">⬆️ ارسال کلاس‌ها به مدرسه</button><button class="sm" data-sc="down">⬇️ دریافت دستی از معلم‌ها</button><button class="sm" data-sc="reload">🔄 تازه‌سازی</button></div>';
+ h+=sub('🔄 دریافت از معلم‌ها <b>خودکار</b> است: چند ثانیه پس از تغییر هر معلم و وقتی شما مشغول کار نیستید، کلاس به‌روز می‌شود (دکمه‌ی دستی فقط برای اطمینان است).');
  return h+(ST.msg?sub(E(ST.msg)):'');
 }
 function render(){const c=$('scCard');if(c)c.innerHTML=html();if(!ST.msg)ST.shown='';else if(ST.msg!==ST.shown){ST.shown=ST.msg;try{window.__raToast&&window.__raToast(ST.msg)}catch(x){}}}
@@ -87,6 +89,7 @@ async function load(){
   try{setAcc()}catch(x){}
   try{enforce()}catch(x){}
   ST.loaded=true;
+  try{const am=sessionStorage.getItem('schAutoMsg');if(am){sessionStorage.removeItem('schAutoMsg');ST.msg=am}}catch(x){}
  }catch(e){ST.err=fe(e)}
  ST.busy=false;render();
  try{hookPush();watch()}catch(x){}
@@ -119,7 +122,7 @@ function clsSnap(id){
 }
 async function pushCls(id,force){
  const sid=ST.mem.schoolId,me=myEmail(),ref=cdRef(sid,id),j=JSON.stringify(clsSnap(id));
- if(!force&&ST.last&&ST.last[id]===j)return 0;
+ if(!force&&ST.last&&ST.last[id]===j){if(ST.dirty)delete ST.dirty[id];return 0}
  const mm=await ref.get(),md=mm.exists?mm.data():{},rv=md.v||0;
  if(!force&&rv>(V()[id]||0)&&md.by!==me)throw new Error('نسخه‌ی تازه‌تری از مدیر رسیده؛ ابتدا «تازه‌سازی» را بزنید.');
  const n=Math.max(1,Math.ceil(j.length/CHUNK)),pc=ref.collection('parts'),b=db.batch();
@@ -127,7 +130,7 @@ async function pushCls(id,force){
  for(let i=n;i<(md.n||0);i++)b.delete(pc.doc(String(i)));
  b.set(ref,{n,v:rv+1,by:me,t:stamp(),len:j.length});
  await b.commit();
- (ST.last=ST.last||{})[id]=j;setV(id,rv+1);return 1;
+ (ST.last=ST.last||{})[id]=j;setV(id,rv+1);if(ST.dirty)delete ST.dirty[id];return 1;
 }
 async function pullCls(id){
  const ref=cdRef(ST.mem.schoolId,id),m=await ref.get();if(!m.exists)return null;
@@ -146,7 +149,7 @@ let pt=null;
 function hookPush(){
  if(window.__schHook||typeof window.cloudPush!=='function')return;
  window.__schHook=1;const cp=window.cloudPush;
- window.cloudPush=function(){try{cp.apply(this,arguments)}catch(e){}sched()};
+ window.cloudPush=function(){try{cp.apply(this,arguments)}catch(e){}try{(ST.dirty=ST.dirty||{})[String(S.cur)]=1}catch(x){}sched()};
 }
 function sched(){
  if(!db||!ST.mem||ST.mem.active===false||(ST.mem.role!=='teacher'&&ST.mem.role!=='manager'))return;
@@ -172,19 +175,38 @@ async function syncTeacher(){
   await writeState(Object.assign({classes,cur,stash,archive:extra?{}:S.archive,glib:S.glib},top));
  }finally{ST.sy=0}
 }
-async function managerDown(){
- const me=myEmail(),got={},lv=V();
+async function managerDown(auto){
+ const me=myEmail(),got={},lv=V();let skipped=0;
  for(const id of Object.keys(schoolClasses())){
   if(!(S.classes||[]).some(c=>String(c.id)===id))continue;
+  if(auto){const mm=await cdRef(ST.mem.schoolId,id).get();if(!mm.exists)continue;const md=mm.data();if(md.by===me||(md.v||0)<=(lv[id]||0))continue;if(ST.dirty&&ST.dirty[id]){skipped++;continue}}
   const r=await pullCls(id);if(r&&r.meta.by!==me&&(r.meta.v||0)>(lv[id]||0))got[id]=r;
  }
  const ks=Object.keys(got);
- if(!ks.length){say('✅ تغییر تازه‌ای از طرف معلم‌ها نیست.');return}
- if(!confirm('تغییرات '+ks.length+' کلاس از طرف معلم‌ها دریافت و جایگزین نسخه‌ی این دستگاه می‌شود. ادامه می‌دهید؟'))return;
+ if(!ks.length){if(skipped)say('⚠️ تغییر معلم برای کلاسی رسیده که روی همین دستگاه تغییر ذخیره‌نشده دارد؛ برای دریافت، دکمه‌ی «دریافت دستی از معلم‌ها» را بزنید.');else if(!auto)say('✅ تغییر تازه‌ای از طرف معلم‌ها نیست.');return}
+ if(auto){try{sessionStorage.setItem('schAutoMsg','✅ تغییرات تازه‌ی معلم‌ها ('+ks.length+' کلاس) به‌صورت خودکار دریافت شد.')}catch(x){}}
+ else if(!confirm('تغییرات '+ks.length+' کلاس از طرف معلم‌ها دریافت و جایگزین نسخه‌ی این دستگاه می‌شود. ادامه می‌دهید؟'))return;
  const stash=Object.assign({},S.stash||{});let top=clsSnap(S.cur);
  const classes=(S.classes||[]).map(c=>Object.assign({},c));
  ks.forEach(id=>{const st=got[id].st,p=st.prof||{},c=classes.find(x=>String(x.id)===id);if(c){c.grade=p.grade;c.sec=p.sec;c.teacher=p.teacher}setV(id,got[id].meta.v||0);if(id===String(S.cur))top=st;else stash[id]=st});
  await writeState(Object.assign({classes,cur:S.cur,stash,archive:S.archive,glib:S.glib},top));
+}
+function autoQ(d){clearTimeout(ST.mt);ST.mt=setTimeout(autoRun,d||2500)}
+async function autoRun(){
+ if(ST.mdn||!ST.mem||ST.mem.role!=='manager'||ST.mem.active===false||!db)return;
+ if(ST.busy||pt||Date.now()-LA<5000){autoQ(5000);return}
+ ST.mdn=1;
+ try{await managerDown(true);ST.autoErr=0}
+ catch(e){ST.autoErr=(ST.autoErr||0)+1;if(ST.autoErr<4)autoQ(10000);else say('❌ دریافت خودکار از معلم‌ها ناموفق بود: '+fe(e))}
+ finally{ST.mdn=0}
+}
+function mgrWatch(){
+ if(!db||!ST.mem||ST.mem.role!=='manager'||ST.mem.active===false)return;
+ const sid=ST.mem.schoolId,me=myEmail(),ids=Object.keys(schoolClasses()).filter(id=>(S.classes||[]).some(c=>String(c.id)===id));
+ ST.cu=ST.cu||{};
+ Object.keys(ST.cu).forEach(id=>{if(ids.indexOf(id)<0){try{ST.cu[id]()}catch(x){}delete ST.cu[id]}});
+ ids.forEach(id=>{if(ST.cu[id])return;
+  ST.cu[id]=cdRef(sid,id).onSnapshot(sn=>{if(!sn.exists)return;const md=sn.data()||{};if(md.by!==me&&(md.v||0)>(V()[id]||0))autoQ()},()=>{})});
 }
 function watch(){
  if(ST.un||!ST.mem||!db)return;
@@ -192,14 +214,15 @@ function watch(){
  const u1=db.collection('members').doc(me).onSnapshot(sn=>{
   if(!sn.exists){ST.mem=null;ST.school=null;try{setAcc();enforce()}catch(x){}render();return}
   const o=ST.mem;ST.mem=sn.data();
-  if(o&&(o.active!==ST.mem.active||o.role!==ST.mem.role)){try{setAcc();enforce()}catch(x){}render();syncTeacher().catch(()=>{})}
+  if(o&&(o.active!==ST.mem.active||o.role!==ST.mem.role)){try{setAcc();enforce()}catch(x){}render();syncTeacher().catch(()=>{});try{mgrWatch()}catch(x){}}
  },()=>{});
  const u2=db.collection('schools').doc(sid).onSnapshot(sn=>{
   if(!sn.exists)return;
   const o=JSON.stringify(ST.school&&ST.school.classes);ST.school=sn.data();
-  if(o!==JSON.stringify(ST.school.classes)){try{setAcc();enforce()}catch(x){}render();syncTeacher().catch(()=>{})}
+  if(o!==JSON.stringify(ST.school.classes)){try{setAcc();enforce()}catch(x){}render();syncTeacher().catch(()=>{});try{mgrWatch()}catch(x){}}
  },()=>{});
- ST.un=()=>{try{u1();u2()}catch(x){}};
+ ST.un=()=>{try{u1();u2()}catch(x){}Object.keys(ST.cu||{}).forEach(i=>{try{ST.cu[i]()}catch(x){}});ST.cu={}};
+ try{mgrWatch()}catch(x){}
 }
 async function act(fn){
  if(ST.busy)return;

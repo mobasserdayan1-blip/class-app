@@ -10,7 +10,7 @@ const sty=document.createElement('style');sty.textContent='.pmc{padding:0;overfl
 
 function stat(id,a,b){
  const days=Object.keys(S.att||{}).filter(k=>k>=a&&k<=b&&!(S.closed||{})[k]&&Object.keys(S.att[k]||{}).length);
- let p=0,ab=0,l=0;days.forEach(k=>{const v=(S.att[k]||{})[id];if(v==='a')ab++;else if(v==='l'){l++;p++}else if(v==='p')p++});
+ let p=0,ab=0,l=0;days.forEach(k=>{const v=(S.att[k]||{})[id];if(v==='a'){if(isExc(k,id))p++;else ab++}else if(v==='l'){l++;p++}else if(v==='p')p++});
  const A=(S.activities||[]).filter(x=>x.sid===id&&x.date>=a&&x.date<=b);
  const pos=A.filter(x=>x.type==='positive').length,eff=A.filter(x=>x.type==='effort').length;
  let hd=0,hp=0,hn=0;(S.hwl||[]).forEach(h=>{if(h.date>=a&&h.date<=b){const v=(h.st||{})[id];if(v==='d')hd++;else if(v==='p')hp++;else if(v==='n')hn++}});

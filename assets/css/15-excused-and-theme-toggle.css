@@ -1,0 +1,16 @@
+/* v87: وضعیت «موجه» در حضور و غیاب + کلید تم (روز/شب/خودکار) */
+.row{flex-wrap:wrap}
+.btns button.a-e.on{background:#2f80ed;color:#fff;border-color:#2f80ed}
+.cn.e{background:#2f80ed}
+table.at td.c.e{background:#2f80ed22;color:#2f80ed;font-weight:800}
+.exn{flex:1 0 100%;background:#2f80ed12;border:1px dashed #2f80ed88;border-radius:12px;padding:8px 10px;margin:4px 0 2px}
+.exn label{display:block;font-weight:800;font-size:12px;color:#2f80ed;margin-bottom:4px}
+.exn textarea{width:100%;min-height:54px;resize:vertical;border:1px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px;padding:8px;font:500 13px Vazirmatn,Tahoma,sans-serif}
+.chp{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.chp button{border:1px solid #2f80ed66;background:none;color:#2f80ed;border-radius:20px;padding:2px 9px;font:700 11px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+@media (min-width:900px){#attBody>.card:has(.row)>.row .exn{grid-column:auto}}
+.tg{display:inline-flex;gap:2px;background:#ffffff2e;border-radius:12px;padding:3px}
+.tg button{display:grid;place-items:center;width:32px;height:30px;border:0;border-radius:9px;background:none;color:#fff;cursor:pointer;padding:0}
+.tg button.on{background:#fff;color:var(--p);box-shadow:0 1px 4px #0003}
+.tg svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+@media (max-width:480px){.tg button{width:27px;height:27px}.tg svg{width:17px;height:17px}}

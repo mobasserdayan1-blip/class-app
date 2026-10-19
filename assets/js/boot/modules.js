@@ -40,5 +40,8 @@ window.APP_MODULES=[
   {src:'assets/js/features/role-access.js',id:'role-access-v1'},
   {src:'assets/js/features/dashboard-simplify.js',id:'dash-v1'},
   {src:'assets/js/features/quick-attendance.js'},
-  {src:'assets/js/features/parent-contact-log.js'}
+  {src:'assets/js/features/parent-contact-log.js'},
+  {src:'assets/js/features/homework-review.js'},
+  {src:'assets/js/features/theme-toggle.js'},
+  {src:'assets/js/features/etoud-ui.js'}
 ];

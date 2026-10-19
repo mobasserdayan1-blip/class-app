@@ -42,6 +42,5 @@ window.APP_MODULES=[
   {src:'assets/js/features/quick-attendance.js'},
   {src:'assets/js/features/parent-contact-log.js'},
   {src:'assets/js/features/homework-review.js'},
-  {src:'assets/js/features/theme-toggle.js'},
-  {src:'assets/js/features/etoud-ui.js'}
+  {src:'assets/js/features/theme-toggle.js'}
 ];

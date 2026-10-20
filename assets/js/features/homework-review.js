@@ -5,7 +5,7 @@
 const $=id=>document.getElementById(id),D=k=>new Date(k+'T12:00:00Z'),T=()=>iso(tdy());
 const HI={'':'⬜',d:'✅',p:'🟡',n:'❌'},SQ=['','d','p','n'],SN={d:'کامل',p:'ناقص',n:'انجام نشده'};
 const TG=['👏 عالی بود','✍️ خط و نظم خوب','📖 کامل‌تر کن','🔁 دوباره بنویس','🧠 نیاز به توضیح'];
-const U={v:'h',sc:'day',op:0,ha:null,sid:null,sel:new Set(),dr:null,cd:0};
+const U={v:'h',sc:'day',op:0,ha:null,sid:null,sel:new Set(),dr:null,cd:0,m:'q',br:null,qm:''};
 const cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'عمومی',tags=()=>S.hwtg&&S.hwtg.length?S.hwtg:TG;
 const g=(h,k,id)=>h[k]&&h[k][id],isOpen=(h,id)=>!h.st[id]||h.st[id]==='n';
 const abs=(h,id)=>((S.att[h.date]||{})[id])==='a',lock=(h,id)=>abs(h,id)&&!g(h,'ld',id)&&!h.st[id];/* غایب در روز تکلیف و هنوز تحویل با تأخیر ثبت نشده: قابل بازدید و ارزیابی نیست */
@@ -21,6 +21,30 @@ const pairs=()=>[...U.sel].map(k=>U.v==='h'?[S.hwl.find(h=>h.id===U.ha),+k]:[S.h
 const owed=()=>{const t=T(),a=iso(addD(tdy(),-29)),P=[];S.hwl.forEach(h=>{if(h.date<a||h.date>t)return;S.students.forEach(s=>{if(lock(h,s.id))P.push([h,s])})});if(!P.length)return'';
  const by=new Map();P.forEach(([h,s])=>{if(!by.has(s.id))by.set(s.id,{s,L:[]});by.get(s.id).L.push(h)});
  return`<div class="hxo"><b>📥 تکالیف معوقه‌ی غایب‌ها</b> <i class="hxt">${fa(P.length)} مورد · ${fa(by.size)} نفر</i><p class="sub" style="margin:4px 0">فهرست خودکار کسانی که روز تکلیف غایب بوده‌اند و هنوز تحویل نداده‌اند (۳۰ روز اخیر). فقط برای هر کس که امروز تکلیف را آورد، دکمه را بزنید؛ تاریخ تحویل (امروز) و وضعیت خودکار ثبت و در گزارش‌ها می‌آید.</p>`+[...by.values()].map(({s,L})=>`<div class="hxs2"><div class="hxn2"><b>${esc2(s.name)}</b>${L.length>1?`<button class="hxb" data-x="lta" data-v="${s.id}">✅ هر ${fa(L.length)} مورد را آورد</button>`:''}</div>`+L.sort((x,y)=>y.date.localeCompare(x.date)).map(h=>`<div class="hxs"><span class="hxn">${fmt(D(h.date))} · ${esc2(cn(h.course))}: ${esc2(h.title)}</span><button class="hxb" data-x="lt" data-v="${h.id}|${s.id}|d">✅ آورد</button><button class="hxb" data-x="lt" data-v="${h.id}|${s.id}|p">🟡 ناقص آورد</button></div>`).join('')+'</div>').join('')+'</div>'};
+const ti=t=>{const w=t.split(' ')[0];return t.includes(' ')&&w.length<=4?w:'🏷️'};
+const brName=()=>{const b=U.br;if(!b)return'';return b.k==='st'?HI[b.v]+' '+SN[b.v]:b.k==='late'?'⏰ امروز آورد':tags()[+b.v]||''};
+const bb=(k,v,t)=>`<button class="hxb${U.br&&U.br.k===k&&String(U.br.v)===String(v)?' on':''}" data-x="br" data-v="${k}|${v}">${t}</button>`;
+const qapply=(q,id,b,force)=>{const lk=lock(q,id);
+ if(b.k==='late'){if(lk){q.ld=q.ld||{};q.ld[id]=T();q.st[id]='d';return 1}
+  if(g(q,'ld',id)&&!force){delete q.ld[id];if(abs(q,id))q.st[id]='';return 1}
+  return 0}
+ if(lk)return 0;
+ if(b.k==='st'){q.st[id]=force?b.v:(q.st[id]===b.v?'':b.v);return 1}
+ const t=tags()[+b.v];if(t==null)return 0;const f=q.fb=q.fb||{},o=f[id]||(f[id]={tg:[],tx:'',d:T()}),i=o.tg.indexOf(t);
+ if(force){if(i<0)o.tg.push(t)}else{i<0?o.tg.push(t):o.tg.splice(i,1)}
+ o.d=T();if(!o.tg.length&&!o.tx)delete f[id];return 1};
+const quick=A=>{const TG2=tags(),c={d:0,p:0,n:0,'':0},tc=TG2.map(()=>0);let nA=0,nN=0;
+ const chips=S.students.map(s=>{const x=A.st[s.id]||'',f=g(A,'fb',s.id)||{},tg=f.tg||[],lk=lock(A,s.id),ld=g(A,'ld',s.id),ic=tg.map(ti).join('');
+  if(lk)nA++;else{c[x]++;tg.forEach(t=>{const i=TG2.indexOf(t);if(i>=0)tc[i]++});if(!x&&!ic)nN++}
+  return`<button class="hxc${lk?' hxlk':''}${!lk&&!x&&!ic?' hxnone':''} hxst-${x||'0'}" data-x="qp" data-v="${s.id}"><b>${esc2(s.name)}</b><small>${lk?'🚫 غایب بود':HI[x]+(ld?' ⏰':'')+(ic?' '+ic:'')}</small></button>`}).join('');
+ return`<div class="hxq"><b>⚡ بازخورد سریع (گروهی)</b>
+<ol class="hxh"><li>یک «قلم» انتخاب کنید (وضعیت یا برچسب).</li><li>روی نام دانش‌آموزان بزنید؛ هر لمس همان لحظه ذخیره می‌شود. دوباره لمس = برداشتن.</li><li>قلم بعدی را انتخاب کنید و تکرار کنید. هر دانش‌آموز می‌تواند چند برچسب بگیرد.</li></ol>
+<div class="hxr"><span>وضعیت:</span>${bb('st','d','✅ کامل')}${bb('st','p','🟡 ناقص')}${bb('st','n','❌ انجام نشده')}${nA?bb('late','1','⏰ امروز آورد (غایب‌ها)'):''}</div>
+<div class="hxr"><span>برچسب:</span>${TG2.map((t,i)=>bb('tg',i,t)).join('')}</div>
+${U.br?`<div class="hxr"><b>قلم فعلی: ${esc2(brName())}</b>${U.br.k!=='late'?'<button class="sm" data-x="qall">برای همه بزن (به‌جز غایب‌ها)</button>':''}<button class="sm" data-x="qoff">برداشتن قلم</button></div>`:'<p class="sub hxw">هنوز قلمی انتخاب نشده است.</p>'}
+${U.qm?`<p class="sub hxw">${U.qm}</p>`:''}
+<div class="hxcg">${chips}</div>
+<div class="hxsum"><b>📊 خلاصه:</b> ✅ ${fa(c.d)} · 🟡 ${fa(c.p)} · ❌ ${fa(c.n)} · ⬜ ${fa(c[''])}${nA?` · 🚫 ${fa(nA)} غایب`:''}${TG2.some((t,i)=>tc[i])?'<br>'+TG2.map((t,i)=>tc[i]?`${esc2(t)}: ${fa(tc[i])} نفر`:'').filter(Boolean).join(' · '):''}${nN?`<br>⚠️ ${fa(nN)} نفر هنوز وضعیت و بازخوردی ندارند (کادر خط‌چین).`:'<br>✅ برای همه بازخورد ثبت شده است.'}</div></div>`};
 function editor(){const n=U.sel.size;if(!n)return'';const d=U.dr||(U.dr=mk()),nl=pairs().filter(p=>lock(p[0],p[1])).length;
  return`<div class="hxe"><b>💬 بازخورد برای ${fa(n)} ${U.v==='h'?'دانش‌آموز':'تکلیف'} انتخاب‌شده</b>${nl&&!d.late?`<p class="sub hxw">🚫 ${fa(nl)} مورد از انتخاب‌شده‌ها غایب بوده‌اند و نمی‌توانند تکلیف را آورده باشند؛ وضعیت آن‌ها تغییر نمی‌کند (فقط توضیح ثبت می‌شود). اگر بعداً تحویل دادند «⏰ با تأخیر نشان داد» را بزنید.</p>`:''}
 <div class="hxr"><span>وضعیت:</span>${['d','p','n',''].map(k=>ch('dst',k||'-',HI[k]+' '+(SN[k]||'پاک'),d.st===k)).join('')}</div>
@@ -35,13 +59,16 @@ function render(){const el=$('hwc');if(!el)return;if(mode!=='d'){el.innerHTML=''
  h.push(`<div class="card hx"><b>📚 بازدید تکلیف</b>
 <div class="hxr">${ch('view','h','📋 بر اساس تکلیف',U.v==='h')}${ch('view','s','👤 بر اساس دانش‌آموز',U.v==='s')}</div>
 <div class="hxr">${[['day','این روز'],['w','۷ روز اخیر'],['m','۳۰ روز اخیر'],['all','همه‌ی تکالیف']].map(([k,t])=>ch('sc',k,t,U.sc===k)).join('')}${ch('op','1','⚠️ فقط موارد باز',U.op)}</div>
-<div class="hxl"><b>🔎 راهنمای علامت‌ها و رنگ‌ها</b><div class="hxg"><span>✅ <em>کامل</em> تکلیف کامل و درست انجام شده</span><span>🟡 <em>ناقص</em> انجام شده ولی ناقص یا نیازمند اصلاح</span><span>❌ <em>انجام نشده</em> تکلیف را نیاورده است</span><span>⬜ <em>ثبت‌نشده</em> هنوز بازدید و ارزیابی نشده</span><span>🚫 <em>غایب بود</em> در روز تکلیف غایب بوده و نمی‌توانسته آن را بیاورد؛ قابل ارزیابی نیست</span><span>📥 <em>امروز آورد</em> دکمه‌ی کنار نام غایب‌ها: یک لمس = تکلیف را امروز آورد (کامل + ثبت تحویل با تأخیر با تاریخ امروز)</span><span>⏰ <em>تحویل با تأخیر</em> بعد از غیبت، با تاریخ تحویل ثبت شده</span><span>💬 <em>بازخورد</em> برچسب یا توضیح معلم برای دانش‌آموز</span><span><i class="hxsw"></i> <em>ردیف بنفش</em> دانش‌آموز یا تکلیف انتخاب‌شده برای بازخورد گروهی</span></div><div class="sub" style="margin-top:4px">اعداد زیر نام هر تکلیف: تعداد دانش‌آموزان در هر وضعیت (به همین ترتیب).</div></div>`);
+<div class="hxl"><b>🔎 راهنمای علامت‌ها و رنگ‌ها</b><div class="hxg"><span>✅ <em>کامل</em> تکلیف کامل و درست انجام شده</span><span>🟡 <em>ناقص</em> انجام شده ولی ناقص یا نیازمند اصلاح</span><span>❌ <em>انجام نشده</em> تکلیف را نیاورده است</span><span>⬜ <em>ثبت‌نشده</em> هنوز بازدید و ارزیابی نشده</span><span>🚫 <em>غایب بود</em> در روز تکلیف غایب بوده و نمی‌توانسته آن را بیاورد؛ قابل ارزیابی نیست</span><span>📥 <em>امروز آورد</em> دکمه‌ی کنار نام غایب‌ها: یک لمس = تکلیف را امروز آورد (کامل + ثبت تحویل با تأخیر با تاریخ امروز)</span><span>⏰ <em>تحویل با تأخیر</em> بعد از غیبت، با تاریخ تحویل ثبت شده</span><span>💬 <em>بازخورد</em> برچسب یا توضیح معلم برای دانش‌آموز</span><span><i class="hxsw"></i> <em>ردیف بنفش</em> دانش‌آموز یا تکلیف انتخاب‌شده برای بازخورد گروهی</span><span>⚡ <em>قلم</em> در «بازخورد سریع»: یک وضعیت یا برچسب انتخاب می‌کنید و روی نام دانش‌آموزان می‌زنید</span><span><i class="hxsw hxdash"></i> <em>کادر خط‌چین</em> هنوز وضعیت یا بازخوردی برایش ثبت نشده</span></div><div class="sub" style="margin-top:4px">اعداد زیر نام هر تکلیف: تعداد دانش‌آموزان در هر وضعیت (به همین ترتیب).</div></div>`);
  h.push(owed());
  if(U.v==='s')h.push(`<select data-x="sid" style="margin:0 0 6px">${S.students.map(s=>`<option value="${s.id}"${s.id===U.sid?' selected':''}>${esc2(s.name)}</option>`).join('')}</select>`);
  else h.push(`<div class="hxr">${L.map(x=>`<button class="hxb${x.id===U.ha?' on':''}" data-x="pick" data-v="${x.id}">${fmt(D(x.date))} · ${esc2(cn(x.course))}: ${esc2(x.title)}<small>${cnt(x)}</small></button>`).join('')||'<span class="sub">تکلیفی در این بازه نیست</span>'}</div>`);
  if(U.v==='h'&&A){h.push(`<div class="hxr"><b>${esc2(cn(A.course))}: ${esc2(A.title)}</b><span class="sub">(${fmt(D(A.date))})</span></div>
-<div class="hxr">${ch('sa','all','انتخاب همه')}${ch('sa','open','انجام‌نشده/ثبت‌نشده‌ها')}${ch('sa','abs','غایب‌ها')}${ch('sa','none','لغو انتخاب')}</div>`+S.students.map(s=>row(A,s,s.id,esc2(s.name))).join('')+
-  `<p class="sub">با تیک‌زدن چند نفر، بازخورد گروهی بدهید؛ نام یک نفر را بزنید برای بازخورد تکی. دکمه‌ی سمت چپ هر ردیف وضعیت را می‌چرخاند (✅ ← 🟡 ← ❌ ← ⬜).</p><div class="hxr"><button class="sm" data-x="all">✅ همه انجام داده‌اند</button><button class="sm" data-x="del">${U.cd?'⚠️ تأیید حذف':'🗑 حذف این تکلیف'}</button></div>`)}
+<div class="hxr">${ch('mode','q','⚡ بازخورد سریع (گروهی)',U.m==='q')}${ch('mode','l','📝 بازخورد دقیق (تکی + توضیح)',U.m==='l')}</div>`);
+  if(U.m==='q')h.push(quick(A));
+  else h.push(`<div class="hxr">${ch('sa','all','انتخاب همه')}${ch('sa','open','انجام‌نشده/ثبت‌نشده‌ها')}${ch('sa','abs','غایب‌ها')}${ch('sa','none','لغو انتخاب')}</div>`+S.students.map(s=>row(A,s,s.id,esc2(s.name))).join('')+
+  `<p class="sub">روش کار: ۱) کنار نام چند نفر را تیک بزنید (یا روی نام یک نفر بزنید). ۲) در کادر پایین وضعیت و برچسب و توضیح را انتخاب کنید. ۳) «ثبت» را بزنید. دکمه‌ی سمت چپ هر ردیف فقط وضعیت را می‌چرخاند (✅ ← 🟡 ← ❌ ← ⬜).</p>`);
+  h.push(`<div class="hxr"><button class="sm" data-x="all">✅ همه انجام داده‌اند</button><button class="sm" data-x="del">${U.cd?'⚠️ تأیید حذف':'🗑 حذف این تکلیف'}</button></div>`)}
  if(U.v==='s'){const hs=S.hwl.filter(sc).sort((a,b)=>b.date.localeCompare(a.date)).filter(x=>!U.op||isOpen(x,U.sid)),s=S.students.find(q=>q.id===U.sid);
   h.push(`<div class="hxr">${ch('sa','all','انتخاب همه')}${ch('sa','open','موارد باز')}${ch('sa','none','لغو انتخاب')}</div>`+(s&&hs.length?hs.map(x=>row(x,s,x.id,`${fmt(D(x.date))} · ${esc2(cn(x.course))}: ${esc2(x.title)}`)).join(''):'<p class="sub">تکلیفی در این بازه نیست؛ بازه را روی «همه‌ی تکالیف» بگذارید.</p>'))}
  h.push(editor());
@@ -51,6 +78,7 @@ function render(){const el=$('hwc');if(!el)return;if(mode!=='d'){el.innerHTML=''
 document.addEventListener('click',e=>{const b=e.target.closest('[data-x]'),el=$('hwc');if(!b||!el||!el.contains(b))return;
  const x=b.dataset.x,v=b.dataset.v,A=S.hwl.find(q=>q.id===U.ha),key=k=>U.v==='h'?+k:k;let sv=0;
  if(x!=='del')U.cd=0;
+ if(x!=='qp')U.qm='';
  if(x==='view'){U.v=v;U.sel.clear();U.dr=null}
  else if(x==='sc'){U.sc=v;U.sel.clear();U.dr=null}
  else if(x==='op')U.op=U.op?0:1;
@@ -72,6 +100,11 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]'),el=$(
  else if(x==='all'&&A){S.students.forEach(s=>{if(!lock(A,s.id))A.st[s.id]='d'});sv=1}
  else if(x==='del'&&A){if(!U.cd){U.cd=1}else{S.hwl=S.hwl.filter(q=>q!==A);U.ha=null;U.cd=0;sv=1}}
  else if(x==='add'){const t=($('hxtt').value||'').trim();if(!t)return;const q={id:'h'+Date.now(),date:$('hxdt').value,course:+$('hxc').value,title:t,st:{},fb:{},ld:{}};S.hwl.push(q);U.ha=q.id;U.v='h';if(!sc(q))U.sc='all';U.sel.clear();U.dr=null;sv=1}
+ else if(x==='mode'){U.m=v;U.sel.clear();U.dr=null}
+ else if(x==='br'){const[k,val]=v.split('|');U.br=U.br&&U.br.k===k&&String(U.br.v)===val?null:{k,v:val}}
+ else if(x==='qoff')U.br=null
+ else if(x==='qp'&&A){const id=+v,b=U.br;if(!b)U.qm='ابتدا بالای صفحه یک «قلم» (وضعیت یا برچسب) انتخاب کنید.';else if(qapply(A,id,b))sv=1;else U.qm=lock(A,id)?'این دانش‌آموز در آن روز غایب بوده؛ ابتدا قلم «⏰ امروز آورد» را انتخاب و روی نامش بزنید.':'قلم «امروز آورد» فقط برای دانش‌آموزان غایب است.'}
+ else if(x==='qall'&&A&&U.br&&U.br.k!=='late'){S.students.forEach(s=>{if(qapply(A,s.id,U.br,1))sv=1})}
  else if(x==='lt'){const[i,sd,stt]=v.split('|'),q=S.hwl.find(z=>String(z.id)===i);if(q&&lock(q,+sd)){q.ld=q.ld||{};q.ld[+sd]=T();q.st[+sd]=stt;sv=1}}
  else if(x==='lta'){const a=iso(addD(tdy(),-29));S.hwl.forEach(q=>{if(q.date>=a&&q.date<=T()&&lock(q,+v)){q.ld=q.ld||{};q.ld[+v]=T();q.st[+v]='d';sv=1}})}
  else return;
@@ -79,7 +112,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-x]'),el=$(
 document.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.x==='tx'&&U.dr)U.dr.tx=t.value});
 document.addEventListener('change',e=>{const t=e.target;if(!t.dataset)return;if(t.dataset.x==='ld'&&U.dr)U.dr.ld=t.value;if(t.dataset.x==='sid'){U.sid=+t.value;U.sel.clear();U.dr=null;render()}});
 const st=document.createElement('style');st.textContent=`.hx .hxr{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0;align-items:center}.hxb{padding:8px 10px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--tx);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}.hxb.on{background:var(--p);color:#fff;border-color:var(--p)}.hxb small{display:block;font-weight:400;opacity:.85;font-size:11px;margin-top:2px}.hxs{display:flex;align-items:center;gap:8px;padding:8px 6px;border-bottom:1px solid var(--line)}.hxs.on{background:var(--bg2)}.hxs input{width:20px;height:20px;margin:0;flex:none}.hxn{flex:1;cursor:pointer;font-weight:700;font-size:14px}.hxn small{display:block;font-weight:400;color:#777;font-size:12px;margin-top:2px}.hxt{font-style:normal;font-size:11px;background:var(--bg2);border-radius:8px;padding:1px 6px;margin-inline-start:6px;white-space:nowrap}.hxe{position:sticky;bottom:8px;background:var(--card);border:2px solid var(--p);border-radius:14px;padding:10px;margin-top:10px;box-shadow:0 6px 20px #0003;z-index:5}.hxe textarea{width:100%;min-height:60px;margin:6px 0;box-sizing:border-box}.hxp{background:var(--p);color:#fff}`;
-st.textContent+=`.hxl{background:var(--bg2);border-radius:12px;padding:8px 10px;margin:8px 0;font-size:12px;line-height:1.8}.hxg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 12px;margin-top:4px}.hxg em{font-style:normal;font-weight:800}.hxsw{display:inline-block;width:14px;height:14px;border-radius:4px;background:#ede7f6;border:1px solid var(--p);vertical-align:middle}.hxin{background:#fff7e0;border-color:#e0a800;color:#8a5a00;white-space:nowrap}.hxw{color:#b45309;margin:4px 0}.hxo{border:2px dashed #f59e0b;border-radius:12px;padding:8px 10px;margin:10px 0}.hxs2{margin-top:8px}.hxn2{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}`;
+st.textContent+=`.hxl{background:var(--bg2);border-radius:12px;padding:8px 10px;margin:8px 0;font-size:12px;line-height:1.8}.hxg{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px 12px;margin-top:4px}.hxg em{font-style:normal;font-weight:800}.hxsw{display:inline-block;width:14px;height:14px;border-radius:4px;background:#ede7f6;border:1px solid var(--p);vertical-align:middle}.hxin{background:#fff7e0;border-color:#e0a800;color:#8a5a00;white-space:nowrap}.hxw{color:#b45309;margin:4px 0}.hxq{border:2px solid var(--p);border-radius:14px;padding:10px;margin:8px 0}.hxh{margin:6px 0;padding-inline-start:20px;font-size:12.5px;line-height:1.9;color:var(--mut)}.hxcg{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin:8px 0}.hxc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:right;padding:8px 10px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);color:var(--tx);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}.hxc small{font-weight:400;font-size:13px;min-height:18px}.hxc.hxst-d{background:rgba(26,143,85,.14)}.hxc.hxst-p{background:rgba(217,134,0,.16)}.hxc.hxst-n{background:rgba(209,47,53,.13)}.hxc.hxnone{border-style:dashed;border-color:var(--p)}.hxc:active{transform:scale(.97)}.hxsum{background:var(--bg2);border-radius:10px;padding:8px 10px;font-size:12.5px;line-height:1.9}.hxdash{background:transparent;border-style:dashed}.hxo{border:2px dashed #f59e0b;border-radius:12px;padding:8px 10px;margin:10px 0}.hxs2{margin-top:8px}.hxn2{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap}`;
 document.head.appendChild(st);
 window.hwReview={render};
 try{renderAtt()}catch(e){}

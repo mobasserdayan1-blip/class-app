@@ -390,7 +390,7 @@ function homeCard(){
    const fx=st.L.find(x=>x.i===fp);
    box.innerHTML=`<h4>📅 برنامه‌ی امروز — ${DAYS[st.idx]} <small style="font-weight:600;color:var(--mut)">(${fa(st.L.length)} زنگ · ساعت ${fa(tstr(n))})</small></h4><p>${line}</p>${bar}
    <div class="ws-pl">${st.L.map((x,i)=>`<span data-pi="${x.i}" style="--h:${hueIt(x.its[0])};--i:${i}" class="${st.cur&&st.cur.i===x.i?'now':x.e<=n?'past':''}">${hhmm(x.s)} ${nm(x)}</span>`).join('')}</div>
-   <div class="ws-qb"><div class="ws-ql">برای زنگ ${fa(fp+1)}${fx?' — '+nm(fx):''}:</div><button data-q="att" data-p="${fp}">✅ حضور و غیاب</button><button data-q="act" data-p="${fp}">🌟 فعالیت کلاسی</button><button data-q="crs" data-p="${fp}">📝 آزمون و تکلیف</button></div>${tom}`;
+${tom}`;
   }
   box.onclick=e=>{const q=e.target.closest('[data-q]');if(q){const pi=+q.dataset.p,its=items(todayIdx(),pi),ids=cids(its).filter(courseBy);goQ(q.dataset.q,ids[0]||0);return}
    const c=e.target.closest('[data-pi]');if(c){openDay(+c.dataset.pi);return}

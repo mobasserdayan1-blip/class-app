@@ -366,9 +366,13 @@ function openDay(pi){const old=$('wsDay');if(old)old.remove();
   const c=e.target.closest('[data-cid]');if(c){cid=+c.dataset.cid;draw();return}
   const q=e.target.closest('[data-q]');if(q){o.remove();goQ(q.dataset.q,cid)}};
  document.body.appendChild(o)}
+function mountBox(box){const hm=$('home');if(!hm)return;const r=$('exRem'),a1=$('tdash2'),a2=$('stats');if(r)r.before(box);else if(a1)a1.before(box);else if(a2)a2.before(box);else hm.prepend(box)}
 function homeCard(){
   const hm=$('home');if(!hm||typeof S==='undefined'||!S||!S.courses)return;const o=$('wsToday');if(o)o.remove();
-  if(!hasAny())return;const st=status(),n=nowM(),nd=nextDayInfo();
+  if(!hasAny()){const bx=document.createElement('div');bx.id='wsToday';bx.className='ws-today';const ti=todayIdx(),dn=DAYS[ti]||(ti===5?'پنجشنبه':'جمعه');
+   bx.innerHTML=`<h4>📅 برنامه‌ی امروز — ${dn} <small style="font-weight:600;color:var(--mut)">(ساعت ${fa(tstr(nowM()))})</small></h4><p>هنوز برنامه‌ی هفتگی زنگ‌ها را نچیده‌اید. با چیدن آن، همین‌جا زنگ فعلی، زنگ بعدی، شمارش معکوس تا پایان زنگ و میانبر ثبت حضور و نمره‌ی هر درس نمایش داده می‌شود.</p><div class="ws-qb"><button type="button" data-go>🗓️ چیدن برنامه‌ی هفتگی</button></div>`;
+   bx.onclick=e=>{if(e.target.closest('[data-go],h4'))window.show('wsc')};mountBox(bx);return}
+  const st=status(),n=nowM(),nd=nextDayInfo();
   const nm=x=>esc(lab(x.its));
   const tom=nd?`<div class="ws-tm">📌 ${nd.label}${nd.label==='فردا'?'':''} (${nd.day}): ${nd.names.map(esc).join('، ')}</div>`:'';
   const box=document.createElement('div');box.id='wsToday';box.className='ws-today';
@@ -384,7 +388,7 @@ function homeCard(){
    else line='<b>زنگ‌های امروز تمام شده است ✅</b>';
    const A=window.wscApi.now(),f=A?st.L.find(x=>x.i===A.i):(st.nxt||st.prev||st.L[0]),fp=f?f.i:st.L[0].i;
    const fx=st.L.find(x=>x.i===fp);
-   box.innerHTML=`<h4>📅 برنامه‌ی امروز — ${DAYS[st.idx]} <small style="font-weight:600;color:var(--mut)">(${fa(st.L.length)} زنگ)</small></h4><p>${line}</p>${bar}
+   box.innerHTML=`<h4>📅 برنامه‌ی امروز — ${DAYS[st.idx]} <small style="font-weight:600;color:var(--mut)">(${fa(st.L.length)} زنگ · ساعت ${fa(tstr(n))})</small></h4><p>${line}</p>${bar}
    <div class="ws-pl">${st.L.map((x,i)=>`<span data-pi="${x.i}" style="--h:${hueIt(x.its[0])};--i:${i}" class="${st.cur&&st.cur.i===x.i?'now':x.e<=n?'past':''}">${hhmm(x.s)} ${nm(x)}</span>`).join('')}</div>
    <div class="ws-qb"><div class="ws-ql">برای زنگ ${fa(fp+1)}${fx?' — '+nm(fx):''}:</div><button data-q="att" data-p="${fp}">✅ حضور و غیاب</button><button data-q="act" data-p="${fp}">🌟 فعالیت کلاسی</button><button data-q="crs" data-p="${fp}">📝 آزمون و تکلیف</button></div>${tom}`;
   }
@@ -419,6 +423,7 @@ const dayOfISO=k=>(new Date(k+'T12:00:00Z').getUTCDay()+1)%7;
 const lastBell=di=>{const w=W();let r=-1;w.per.forEach((_,i)=>{if(items(di,i).length)r=i});return r>=0?r:w.per.length-1};
 const resolve=(b,k)=>{if(b==null||b==='')return null;const w=W();if(b==='last')return lastBell(k?dayOfISO(k):0);const i=+b;return i>=0&&i<w.per.length?i:null};
 window.wscApi={
+  today:()=>{try{const st=status(),n=nowM();return{has:hasAny(),off:!!st.off,day:DAYS[st.idx]||'',L:(st.L||[]).map(x=>({i:x.i,s:tstr(tm(x.s)),e:tstr(x.e),name:lab(x.its),cur:!!(st.cur&&st.cur.i===x.i),past:x.e<=n})),nxt:st.nxt?{i:st.nxt.i,s:tstr(tm(st.nxt.s)),name:lab(st.nxt.its),min:tm(st.nxt.s)-n}:null,cur:st.cur?{i:st.cur.i,e:tstr(st.cur.e),name:lab(st.cur.its),left:st.cur.e-n}:null,brk:st.brk?{until:tstr(st.brk.until)}:null}}catch(e){return null}},
   now:()=>{try{if(!hasAny())return null;const st=status();if(st.off||!st.L.length)return null;const n=nowM();let p=null,state='';
    if(st.cur){p=st.cur;state='cur'}else if(st.prev&&n-st.prev.e<=20&&(!st.nxt||tm(st.nxt.s)-n>10)){p=st.prev;state='prev'}else if(st.nxt&&tm(st.nxt.s)-n<=15){p=st.nxt;state='nxt'}
    if(!p)return null;const ids=cids(p.its).filter(id=>courseBy(id));

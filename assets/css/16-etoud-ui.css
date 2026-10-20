@@ -5,14 +5,24 @@
 @keyframes eu-pulse{0%{box-shadow:0 0 0 0 #14b8a688}70%,100%{box-shadow:0 0 0 16px #14b8a600}}
 @keyframes eu-dot{0%,80%,100%{transform:scale(.5);opacity:.4}40%{transform:scale(1);opacity:1}}
 
-/* ───── منوی تیره (سایدبار) ───── */
-nav{background:linear-gradient(180deg,#0f172a 0%,#1a1236 100%)!important;border:1px solid #ffffff14;box-shadow:0 14px 40px #0f172a66!important}
-nav button,nav summary{color:#cbd5e1!important}
-nav button:not(.on):hover,nav summary:hover{background:#ffffff14!important}
+/* ───── منو و هدر: روز = سفید، شب = سرمه‌ای تیره ───── */
+nav{background:#fff!important;border:1px solid var(--line);box-shadow:0 14px 40px #7e57c230!important}
+nav button,nav summary{color:var(--tx)!important}
+nav button:not(.on):hover,nav summary:hover{background:var(--bg2)!important}
 nav button.on{background:var(--eu-g)!important;color:#fff!important;box-shadow:0 6px 18px #14b8a640}
-nav details{border-color:#ffffff14!important}
-nav.nx{box-shadow:-10px 0 40px #0f172a88!important}
-header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#7e57c2)!important;box-shadow:0 4px 18px #0f172a44}
+nav details{border-color:var(--line)!important}
+:root[data-theme="dark"] nav{background:linear-gradient(180deg,#0f172a 0%,#1a1236 100%)!important;border-color:#ffffff14;box-shadow:0 14px 40px #0008!important}
+:root[data-theme="dark"] nav button:not(.on),:root[data-theme="dark"] nav summary{color:#cbd5e1!important}
+:root[data-theme="dark"] nav button:not(.on):hover,:root[data-theme="dark"] nav summary:hover{background:#ffffff14!important}
+:root[data-theme="dark"] nav details{border-color:#ffffff14!important}
+:root[data-theme="dark"] header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#5b3fa8)!important;box-shadow:0 4px 18px #0f172a66}
+@media (prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) nav{background:linear-gradient(180deg,#0f172a 0%,#1a1236 100%)!important;border-color:#ffffff14;box-shadow:0 14px 40px #0008!important}
+ :root:not([data-theme="light"]) nav button:not(.on),:root:not([data-theme="light"]) nav summary{color:#cbd5e1!important}
+ :root:not([data-theme="light"]) nav button:not(.on):hover,:root:not([data-theme="light"]) nav summary:hover{background:#ffffff14!important}
+ :root:not([data-theme="light"]) nav details{border-color:#ffffff14!important}
+ :root:not([data-theme="light"]) header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#5b3fa8)!important}
+}
 
 /* ───── نمای گرافیکی ───── */
 .euv{background:var(--card);border-radius:24px;padding:16px;margin:12px 0;box-shadow:0 10px 30px #7e57c224;border:1px solid var(--line);animation:eu-in .5s both;position:relative;overflow:hidden}
@@ -103,11 +113,38 @@ header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#7e57c2)!important;b
 .mg .pl{display:flex;justify-content:space-between;gap:6px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:13px}.mg .pl:last-child{border:0}
 .mg .pl em{font-style:normal;color:var(--mut);font-size:12px}
 .mg .lk{display:inline-block;margin-top:6px;border:0;border-radius:20px;padding:5px 12px;background:var(--eu-g);color:#fff;font:800 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
-.eub-c{display:flex;gap:6px;overflow-x:auto;padding:8px 10px;background:var(--bg2);border-top:1px solid var(--line);scrollbar-width:none}
-.eub-c button{flex:none;border:1px solid var(--eu-t);background:var(--card);color:var(--eu-t);border-radius:20px;padding:5px 12px;font:800 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer;white-space:nowrap}
 .eub-i{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--card)}
 .eub-i input{margin:0!important;flex:1;border-radius:22px!important;padding:10px 14px!important}
 .eub-i button{border:0;width:44px;height:44px;border-radius:50%;background:var(--eu-g);color:#fff;font-size:18px;cursor:pointer;flex:none}
+
+
+.eub-c{padding:8px 10px;background:var(--bg2);border-top:1px solid var(--line);max-height:34%;overflow-y:auto;flex:none}
+.eub-c .ct{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:7px}
+.eub-c .ct button{border:0;background:var(--card);color:var(--tx);border-radius:20px;padding:5px 11px;font:800 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer;border:1px solid var(--line)}
+.eub-c .ct button.on{background:var(--eu-g);color:#fff;border-color:transparent}
+.eub-c .cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:6px}
+.eub-c .cg button{border:1px solid var(--eu-t);background:var(--card);color:var(--eu-t);border-radius:14px;padding:8px 6px;font:800 12px/1.5 Vazirmatn,Tahoma,sans-serif;cursor:pointer;white-space:normal;text-align:center;min-width:0;overflow-wrap:anywhere;transition:all .15s}
+.eub-c .cg button:active{background:var(--eu-t);color:#fff;transform:scale(.97)}
+.mg .lk{margin-inline-end:6px}
+/* ثبت سریع: توضیحات موجه و نمره‌ی توصیفی */
+.qa-w{border-bottom:1px dashed var(--line);padding:2px 0}.qa-w .qa-r{border:0}
+.qa-r .sg button{min-width:auto;padding:0 10px;font-size:12.5px}
+.qa-x{background:#2f80ed14;border:1px dashed #2f80ed;border-radius:14px;padding:10px;margin:2px 0 8px}
+.qa-x b{display:block;font-size:13px;color:#2f80ed;margin-bottom:6px}
+.qa-x textarea{width:100%;box-sizing:border-box;min-height:56px;margin:0;border-radius:12px;resize:vertical}
+.qa-x .chp,#eus .chp{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.qa-x .chp button{border:1px solid #2f80ed;background:var(--card);color:#2f80ed;border-radius:18px;padding:5px 11px;font:700 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.qa-x .chp button:active{background:#2f80ed;color:#fff}
+.qs-bulk{display:grid;grid-template-columns:1fr 1fr auto;gap:6px;margin:4px 0}
+.qs-bulk button{border:0;border-radius:14px;padding:10px 6px;background:var(--c);color:#fff;font:800 12.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.qs-r{padding:8px 0;border-bottom:1px dashed var(--line)}.qs-r:last-child{border:0}
+.qs-h{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-weight:800;font-size:14px}.qs-h span{flex:1;min-width:0}
+.qs-h i{font-style:normal;font-size:11.5px;background:#e5484d1f;color:#e5484d;border-radius:12px;padding:2px 8px}.qs-h i.mk{background:#7e57c21f;color:#7e57c2}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.lv button{border:1.5px solid var(--line);background:var(--bg2);color:var(--mut);border-radius:12px;padding:9px 2px;font:800 11.5px/1.35 Vazirmatn,Tahoma,sans-serif;cursor:pointer;min-width:0;overflow-wrap:anywhere;transition:all .15s}
+.lv button.on{background:var(--c);border-color:var(--c);color:#fff;box-shadow:0 4px 12px #0003}
+.qs-r.abs{opacity:.92}.qs-n{font-size:12px;color:var(--mut);line-height:1.9}
+.qs-n button{margin-inline-start:6px;border:1px solid #7e57c2;background:var(--card);color:#7e57c2;border-radius:16px;padding:3px 10px;font:800 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 
 /* ───── تب‌های داشبورد مدیر ───── */
 #eu-dmv{margin-bottom:12px}

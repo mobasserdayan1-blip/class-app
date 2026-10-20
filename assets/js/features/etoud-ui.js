@@ -6,6 +6,7 @@ const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const f1=v=>v==null?'—':fa((Math.round(v*10)/10).toFixed(1).replace('.','٫'));
 const isMgr=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
+window.EXC_REASONS=window.EXC_REASONS||['بیماری','بیماری با گواهی پزشک','مراجعه به پزشک/دندان‌پزشکی','آزمایش یا درمان','مسافرت','مسافرت خانوادگی','مراسم خانوادگی','فوت بستگان','اعزام به مسابقه/اردو','شرکت در المپیاد/همایش','مشکل در رفت‌وآمد','شرایط جوی/آلودگی هوا','نامه‌ی ولی یا مدرسه'];
 const WD=['ی','د','س','چ','پ','ج','ش'];
 const lvl=v=>v==null?'#8a7aa6':v>=3.5?'#1a8f55':v>=3?'#14b8a6':v>=2.5?'#d98600':'#e5484d';
 const lvT=v=>v==null?'—':v>=3.5?'عالی':v>=3?'خوب':v>=2.5?'قابل قبول':'نیازمند توجه';
@@ -73,59 +74,91 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeSh();closeBot(
 function openSh(title,sub,body,foot){sh.innerHTML=`<div class="bx" role="dialog" aria-label="${E(title)}"><div class="hd"><div><b>${title}</b><small>${sub||''}</small></div><button class="x" aria-label="بستن">✕</button></div><div class="bd">${body}</div>${foot?`<div class="ft">${foot}</div>`:''}</div>`;sh.classList.add('open')}
 const redraw=()=>{try{render()}catch(e){}};
 
-/* — حضور و غیاب سریع — */
+/* — حضور و غیاب سریع (با کادر توضیحات برای «موجه») — */
 function putA(key,id,n){const A=S.att[key]=S.att[key]||{},X=S.attx=S.attx||{};
  if(!n){delete A[id];if(X[key]){delete X[key][id];if(!Object.keys(X[key]).length)delete X[key]}return}
  if(n==='e'){A[id]='a';(X[key]=X[key]||{})[id]=(X[key]||{})[id]||''}
  else{A[id]=n;if(X[key]){delete X[key][id];if(!Object.keys(X[key]).length)delete X[key]}}}
 const curA=(T,id)=>{const v=(S.att[T]||{})[id];return v==='a'&&isExc(T,id)?'e':(v||'')};
+const REASONS=()=>window.EXC_REASONS||['بیماری','مسافرت','مراسم خانوادگی','اعزام به مسابقه/اردو'];
 function attSum(T){const c={p:0,a:0,l:0,e:0,n:0};(S.students||[]).forEach(s=>{const v=curA(T,s.id);if(v)c[v]++;else c.n++});return`<div class="qa-sum"><span style="color:#2eaf6b">✅ ${fa(c.p)}</span><span style="color:#e5484d">❌ ${fa(c.a)}</span><span style="color:#d98600">⏰ ${fa(c.l)}</span><span style="color:#2f80ed">📄 ${fa(c.e)}</span>${c.n?`<span>— ${fa(c.n)} ثبت‌نشده</span>`:''}</div>`}
+const noteBox=(T,id)=>curA(T,id)==='e'?`<div class="qa-x"><b>📝 توضیحات (دلیل موجه بودن غیبت)</b><textarea data-xn="${id}" rows="2" placeholder="مثلاً: بیماری با گواهی پزشک، مسافرت خانوادگی، مراسم...">${E(((S.attx||{})[T]||{})[id]||'')}</textarea><div class="chp">${REASONS().map(x=>`<button type="button" data-xq="${id}" data-xt="${E(x)}">${E(x)}</button>`).join('')}</div></div>`:'';
 function attSheet(){
  const T=tdI();if(hol(tdy())||(S.closed&&S.closed[T])){openSh('📋 حضور و غیاب سریع',fmt(tdy()),'<div class="qa-note">امروز تعطیل است. برای ثبت روز دیگر از «دفتر حضور و غیاب» استفاده کنید.</div>','<button class="big" data-go="att">رفتن به دفتر حضور و غیاب</button>');return}
- const rows=S.students.map(s=>{const v=curA(T,s.id);return`<div class="qa-r" data-id="${s.id}"><span>${E(s.name)}</span><div class="sg">${[['p','ح'],['a','غ'],['l','ت'],['e','م']].map(([k,l])=>`<button data-v="${k}" class="${v===k?'on':''}" aria-label="${k}">${l}</button>`).join('')}</div></div>`}).join('');
- openSh('📋 حضور و غیاب سریع',fmt(tdy())+' · ح حاضر · غ غایب · ت تأخیر · م موجه',`<div id="eusum" style="margin-bottom:6px">${attSum(T)}</div>${rows}`,'<button class="sm" data-all="1">✅ همه حاضر</button><button class="big" data-done="1">ذخیره و بستن</button>')}
+ const rows=S.students.map(s=>{const v=curA(T,s.id);return`<div class="qa-w" data-w="${s.id}"><div class="qa-r" data-id="${s.id}"><span>${E(s.name)}</span><div class="sg">${[['p','حاضر'],['a','غایب'],['l','تأخیر'],['e','موجه']].map(([k,l])=>`<button data-v="${k}" class="${v===k?'on':''}">${l}</button>`).join('')}</div></div>${noteBox(T,s.id)}</div>`}).join('');
+ openSh('📋 حضور و غیاب سریع',fmt(tdy()),`<div id="eusum" style="margin-bottom:6px">${attSum(T)}</div>${rows}`,'<button class="sm" data-all="1">✅ همه حاضر</button><button class="big" data-done="1">ذخیره و بستن</button>')}
+let svT;const saveSoon=()=>{clearTimeout(svT);svT=setTimeout(()=>{try{save()}catch(e){}},500)};
 sh.addEventListener('click',e=>{
  const b=e.target.closest('.qa-r .sg button');
- if(b){const r=b.closest('.qa-r'),id=r.dataset.id,T=tdI(),k=b.dataset.v;putA(T,id,curA(T,id)===k?'':k);
-  r.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===curA(T,id)));$('eusum').innerHTML=attSum(T);save();return}
+ if(b){const r=b.closest('.qa-r'),w=b.closest('.qa-w'),id=r.dataset.id,T=tdI(),k=b.dataset.v;putA(T,id,curA(T,id)===k?'':k);
+  r.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x.dataset.v===curA(T,id)));
+  const nb=w.querySelector('.qa-x');if(nb)nb.remove();w.insertAdjacentHTML('beforeend',noteBox(T,id));
+  $('eusum').innerHTML=attSum(T);save();const ta=w.querySelector('textarea');if(ta)setTimeout(()=>ta.focus({preventScroll:true}),50);return}
+ const q=e.target.closest('[data-xq]');
+ if(q){const id=q.dataset.xq,T=tdI(),X=S.attx=S.attx||{},o=(X[T]=X[T]||{})[id]||'';X[T][id]=o?(o.indexOf(q.dataset.xt)<0?o+'، '+q.dataset.xt:o):q.dataset.xt;
+  const ta=q.closest('.qa-x').querySelector('textarea');ta.value=X[T][id];saveSoon();return}
  if(e.target.dataset.all){const T=tdI();S.students.forEach(s=>{if(!curA(T,s.id))putA(T,s.id,'p')});save();attSheet();return}
  if(e.target.dataset.done){closeSh();redraw();toast('✅ حضور و غیاب امروز ذخیره شد');return}
  if(e.target.dataset.go){closeSh();show(e.target.dataset.go)}
 });
+sh.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.xn!=null){const T=tdI(),X=S.attx=S.attx||{};(X[T]=X[T]||{})[t.dataset.xn]=t.value;saveSoon()}});
 
-/* — ثبت نمره‌ی سریع — */
-let scEx=null;
+/* — ثبت نمره‌ی سریع (توصیفی) — */
+const LV=[[4,'خیلی خوب','#1a8f55'],[3,'خوب','#14b8a6'],[2,'قابل قبول','#d98600'],[1,'نیاز به تلاش','#e5484d']];
+let scEx=null,scD={},scMk={};
+const toLv=(e,id)=>{const v=e.scores[id];return v==null?null:Math.min(4,Math.max(1,Math.round(v/e.max*4)))};
+const isAbs=(e,id)=>((S.att[e.date]||{})[id])==='a';
+const hasMk=(e,id)=>!!(e.mk&&e.mk[id]&&e.mk[id]!=='x');
+const eligible=(e,id)=>!isAbs(e,id)||hasMk(e,id)||!!scMk[id];
+function scRow(s){const e=scEx,id=s.id;
+ if(!eligible(e,id))return`<div class="qs-r abs" data-sr="${id}"><div class="qs-h"><span>${E(s.name)}</span><i>🚫 غایب در روز آزمون</i></div><div class="qs-n">طبق قانون، غایب‌ها در این آزمون ارزیابی نمی‌شوند؛ فقط اگر در آزمون جبرانی شرکت کرده باشند.<button type="button" data-mk="${id}">🔄 شرکت در جبرانی</button></div></div>`;
+ return`<div class="qs-r" data-sr="${id}"><div class="qs-h"><span>${E(s.name)}</span>${(hasMk(e,id)||scMk[id])?'<i class="mk">🔄 جبرانی</i>':''}</div><div class="lv">${LV.map(([n,t,c])=>`<button type="button" data-l="${n}" style="--c:${c}" class="${scD[id]===n?'on':''}">${t}</button>`).join('')}</div></div>`}
+function scSum(){const el=S.students.filter(s=>eligible(scEx,s.id)),a=el.map(s=>scD[s.id]).filter(v=>v!=null),ab=S.students.length-el.length;
+ const b=$('euavg');if(b)b.innerHTML=`<span>ثبت‌شده: ${fa(a.length)} از ${fa(el.length)}</span>${a.length?`<span>میانگین: ${fa((Math.round(mean(a)*10)/10).toString().replace('.','٫'))} از ۴</span>`:''}${ab?`<span style="color:#e5484d">🚫 ${fa(ab)} غایب</span>`:''}`}
 function scSheet(id){
  const exs=(S.exams||[]).slice().sort((a,b)=>b.date.localeCompare(a.date)||b.id-a.id).slice(0,40);
  if(!exs.length){openSh('✍️ ثبت نمره‌ی سریع','',`<div class="qa-note">هنوز آزمون یا ارزیابی‌ای ساخته نشده. ابتدا از «درس‌ها و آزمون‌ها» یک ارزیابی بسازید؛ بعد اینجا سریع نمره‌ها را وارد کنید.</div>`,'<button class="big" data-go="crs">📚 رفتن به درس‌ها و آزمون‌ها</button>');return}
- scEx=id?exs.find(e=>e.id===id)||exs[0]:(scEx&&exs.find(e=>e.id===scEx.id))||exs[0];
+ const ne=id?exs.find(e=>e.id===id)||exs[0]:(scEx&&exs.find(e=>e.id===scEx.id))||exs[0];
+ scEx=ne;scD={};scMk={};S.students.forEach(s=>{scD[s.id]=toLv(ne,s.id)});
  const cn=e=>(S.courses.find(c=>c.id===e.course)||{}).name||'درس';
  const opt=exs.map(e=>`<option value="${e.id}" ${e.id===scEx.id?'selected':''}>${E(cn(e))} · ${E(e.title||e.type||'ارزیابی')} · ${fmt(new Date(e.date+'T12:00:00Z'))}</option>`).join('');
- const rows=S.students.map(s=>{const v=scEx.scores[s.id];return`<div class="qa-r"><span>${E(s.name)}</span><input data-sid="${s.id}" inputmode="decimal" autocomplete="off" placeholder="—" value="${v==null?'':fa(v).replace('.','٫')}"></div>`}).join('');
- openSh('✍️ ثبت نمره‌ی سریع','نمره از '+fa(scEx.max)+' · خالی = ثبت‌نشده',`<select id="eusel" class="fs">${opt}</select><div class="qa-sum" id="euavg" style="margin-bottom:6px"></div>${rows}`,'<button class="big" data-sv="1">💾 ذخیره‌ی نمره‌ها</button>');
- scAvg()}
-function scAvg(){const a=[...sh.querySelectorAll('input[data-sid]')].map(i=>parseFloat(dig(i.value))).filter(v=>!isNaN(v));const b=$('euavg');if(b)b.innerHTML=`<span>ثبت‌شده: ${fa(a.length)} از ${fa(S.students.length)}</span>${a.length?`<span>میانگین: ${fa((Math.round(mean(a)*100)/100).toString().replace('.','٫'))}</span>`:''}`}
-sh.addEventListener('input',e=>{if(e.target.dataset&&e.target.dataset.sid)scAvg()});
+ openSh('✍️ ثبت نمره‌ی سریع','ارزیابی توصیفی · روی نام سطح بزنید؛ دوباره بزنید تا پاک شود',`<select id="eusel" class="fs">${opt}</select><div class="qs-bulk"><button type="button" data-bulk="4" style="--c:#1a8f55">⭐ همه «خیلی خوب»</button><button type="button" data-bulk="3" style="--c:#14b8a6">👍 همه «خوب»</button><button type="button" data-bulk="0" style="--c:#8a7aa6">🧹 پاک‌کردن</button></div><div class="qa-sum" id="euavg" style="margin:6px 0"></div><div id="eurows">${S.students.map(scRow).join('')}</div>`,'<button class="big" data-sv="1">💾 ذخیره‌ی نمره‌ها</button>');
+ scSum()}
 sh.addEventListener('change',e=>{if(e.target.id==='eusel')scSheet(+e.target.value)});
-sh.addEventListener('click',e=>{if(!e.target.dataset.sv)return;
- let bad=0,n=0;sh.querySelectorAll('input[data-sid]').forEach(i=>{const raw=i.value.trim(),sid=i.dataset.sid;
-  if(raw===''){if(scEx.scores[sid]!=null){delete scEx.scores[sid];n++}i.style.borderColor='';return}
-  const v=parseFloat(dig(raw));if(isNaN(v)||v<0||v>scEx.max){bad++;i.style.borderColor='#e5484d';return}
-  i.style.borderColor='';if(scEx.scores[sid]!==v){scEx.scores[sid]=v;n++}});
- if(bad){toast('⚠️ '+fa(bad)+' نمره‌ی نامعتبر (۰ تا '+fa(scEx.max)+')');return}
- save();closeSh();redraw();toast('✅ نمره‌ها ذخیره شد')});
+sh.addEventListener('click',e=>{
+ if(!scEx||!sh.querySelector('#eurows'))return;
+ const lb=e.target.closest('.lv button');
+ if(lb){const r=lb.closest('.qs-r'),id=r.dataset.sr,n=+lb.dataset.l;scD[id]=scD[id]===n?null:n;r.querySelectorAll('.lv button').forEach(x=>x.classList.toggle('on',+x.dataset.l===scD[id]));scSum();return}
+ const bk=e.target.closest('[data-bulk]');
+ if(bk){const n=+bk.dataset.bulk;S.students.forEach(s=>{if(eligible(scEx,s.id))scD[s.id]=n||null});$('eurows').innerHTML=S.students.map(scRow).join('');scSum();toast(n?'همه ثبت شد؛ حالا موارد لازم را اصلاح کنید':'پاک شد');return}
+ const mk=e.target.closest('[data-mk]');
+ if(mk){const id=mk.dataset.mk;scMk[id]=true;scD[id]=null;const r=mk.closest('.qs-r'),s=S.students.find(x=>String(x.id)===String(id));r.outerHTML=scRow(s);scSum();return}
+ if(e.target.dataset&&e.target.dataset.sv){
+  const T=tdI();let n=0;S.students.forEach(s=>{const id=s.id;if(!eligible(scEx,id))return;const lv=scD[id],old=toLv(scEx,id);
+   if(lv==null){if(scEx.scores[id]!=null){delete scEx.scores[id];n++}return}
+   if(lv!==old){scEx.scores[id]=Math.round(lv/4*scEx.max*100)/100;n++}
+   if(isAbs(scEx,id)&&!hasMk(scEx,id)){scEx.mk=scEx.mk||{};scEx.mk[id]=T}});
+  save();closeSh();redraw();toast('✅ نمره‌ها ذخیره شد'+(n?' ('+fa(n)+' تغییر)':''))}});
 
 /* ───── یار هوشمند (دستیار آفلاین) ───── */
 const fab=document.createElement('button');fab.id='eufab';fab.type='button';fab.setAttribute('aria-label','یار هوشمند');fab.innerHTML='🤖';document.body.appendChild(fab);
 const bot=document.createElement('div');bot.id='eub';bot.setAttribute('role','dialog');bot.setAttribute('aria-label','یار هوشمند');
 bot.innerHTML=`<div class="eub-h"><div class="av">🤖</div><div><b>یار هوشمند</b><small>پاسخ از روی داده‌های همین دستگاه · کاملاً آفلاین و خصوصی</small></div><button type="button" id="eubx" aria-label="بستن">✕</button></div><div class="eub-m" id="eubm"></div><div class="eub-c" id="eubc"></div><div class="eub-i"><input id="eubi" placeholder="بپرس… مثلاً «غایب‌های امروز» یا نام یک دانش‌آموز" autocomplete="off"><button type="button" id="eubs" aria-label="ارسال">➤</button></div>`;
 document.body.appendChild(bot);
-const CH_T=[['🚫 غایب‌های امروز','غایب امروز'],['📈 روند حضور','روند حضور'],['🏅 برترین‌ها','برترین دانش‌آموزان'],['🚨 نیازمند توجه','نیازمند توجه'],['📚 میانگین درس‌ها','میانگین درس‌ها'],['📝 تکالیف','وضعیت تکالیف']];
-const CH_M=[['⚖️ مقایسه کلاس‌ها','مقایسه کلاس‌ها'],['🚫 غیبت امروز مدرسه','غیبت امروز'],['⚠️ هشدار نمرات','هشدار نمرات']];
+const CATS_T=[
+ ['⚡ کلی',[['🌟 وضعیت کلی کلاس','وضعیت کلی کلاس'],['📋 ثبت حضور سریع','ثبت حضور سریع'],['✍️ ثبت نمره سریع','ثبت نمره سریع'],['🎓 کارت یک دانش‌آموز','نام دانش‌آموز را بنویس']]],
+ ['🚫 حضور',[['🚫 غایب‌های امروز','غایب امروز'],['⏰ دیر آمده‌ها','دیر آمده‌ها'],['📄 غیبت‌های موجه','غیبت‌های موجه'],['📈 روند حضور هفته','روند حضور'],['🔝 بیشترین غیبت‌ها','بیشترین غیبت'],['🏆 حضور کامل','حضور کامل']]],
+ ['📝 نمره',[['🏅 برترین‌ها','برترین دانش‌آموزان'],['🚨 نیازمند توجه','نیازمند توجه'],['📚 میانگین درس‌ها','میانگین درس‌ها'],['🚀 بیشترین پیشرفت','بیشترین پیشرفت'],['🧪 آخرین آزمون','آخرین آزمون'],['🔄 جبرانی‌های باقی‌مانده','جبرانی‌های باقی‌مانده']]],
+ ['📚 تکلیف',[['📝 وضعیت تکالیف','وضعیت تکالیف'],['❌ تکلیف انجام‌نشده','بیشترین تکلیف انجام نشده']]],
+ ['🗓️ برنامه',[['📅 برنامه‌ی امروز','برنامه امروز'],['⏭️ زنگ بعدی','زنگ بعدی'],['🗓️ آزمون‌های پیش‌رو','آزمون‌های پیش‌رو']]]];
+const CATS_M=[['🏫 مدرسه',[['⚖️ مقایسه کلاس‌ها','مقایسه کلاس‌ها'],['🚫 غیبت امروز مدرسه','غیبت امروز'],['⚠️ هشدار نمرات','هشدار نمرات'],['📅 کمترین حضور','کمترین حضور'],['🏆 بهترین کلاس','بهترین کلاس'],['📝 تکالیف کلاس‌ها','تکالیف کلاس‌ها']]]];
+let catI=0;
+function chipsUI(){const C=isMgr()?CATS_M:CATS_T;if(catI>=C.length)catI=0;
+ $('eubc').innerHTML=(C.length>1?`<div class="ct">${C.map((c,i)=>`<button type="button" data-cat="${i}" class="${i===catI?'on':''}">${c[0]}</button>`).join('')}</div>`:'')+`<div class="cg">${C[catI][1].map(c=>`<button type="button" data-q="${E(c[1])}">${c[0]}</button>`).join('')}</div>`}
 let greeted=false;
 const msgs=$('eubm');
 function say(html,who){const d=document.createElement('div');d.className='mg '+(who||'b');d.innerHTML=html;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;if(who==='b')grow2(d);return d}
-function openBot(){bot.classList.add('open');fab.style.display='none';$('eubc').innerHTML=(isMgr()?CH_M:CH_T).map(c=>`<button type="button" data-q="${c[1]}">${c[0]}</button>`).join('');
+function openBot(){bot.classList.add('open');fab.style.display='none';chipsUI();
  if(!greeted){greeted=true;const n=((S.prof||{}).teacher||'').trim();say(`سلام${n?' '+E(n):''} 👋 من «یار» هستم. می‌توانم از روی داده‌های همین برنامه درباره‌ی حضور، نمره‌ها، تکالیف و دانش‌آموزان پاسخ بدهم و نمودار نشان بدهم.<br>یکی از دکمه‌های پایین را بزن یا سؤالت را بنویس.`)}
  setTimeout(()=>{const i=$('eubi');i&&i.focus({preventScroll:true})},300)}
 function closeBot(){bot.classList.remove('open');fab.style.display=''}
@@ -144,25 +177,60 @@ function mgrAnswer(q){
  if(!sm.length)return'هنوز آمار هیچ کلاسی ذخیره نشده؛ هر کلاس را یک‌بار باز کنید تا آمارش در داشبورد مدیر ثبت شود.';
  if(/غیب|غیاب|غایب/.test(q)){const r=sm.filter(x=>x.s.d===T).sort((a,b)=>(b.s.ta||0)-(a.s.ta||0));const tot=r.reduce((a,x)=>a+(x.s.ta||0),0);return`امروز <b>${fa(tot)}</b> غایب در ${fa(r.length)} کلاس ثبت شده است.`+r.map(x=>hbar(L(x.c),(x.s.ta||0)*10,fa(x.s.ta||0),'w')).join('')}
  if(/هشدار|ضعیف|افت|نیاز/.test(q)){const r=sm.filter(x=>x.s.low||x.s.dn||(x.s.hw!=null&&x.s.hw<60));return r.length?'کلاس‌هایی که نیاز به توجه دارند:'+r.map(x=>pl('⚠️ '+E(L(x.c)),[x.s.low?fa(x.s.low)+' دانش‌آموز زیر ۲٫۵':'',x.s.dn?fa(x.s.dn)+' در حال افت':'',x.s.hw!=null&&x.s.hw<60?'تکالیف '+fa(x.s.hw)+'٪':''].filter(Boolean).join(' · '))).join(''):'هشدار مهمی وجود ندارد 🌟'}
- const r=sm.filter(x=>x.s.avg!=null).sort((a,b)=>b.s.avg-a.s.avg);return r.length?`مقایسه‌ی میانگین کلاس‌ها (از ۴) — بالاترین: <b>${E(L(r[0].c))}</b>`+r.map(x=>hbar(L(x.c),x.s.avg/4*100,f1(x.s.avg),x.s.avg<2.5?'w':x.s.avg>=3.5?'o':'')).join(''):'میانگینی برای مقایسه ثبت نشده است.'}
+ if(/تکلیف/.test(q)){const r=sm.filter(x=>x.s.hw!=null).sort((a,b)=>a.s.hw-b.s.hw);return r.length?'درصد انجام تکالیف کلاس‌ها (کمترین در بالا):'+r.map(x=>hbar(L(x.c),x.s.hw,fa(x.s.hw)+'٪',x.s.hw<60?'w':'o')).join(''):'آمار تکالیف ثبت نشده است.'}
+ if(/حضور/.test(q)){const r=sm.filter(x=>x.s.att!=null).sort((a,b)=>a.s.att-b.s.att);return r.length?'درصد حضور کلاس‌ها در کل سال (کمترین در بالا):'+r.map(x=>hbar(L(x.c),x.s.att,fa(x.s.att)+'٪',x.s.att<85?'w':'o')).join(''):'آمار حضور ثبت نشده است.'}
+ const r=sm.filter(x=>x.s.avg!=null).sort((a,b)=>b.s.avg-a.s.avg);if(!r.length)return'میانگینی برای مقایسه ثبت نشده است.';
+ if(/بهترین|برتر/.test(q))return`🏆 بهترین کلاس از نظر میانگین: <b>${E(L(r[0].c))}</b> با ${f1(r[0].s.avg)} از ۴`;
+ return`مقایسه‌ی میانگین کلاس‌ها (از ۴) — بالاترین: <b>${E(L(r[0].c))}</b>`+r.map(x=>hbar(L(x.c),x.s.avg/4*100,f1(x.s.avg),x.s.avg<2.5?'w':x.s.avg>=3.5?'o':'')).join('')}
+const dayDiff=d=>Math.round((new Date(d+'T12:00:00Z')-new Date(tdI()+'T12:00:00Z'))/864e5);
+const cnm=id=>(S.courses.find(c=>c.id===id)||{}).name||'درس';
+function schedAns(q){const a=window.wscApi&&window.wscApi.today&&window.wscApi.today();
+ if(!a||!a.has)return'برنامه‌ی هفتگی زنگ‌ها هنوز چیده نشده است.<br><button class="lk" data-go="wsc">🗓️ چیدن برنامه‌ی هفتگی</button>';
+ if(a.off)return'امروز تعطیل است 🌴 برنامه‌ی کلاس از روز کاری بعد ادامه دارد.';
+ if(!a.L.length)return'برای امروز ('+E(a.day)+') زنگی ثبت نشده است.';
+ if(/بعدی/.test(q))return a.cur?`الان زنگ ${fa(a.cur.i+1)} («${E(a.cur.name)}») است؛ ${fa(a.cur.left)} دقیقه تا پایان.`+(a.nxt?`<br>بعدی: ${E(a.nxt.name)} ساعت ${fa(a.nxt.s)}`:''):a.nxt?`زنگ بعدی: <b>${E(a.nxt.name)}</b> ساعت ${fa(a.nxt.s)} (${fa(a.nxt.min)} دقیقه دیگر)`:'زنگ‌های امروز تمام شده است ✅';
+ return`برنامه‌ی امروز (${E(a.day)}) — ${fa(a.L.length)} زنگ:`+a.L.map(x=>pl((x.cur?'🟢 ':x.past?'✔️ ':'⏳ ')+E(x.name),fa(x.s)+' تا '+fa(x.e))).join('')}
+function examAns(){const T=tdI(),L=(S.exPlan||[]).filter(x=>x.st==='p'&&x.date>=T).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);
+ if(!L.length)return'آزمون پیش‌رویی در برنامه‌ی امتحانی ثبت نشده است.<br><button class="lk" data-go="exp">🗓️ ثبت آزمون</button>';
+ return`آزمون‌های پیش‌رو:`+L.map(x=>{const d=dayDiff(x.date);return pl('📝 '+E(cnm(x.course))+(x.type?' · '+E(x.type):''),d===0?'امروز':d===1?'فردا':fa(d)+' روز دیگر')}).join('')}
 function answer(raw){
  const q=nz(raw);if(isMgr())return mgrAnswer(q);
  const m=M();if(!m.st.length)return noData;
- if(/^(سلام|درود|hi)/.test(q))return'سلام! 😊 چه کمکی از من برمی‌آید؟ می‌توانی درباره‌ی غایب‌ها، نمره‌ها، تکالیف یا یک دانش‌آموز بپرسی.';
+ if(/^(سلام|درود|hi)/.test(q))return'سلام! 😊 چه کمکی از من برمی‌آید؟ دکمه‌های پایین را ببین یا اسم یک دانش‌آموز را بنویس.';
+ if(/ثبت.*(حضور|غیاب)|حضور سریع/.test(q))return'برای ثبت سریع حضور و غیاب، دکمه‌ی زیر را بزن:<br><button class="lk" data-eu="att">📋 حضور و غیاب سریع</button>';
+ if(/ثبت.*نمره|نمره سریع/.test(q))return'برای ثبت سریع نمره (به‌صورت توصیفی)، دکمه‌ی زیر را بزن:<br><button class="lk" data-eu="sc">✍️ ثبت نمره‌ی سریع</button>';
  const byName=m.st.find(s=>q.includes(nz(s.name)))||m.st.find(s=>{const f=nz(s.name).split(' ')[0];return f.length>=3&&q.split(' ').includes(f)})||m.st.find(s=>nz(s.name).split(' ').some(w=>w.length>=4&&q.includes(w)));
  if(byName)return stuCard(byName,m);
+ if(/نام دانش.?آموز/.test(q))return'اسم دانش‌آموز را بنویس (مثلاً «'+E(m.st[0].name.split(' ')[0])+'») تا کارت میانگین، حضور و تکالیفش را نشان بدهم.';
+ if(/موجه/.test(q)){const X=S.attx||{},rows=[];Object.keys(X).sort().reverse().forEach(k=>Object.keys(X[k]).forEach(id=>{const s=m.st.find(x=>String(x.id)===String(id));if(s&&(S.att[k]||{})[id]==='a')rows.push([k,s,X[k][id]])}));
+  return rows.length?`<b>${fa(rows.length)}</b> غیبت موجه ثبت شده (جدیدترین‌ها):`+rows.slice(0,8).map(r=>pl('📄 '+E(r[1].name),fmt(new Date(r[0]+'T12:00:00Z'))+(r[2]?' · '+E(String(r[2]).slice(0,40)):''))).join(''):'غیبت موجهی ثبت نشده است.'}
+ if(/تاخیر|تأخیر|دیر/.test(q)){return m.rec?(m.latT.length?`امروز <b>${fa(m.latT.length)}</b> نفر با تأخیر آمده‌اند:`+m.latT.map(s=>pl('⏰ '+E(s.name),'تأخیر')).join(''):'امروز کسی تأخیر نداشته است 🌟'):'حضور و غیاب امروز هنوز ثبت نشده است.'}
+ if(/بیشترین غیبت|پرغیبت|حضور کامل|بدون غیبت/.test(q)){const cl=S.closed||{},cnt=m.st.map(s=>{let c=0,t=0;Object.keys(S.att).forEach(k=>{if(cl[k])return;const v=S.att[k][s.id];if(v){t++;if(v==='a'&&!isExc(k,s.id))c++}});return{s,c,t}}).filter(x=>x.t);
+  if(/کامل|بدون/.test(q)){const p=cnt.filter(x=>x.c===0);return p.length?`<b>${fa(p.length)}</b> دانش‌آموز تا امروز هیچ غیبتی نداشته‌اند 🏆`+p.slice(0,8).map(x=>pl('✅ '+E(x.s.name),'')).join(''):'همه‌ی دانش‌آموزان حداقل یک غیبت دارند.'}
+  const mx=Math.max(1,...cnt.map(x=>x.c)),r=cnt.filter(x=>x.c>0).sort((a,b)=>b.c-a.c).slice(0,6);return r.length?'بیشترین غیبت‌ها (بدون احتساب موجه):'+r.map(x=>hbar(x.s.name,x.c/mx*100,fa(x.c)+' روز','w')).join(''):'غیبت ثبت‌نشده‌ای وجود ندارد 🌟'}
  if(/غیب|غیاب|غایب|نیومد|نیامد/.test(q)&&!/روند|هفته/.test(q)){const all=m.absT.length+m.latT.length;
   if(!m.rec)return'حضور و غیاب امروز هنوز ثبت نشده است.<br><button class="lk" data-eu="att">📋 ثبت حضور و غیاب</button>';
   return`امروز <b>${fa(m.absT.length)}</b> غایب و <b>${fa(m.latT.length)}</b> تأخیر دارید:`+(all?m.absT.map(s=>pl('❌ '+E(s.name),'غایب')).join('')+m.latT.map(s=>pl('⏰ '+E(s.name),'تأخیر')).join('')+(m.absT.length?'<small style="color:var(--mut)">پیشنهاد: با خانواده‌ی غایب‌ها تماس بگیرید.</small>':''):'<br>همه حاضر هستند 🌟')}
- if(/روند|هفته|حضور/.test(q)){return m.week.length?`میانگین حضور ${fa(m.week.length)} روز اخیر: <b>${fa(Math.round(mean(m.week.map(w=>w.v))))}٪</b>`+m.week.slice().reverse().map(w=>hbar(w.l,w.v,fa(w.v)+'٪',w.v<85?'w':'o')).join(''):'هنوز حضور و غیابی ثبت نشده است.'}
- if(/برتر|بهترین|رتبه|ممتاز|اول/.test(q)){return m.top.length?'برترین دانش‌آموزان بر اساس میانگین ارزیابی (از ۴):'+m.top.map(x=>hbar(x.s.name,x.o/4*100,f1(x.o),x.o>=3.5?'o':'')).join(''):'هنوز ارزیابی‌ای ثبت نشده است.'}
- if(/نیاز|ضعیف|افت|خطر|توجه|مشکل/.test(q)){return m.risk.length?`<b>${fa(m.risk.length)}</b> دانش‌آموز نیازمند توجه‌اند:`+m.risk.slice(0,6).map(r=>pl('🚨 '+E(r.s.name),E(r.w.join(' · ')))).join(''):'عالیه! دانش‌آموزی در وضعیت هشدار نیست 🌟'}
+ if(/روند|هفته|حضور/.test(q)&&!/برنامه|زنگ/.test(q)){return m.week.length?`میانگین حضور ${fa(m.week.length)} روز اخیر: <b>${fa(Math.round(mean(m.week.map(w=>w.v))))}٪</b>`+m.week.slice().reverse().map(w=>hbar(w.l,w.v,fa(w.v)+'٪',w.v<85?'w':'o')).join(''):'هنوز حضور و غیابی ثبت نشده است.'}
+ if(/برتر|بهترین|رتبه|ممتاز/.test(q)){return m.top.length?'برترین دانش‌آموزان بر اساس میانگین ارزیابی (از ۴):'+m.top.map(x=>hbar(x.s.name,x.o/4*100,f1(x.o),x.o>=3.5?'o':'')).join(''):'هنوز ارزیابی‌ای ثبت نشده است.'}
+ if(/پیشرفت|بهبود/.test(q)){const r=m.st.map(s=>{const a=m.ex.map(e=>nrm(e,s.id)).filter(nn);return a.length>=4?{s,d:mean(a.slice(-2))-mean(a.slice(0,-2))}:null}).filter(x=>x&&x.d>0.15).sort((a,b)=>b.d-a.d).slice(0,6);
+  return r.length?'بیشترین پیشرفت (دو ارزیابی اخیر نسبت به قبل):'+r.map(x=>pl('🚀 '+E(x.s.name),'+'+f1(x.d))).join(''):'هنوز داده‌ی کافی برای سنجش پیشرفت نیست (حداقل ۴ ارزیابی لازم است).'}
+ if(/نیاز|ضعیف|افت|خطر|توجه|مشکل/.test(q)&&!/تکلیف/.test(q)){return m.risk.length?`<b>${fa(m.risk.length)}</b> دانش‌آموز نیازمند توجه‌اند:`+m.risk.slice(0,6).map(r=>pl('🚨 '+E(r.s.name),E(r.w.join(' · ')))).join(''):'عالیه! دانش‌آموزی در وضعیت هشدار نیست 🌟'}
  if(/تکلیف/.test(q)){const n=Object.keys(m.hn).map(id=>({s:m.st.find(s=>String(s.id)===id),c:m.hn[id]})).filter(x=>x.s).sort((a,b)=>b.c-a.c).slice(0,5);return m.hw==null?'هنوز تکلیفی ثبت نشده است.':`درصد انجام تکالیف کلاس: <b>${fa(m.hw)}٪</b>`+(n.length?'<br>بیشترین «انجام‌نشده»:'+n.map(x=>pl(E(x.s.name),fa(x.c)+' مورد')).join(''):'')}
- if(/میانگین|درس|نمره|ارزیابی|ضعیف‌ترین|قوی/.test(q)){return m.cr.length?`میانگین کلاس: <b>${f1(m.avg)}</b> از ۴ — قوی‌ترین درس: <b>${E(m.cr[0].n)}</b>`+m.cr.map(c=>hbar(c.n,c.a/4*100,f1(c.a),c.a<2.5?'w':c.a>=3.5?'o':'')).join('')+(m.cr.length>1?`<small style="color:var(--mut)">پیشنهاد: مرور درس «${E(m.cr[m.cr.length-1].n)}» در کلاس.</small>`:''):'هنوز ارزیابی‌ای ثبت نشده است.'}
- return'متوجه نشدم 🤔 این‌ها را امتحان کن: «غایب‌های امروز»، «روند حضور»، «برترین‌ها»، «نیازمند توجه»، «میانگین درس‌ها»، «تکالیف» یا اسم یک دانش‌آموز.'}
+ if(/آخرین/.test(q)){const e=m.ex[m.ex.length-1];if(!e)return'هنوز ارزیابی‌ای ثبت نشده است.';const v=m.st.map(s=>({s,v:nrm(e,s.id)})).filter(x=>x.v!=null),low=v.filter(x=>x.v<2.5);
+  return`<b>${E(cnm(e.course))} · ${E(e.title||e.type||'ارزیابی')}</b> — ${fmt(new Date(e.date+'T12:00:00Z'))}<div class="kp"><div><b>${fa(v.length)}</b><span>شرکت‌کننده</span></div><div><b>${f1(v.length?mean(v.map(x=>x.v)):null)}</b><span>میانگین</span></div><div><b>${fa(low.length)}</b><span>نیاز به تلاش</span></div></div>`+(low.length?low.slice(0,5).map(x=>pl('⚠️ '+E(x.s.name),f1(x.v))).join(''):'')}
+ if(/جبران/.test(q)){const r=[];m.ex.forEach(e=>m.st.forEach(s=>{if((S.att[e.date]||{})[s.id]==='a'&&e.scores[s.id]==null&&!(e.mk&&e.mk[s.id]))r.push([s,e])}));
+  return r.length?`<b>${fa(r.length)}</b> مورد جبرانی باقی مانده:`+r.slice(0,8).map(x=>pl('🔄 '+E(x[0].name),E(cnm(x[1].course))+' · '+fmt(new Date(x[1].date+'T12:00:00Z')))).join('')+'<small style="color:var(--mut)">غایب‌ها فقط با شرکت در آزمون جبرانی ارزیابی می‌شوند.</small>':'جبرانی باقی‌مانده‌ای نیست ✅'}
+ if(/پیش.?رو|آینده|امتحان|یادآور|فردا/.test(q))return examAns();
+ if(/برنامه|زنگ|ساعت/.test(q))return schedAns(q);
+ if(/میانگین|درس|نمره|ارزیابی/.test(q)){return m.cr.length?`میانگین کلاس: <b>${f1(m.avg)}</b> از ۴ — قوی‌ترین درس: <b>${E(m.cr[0].n)}</b>`+m.cr.map(c=>hbar(c.n,c.a/4*100,f1(c.a),c.a<2.5?'w':c.a>=3.5?'o':'')).join('')+(m.cr.length>1?`<small style="color:var(--mut)">پیشنهاد: مرور درس «${E(m.cr[m.cr.length-1].n)}» در کلاس.</small>`:''):'هنوز ارزیابی‌ای ثبت نشده است.'}
+ if(/کلی|وضعیت|خلاصه|کلاس/.test(q))return`<b>خلاصه‌ی کلاس</b><div class="kp"><div><b>${m.rec?fa(m.preT.length+m.latT.length):'—'}</b><span>حاضر امروز</span></div><div><b>${m.rec?fa(m.absT.length):'—'}</b><span>غایب</span></div><div><b>${f1(m.avg)}</b><span>میانگین</span></div></div>`+pl('📅 حضور کل سال',m.att==null?'—':fa(m.att)+'٪')+pl('📝 تکالیف',m.hw==null?'—':fa(m.hw)+'٪')+pl('🚨 نیازمند توجه',fa(m.risk.length)+' نفر');
+ return'متوجه نشدم 🤔 از دکمه‌های پایین انتخاب کن یا بنویس: «غایب‌های امروز»، «برنامه امروز»، «آزمون‌های پیش‌رو»، «نیازمند توجه» یا اسم یک دانش‌آموز.'}
 function ask(t){t=(t||'').trim();if(!t)return;say(E(t),'u');const ty=say('<i></i><i></i><i></i>','t');
  setTimeout(()=>{ty.remove();let r;try{r=answer(t)}catch(e){console.warn(e);r='یک خطا رخ داد؛ دوباره امتحان کن.'}say(r,'b')},420)}
-bot.addEventListener('click',e=>{const q=e.target.closest('[data-q]');if(q){ask(q.dataset.q);return}
+bot.addEventListener('click',e=>{const ct=e.target.closest('[data-cat]');if(ct){catI=+ct.dataset.cat;chipsUI();return}
+ const gb=e.target.closest('[data-go]');if(gb){closeBot();show(gb.dataset.go);return}
+ const q=e.target.closest('[data-q]');if(q){ask(q.dataset.q);return}
  if(e.target.id==='eubs'){const i=$('eubi');ask(i.value);i.value='';return}
  const sf=e.target.closest('[data-sf]');if(sf){closeBot();try{show('sf');const sel=$('sfs');if(sel){sel.value=sf.dataset.sf;sel.dispatchEvent(new Event('change',{bubbles:true}))}}catch(x){}return}
  const ac=e.target.closest('[data-eu]');if(ac){closeBot();act(ac.dataset.eu)}});

@@ -21,7 +21,7 @@ nav details{border-color:var(--line)!important}
  :root:not([data-theme="light"]) nav button:not(.on),:root:not([data-theme="light"]) nav summary{color:#cbd5e1!important}
  :root:not([data-theme="light"]) nav button:not(.on):hover,:root:not([data-theme="light"]) nav summary:hover{background:#ffffff14!important}
  :root:not([data-theme="light"]) nav details{border-color:#ffffff14!important}
- :root:not([data-theme="light"]) header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#5b3fa8)!important}
+ :root:not([data-theme="light"]) header{background:linear-gradient(90deg,#0f172a,#2a1a5e 55%,#5b3fa8)!important;box-shadow:0 4px 18px #0f172a66}
 }
 
 /* ───── نمای گرافیکی ───── */

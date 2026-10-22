@@ -113,7 +113,7 @@ const css=document.createElement('style');css.id='expCss';css.textContent=`
 .ex-ri.now em{background:linear-gradient(135deg,#ff7aa2,#ffb86b);color:#fff;animation:expulse 1.6s ease-in-out infinite}
 .ex-rem.urgent{border:2px solid #ff7aa2;animation:exin .5s both,exurg 2.4s ease-in-out .6s infinite}
 .ex-lowk{margin-top:9px;background:#fff4dc;color:#8a5a00;border-radius:12px;padding:8px 11px;font-size:12.5px;line-height:1.9;font-weight:600}
-:root[data-theme="dark"] .ex-lowk{background:#3b3017;color:#ffd98a}
+:root[data-theme="dark"] .ex-lowk{background:#3b3017;color:#ffd98a}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .ex-lowk{background:#3b3017;color:#ffd98a}}
 .ex-ri.late em{background:#ffe5e7;color:#a3262c}
 @keyframes exin{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 @keyframes expop{0%{opacity:0;transform:scale(.85)}60%{transform:scale(1.04)}100%{opacity:1;transform:none}}

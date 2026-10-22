@@ -25,6 +25,7 @@ window.APP_MODULES=[
   {src:'assets/js/features/weekly-report.js'},
   {src:'assets/js/features/bulk-export-and-history.js'},
   {src:'assets/js/features/teacher-profile.js',id:'tme-v1'},
+  {src:'assets/js/features/parent-meetings.js'},
   {src:'assets/js/ui/home-subtabs.js'},
   {src:'assets/js/features/storage-usage.js'},
   {src:'assets/js/core/service-worker-register.js'},

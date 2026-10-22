@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v92';
+const C='cl-v95';
 const A=[
   './',
   './index.html',
@@ -68,6 +68,7 @@ const A=[
   './assets/js/features/dashboard-simplify.js',
   './assets/js/features/quick-attendance.js',
   './assets/js/features/parent-contact-log.js',
+  './assets/js/features/parent-meetings.js',
   './assets/js/features/homework-review.js',
   './assets/js/features/theme-toggle.js',
   './assets/js/features/etoud-ui.js'

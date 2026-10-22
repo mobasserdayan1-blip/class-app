@@ -1,7 +1,7 @@
 /* زیرتب‌های صفحه‌ی اصلی */
 (function(){try{
 const nav=document.getElementById('nav'),$=id=>document.getElementById(id);
-const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit']],['day','📋 کلاس و فعالیت',['att','act','mot','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['set','⚙️ پروفایل و تنظیمات',['tme','set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
+const H=[['home','🏠 داشبورد',['home']],['stu','🎓 دانش‌آموزان',['sl','sf','edit','pmt']],['day','📋 کلاس و فعالیت',['att','act','mot','teams','draw']],['les','📚 درس و آزمون',['crs','wsc','exp','skl','mk','prof']],['rep','📈 گزارش‌ها',['arep','rep','mr','wk','wr','pm','mgr']],['sch','🏫 مدرسه و مدیریت',['dm','cls','tf','bz']],['set','⚙️ پروفایل و تنظیمات',['tme','set','bk']]].map(([k,t,ids])=>({k,t,ids:ids.filter(i=>$(i))}));
 const known=new Set(H.flatMap(h=>h.ids));[...document.querySelectorAll('section[id]')].forEach(s=>{if(!known.has(s.id)&&s.id!=='sc'&&s.id!=='mot2'){H[H.length-1].ids.push(s.id);known.add(s.id)}});
 const MGI=['prof','mgr','bk','tme'],isTc=()=>{try{return !!(window.isTeacherRole&&window.isTeacherRole())}catch(e){return false}},isMg=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
 const gid=h=>{if(!isMg())return h.ids.filter(i=>!(i==='bk'&&isTc()));if(h.k==='sch')return['dm','cls','tf','prof','mgr','bz','bk'].filter(i=>$(i));return h.ids.filter(i=>MGI.indexOf(i)<0)};

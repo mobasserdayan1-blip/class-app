@@ -50,7 +50,9 @@ function draw(){
  <select id="pclD" aria-label="تاریخ">${DAYS.map(d=>`<option value="${d[0]}">${d[1]}</option>`).join('')}</select></div>
  <textarea id="pclN" placeholder="موضوع و نتیجه‌ی گفت‌وگو… (مثلاً: درباره‌ی تکالیف نیمه‌تمام صحبت شد و ولی قول پیگیری داد)"></textarea>
  <button class="pcl-go" data-pc="add">➕ ثبت در دفتر</button></div>
- ${L.length?L.map(x=>{const t=tyOf(x.t);return `<div class="pcl-e"><div class="pt"><span>${t[1]} ${t[2]}</span><small>${jd(x.date)}</small></div>${x.n?`<p>${E(x.n)}</p>`:''}<button class="del" data-pc-del="${x.id}" aria-label="حذف">🗑</button></div>`}).join(''):'<div class="pcl-em">هنوز ارتباطی ثبت نشده است.</div>'}`
+ ${L.length?L.map(x=>{const t=tyOf(x.t),m=x.t==='meet'&&window.PMT,rl=x.rel==='f'?' · پدر':x.rel==='m'?' · مادر':'';
+  const body=x.t==='meet'&&x.sub?`<p><b>موضوع:</b> ${E(x.sub)}</p>${x.n?`<p><b>اطلاعات لازم:</b> ${E(x.n)}</p>`:''}${x.res?`<p><b>نتیجه:</b> ${E(x.res)}</p>`:''}`:(x.n?`<p>${E(x.n)}</p>`:'')+(x.res?`<p><b>نتیجه:</b> ${E(x.res)}</p>`:'');
+  return `<div class="pcl-e"><div class="pt"><span>${t[1]} ${t[2]}${rl}</span><small>${jd(x.date)}</small></div>${body}${m?`<button class="del" style="left:34px" data-pc-edit="${x.id}" aria-label="ویرایش">✏️</button>`:''}<button class="del" data-pc-del="${x.id}" aria-label="حذف">🗑</button></div>`}).join(''):'<div class="pcl-em">هنوز ارتباطی ثبت نشده است.</div>'}`
 }
 function open(id){cur=id;draw();ov.classList.add('on')}
 function close(){ov.classList.remove('on');try{if(window.renderSF&&$('sf')&&$('sf').classList.contains('on'))window.renderSF()}catch(e){}}
@@ -60,10 +62,13 @@ ov.addEventListener('click',e=>{const t=e.target;
  const a=t.closest&&t.closest('[data-pc]');
  if(a){const k=a.dataset.pc;if(k==='x'){close();return}
   if(k==='add'){const n=($('pclN').value||'').trim(),ty=$('pclT').value,off=+$('pclD').value||0;
+   if(ty==='meet'&&window.PMT){const sid=cur;close();window.PMT.open({sid});return}/* دیدار حضوری ← فرم کامل «دفتر جلسات اولیا» (نسبت، موضوع، نتیجه) */
    if(!n&&ty==='note'){$('pclN').focus();return}
    S.info=S.info||{};const I=S.info[cur]=S.info[cur]||{};I.pcl=Array.isArray(I.pcl)?I.pcl:[];
    I.pcl.push({id:Date.now(),t:ty,date:isoOff(off),n});save();draw()}
   return}
+ const ed=t.closest&&t.closest('[data-pc-edit]');
+ if(ed&&window.PMT){const sid=cur,id=+ed.dataset.pcEdit;close();window.PMT.open({sid,id});return}
  const d=t.closest&&t.closest('[data-pc-del]');
  if(d){if(!confirm('این مورد از دفتر تماس حذف شود؟'))return;const id=+d.dataset.pcDel,I=(S.info||{})[cur];
   if(I&&Array.isArray(I.pcl)){I.pcl=I.pcl.filter(x=>x.id!==id);save();draw()}}});

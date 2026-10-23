@@ -86,7 +86,7 @@ const W=[170,424,100],cg=`<colgroup>${W.map(w=>`<col style="width:${w}px">`).joi
 const thead=`<thead><tr>${H.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`;
 const rowHtml=r=>r.blank?'<tr class="tex-bl"><td></td><td></td><td></td></tr>':`<tr><td class="c"><b>${E(r.x.ttl)}</b></td><td>${E(r.x.nar)}</td><td class="c">${wdOf(r.x.date)}<br>${dIso(r.x.date)}</td></tr>`;
 const headHtml=()=>{let l='';try{l=typeof profLine==='function'?profLine():''}catch(e){}return `<div class="pmt-hd"><b>${TITLE}</b>${l?`<span>${E(l)}</span>`:''}</div>`};
-function mount(){let r=$('texPrintRoot');if(r)r.remove();r=document.createElement('div');r.id='texPrintRoot';document.body.appendChild(r);return r}
+function mount(){let r=$('texPrintRoot');if(r)r.remove();r=document.createElement('div');r.id='texPrintRoot';r.setAttribute('data-noresp','');document.body.appendChild(r);return r}
 function build(rows){const root=mount(),pr=document.createElement('div');pr.className='pmtA4';
  pr.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${rows.map(r=>rowHtml({x:r})).join('')}</tbody></table></div>`;root.appendChild(pr);
  const hh=pr.querySelector('.pmt-hd').offsetHeight+10,th=pr.querySelector('thead').offsetHeight,hs=[...pr.querySelectorAll('tbody tr')].map(t=>Math.max(t.offsetHeight,150));

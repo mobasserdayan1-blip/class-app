@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v100';
+const C='cl-v103';
 const A=[
   './',
   './index.html',
@@ -65,6 +65,7 @@ const A=[
   './assets/js/features/weekly-timetable.js',
   './assets/js/features/school-team.js',
   './assets/js/features/role-access.js',
+  './assets/js/features/manager-login.js',
   './assets/js/features/dashboard-simplify.js',
   './assets/js/features/quick-attendance.js',
   './assets/js/features/parent-contact-log.js',
@@ -72,6 +73,8 @@ const A=[
   './assets/js/features/parent-general-meetings.js',
   './assets/js/features/teacher-experiences.js',
   './assets/js/features/green-identity.js',
+  './assets/js/features/supervision-log.js',
+  './assets/js/features/supervision-quality.js',
   './assets/js/features/teacher-self-assessment.js',
   './assets/js/features/homework-review.js',
   './assets/js/features/theme-toggle.js',

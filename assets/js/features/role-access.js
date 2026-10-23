@@ -11,9 +11,10 @@ const isT=()=>{try{const r=window.__schRole&&window.__schRole();
 const isM=()=>!isT()&&!!mgrInfo();
 window.isTeacherRole=isT;window.isManagerRole=()=>!isT();window.isSchoolManager=isM;
 const cur=()=>{const s=document.querySelector('main section.on');return s?s.id:''};
-const BLOCK=['cls','dm','tf','bz'],GUARD=BLOCK.concat(['sch']);
+const BLOCK=['cls','dm','tf','bz'],GUARD=BLOCK.concat(['sch']),MGRS=['dm','tf','bz'];   /* MGRS: بخش‌های مدیر؛ فقط برای مدیرِ واردشده دیده می‌شوند */
 const st=document.createElement('style');
 st.textContent='.ra-hide{display:none!important}body.role-teacher #cls,body.role-teacher #dm,body.role-teacher #tf,body.role-teacher #bz,body.role-teacher #sch{display:none!important}'
+ +'body:not(.role-manager) #dm,body:not(.role-manager) #tf,body:not(.role-manager) #bz{display:none!important}'
  +'body.role-manager{--p:#2a4d9b;--p2:#4a7ae0;--line:#d8e3fa}body.role-manager .thero{background:linear-gradient(120deg,#1e3a8a,#3b6fd8);box-shadow:0 8px 24px #1e3a8a44}';
 document.head.appendChild(st);
 
@@ -44,13 +45,13 @@ function applyUI(){
   ['sch'].concat(BLOCK).forEach(k=>{const b=nav.querySelector('[data-p="'+k+'"]');if(b)b.classList.toggle('ra-hide',t)});
   {const meb=nav.querySelector('[data-p="me"]');if(meb)meb.classList.toggle('ra-hide',m)}
   const sch=nav.querySelector('[data-p="sch"]'),hm=nav.querySelector('[data-p="home"]'),se=nav.querySelector('[data-p="set"]');
-  if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;{const nx=m?'🏛️ پیشخوان مدیریت':sch.dataset.o;if(sch.textContent!==nx)sch.textContent=nx}
+  if(sch){if(!sch.dataset.o)sch.dataset.o=sch.textContent;{const nx=m?'🏛️ پیشخوان مدیریت':(t?sch.dataset.o:'🏫 مدرسه و کلاس‌ها');if(sch.textContent!==nx)sch.textContent=nx}
    if(m&&nav.firstElementChild!==sch)nav.insertBefore(sch,nav.firstElementChild);
    else if(!m&&se&&nav.firstElementChild===sch)nav.insertBefore(sch,se)}
   if(hm){if(!hm.dataset.o)hm.dataset.o=hm.textContent;{const nx=m?'🏠 داشبورد کلاس':hm.dataset.o;if(hm.textContent!==nx)hm.textContent=nx}}
  }
  document.querySelectorAll('#subTabs [data-t]').forEach(b=>{const k=b.dataset.t,mp=tmap();
-  if(BLOCK.indexOf(k)>=0)b.classList.toggle('ra-hide',t);
+  if(BLOCK.indexOf(k)>=0)b.classList.toggle('ra-hide',MGRS.indexOf(k)>=0?!m:t);
   if(mp[k])b.textContent=mp[k];else if(orig[k]&&ALL[k])b.textContent=orig[k]});
  const sel=$('clsSel');
  if(sel){
@@ -122,7 +123,7 @@ function syncSel(){const sel=$('clsSel');if(!sel||!isM())return;
  if([...sel.options].some(o=>o.value===v)&&sel.value!==v)sel.value=v}
 
 const o=window.show;
-window.show=function(id){if(isT()&&GUARD.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
+window.show=function(id){if(isT()&&GUARD.indexOf(id)>=0)id='home';if(!isM()&&MGRS.indexOf(id)>=0)id='home';const r=o.call(this,id);try{applyUI();patchHero()}catch(e){}return r};
 const watch=(id,opt)=>{const n=$(id);if(n)new MutationObserver(()=>{try{applyUI()}catch(e){}}).observe(n,opt||{childList:true})};
 ['setBody','sg_box','clsSel','prof','bkb'].forEach(k=>watch(k));
 {const h=$('home');if(h)new MutationObserver(()=>{try{patchHero()}catch(e){}}).observe(h,{childList:true,subtree:true})}
@@ -135,9 +136,9 @@ function land(){
 
 let lt=isT(),lm=isM();
 setInterval(()=>{const t=isT(),m=isM();if(t===lt&&m===lm)return;lt=t;lm=m;try{applyUI();patchHero()}catch(e){}try{window.__deco&&window.__deco(cur())}catch(e){}
- if(t&&GUARD.indexOf(cur())>=0)show('home');
+ if((t&&GUARD.indexOf(cur())>=0)||(!m&&MGRS.indexOf(cur())>=0))show('home');
  if(m)land()},800);
 applyUI();patchHero();
-if(isT()&&GUARD.indexOf(cur())>=0)show('home');
+if((isT()&&GUARD.indexOf(cur())>=0)||(!isM()&&MGRS.indexOf(cur())>=0))show('home');
 land();
 }catch(e){console.error('role-access',e)}})();

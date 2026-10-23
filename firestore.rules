@@ -1,0 +1,60 @@
+// پیشنهاد قوانین Firestore برای پروژه‌ی «class-league-6c89f» — مطابق ساختار داده‌ی فعلی برنامه
+// ⚠️ این فایل با شبیه‌ساز Firebase آزمایش نشده است. قبل از انتشار، در Firebase Console ← Firestore ← Rules ← «Rules playground» بررسی کنید
+//    و آن را با قوانین فعلی خودتان مقایسه کنید؛ اگر قوانین فعلی کار می‌کند، فقط تابع authed() و بخش مدیر را به آن اضافه کنید.
+// نقش مدیر/معلم فقط از سند members/{ایمیل} در سرور خوانده می‌شود؛ کد برنامه نقش را تعیین نمی‌کند.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ایمیل «حساب مدیر با رمز» (همان MANAGER_LOGIN_EMAIL در manager-login.js). این حساب را فقط خودتان در کنسول بسازید.
+    function MGR_LOGIN() { return 'manager@class-league-6c89f.firebaseapp.com'; }
+
+    // ورودِ معتبر: ایمیلِ تأییدشده (گوگل) یا همان حساب مدیرِ رمزدار.
+    // بدون این شرط، هر کسی می‌تواند با ایمیل دلخواه (حتی ایمیل یک معلم) حساب رمزدار بسازد و جای او را بگیرد.
+    function authed() {
+      return request.auth != null && request.auth.token.email != null
+        && (request.auth.token.email_verified == true || request.auth.token.email.lower() == MGR_LOGIN());
+    }
+    function me() { return request.auth.token.email.lower(); }
+    function memPath() { return /databases/$(database)/documents/members/$(me()); }
+    function hasMem() { return authed() && exists(memPath()); }
+    function mem() { return get(memPath()).data; }
+    function inSchool(sid) { return hasMem() && mem().active != false && mem().schoolId == sid; }
+    function isMgr(sid) { return inSchool(sid) && mem().role == 'manager'; }
+    function teacherOf(sid, cid) {
+      return inSchool(sid) && get(/databases/$(database)/documents/schools/$(sid)).data.classes[cid].teacher.lower() == me();
+    }
+
+    // ذخیره‌ی ابریِ شخصی هر حساب
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+      match /parts/{p} { allow read, write: if request.auth != null && request.auth.uid == uid; }
+    }
+
+    // عضویت‌ها: سند members/{ایمیل کوچک}
+    match /members/{email} {
+      allow read: if authed() && (me() == email || isMgr(resource.data.schoolId));
+      // مدیر مدرسه‌ی تازه‌ساخته خودش را ثبت می‌کند؛ یا مدیرِ همان مدرسه عضو اضافه می‌کند
+      allow create: if authed() && request.resource.data.email == email && (
+          (me() == email && request.resource.data.role == 'manager'
+            && get(/databases/$(database)/documents/schools/$(request.resource.data.schoolId)).data.ownerUid == request.auth.uid)
+          || isMgr(request.resource.data.schoolId));
+      allow update: if authed() && isMgr(resource.data.schoolId) && request.resource.data.schoolId == resource.data.schoolId;
+      allow delete: if authed() && isMgr(resource.data.schoolId) && me() != email;
+    }
+
+    // مدرسه
+    match /schools/{sid} {
+      allow read: if authed() && (inSchool(sid) || resource.data.ownerUid == request.auth.uid);
+      allow create: if authed() && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if authed() && isMgr(sid);
+      allow delete: if false;
+
+      // داده‌ی هر کلاس: مدیر به همه، معلم فقط به کلاسی که به او اختصاص داده شده
+      match /classData/{cid} {
+        allow read, write: if authed() && (isMgr(sid) || teacherOf(sid, cid));
+        match /parts/{i} { allow read, write: if authed() && (isMgr(sid) || teacherOf(sid, cid)); }
+      }
+    }
+  }
+}

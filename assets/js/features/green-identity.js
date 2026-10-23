@@ -73,7 +73,7 @@ const W=[80,155,155,155,155],cg=`<colgroup>${W.map(w=>`<col style="width:${w}px"
 const thead=`<thead><tr><th style="background:#fff!important;border-top-color:transparent;border-right-color:transparent"></th>${WK.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`;
 const rowHtml=([m,n])=>`<tr class="hsv-r"><td class="hsv-m">${n}</td>${cells(m).map(t=>`<td>${E(t)}</td>`).join('')}</tr>`;
 const headHtml=()=>{let l='';try{l=typeof profLine==='function'?profLine():''}catch(e){}return `<div class="pmt-hd"><b>${TITLE}</b>${l?`<span>${E(l)}</span>`:''}</div><div class="hsv-sub">${SUBT}</div>`};
-function mount(){let r=$('hsvPrintRoot');if(r)r.remove();r=document.createElement('div');r.id='hsvPrintRoot';document.body.appendChild(r);return r}
+function mount(){let r=$('hsvPrintRoot');if(r)r.remove();r=document.createElement('div');r.id='hsvPrintRoot';r.setAttribute('data-noresp','');document.body.appendChild(r);return r}
 function build(){const root=mount(),rows=MONTHS,pr=document.createElement('div');pr.className='pmtA4';
  pr.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${rows.map(rowHtml).join('')}</tbody></table></div>`;root.appendChild(pr);
  const hh=pr.querySelector('.pmt-hd').offsetHeight+pr.querySelector('.hsv-sub').offsetHeight+22,th=pr.querySelector('thead').offsetHeight,hs=[...pr.querySelectorAll('tbody tr')].map(t=>t.offsetHeight);

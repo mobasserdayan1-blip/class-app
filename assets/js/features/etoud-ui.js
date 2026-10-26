@@ -51,7 +51,7 @@ const grow2=root=>{root.querySelectorAll('.fg').forEach(c=>c.setAttribute('strok
 let seen=false;
 function viz(){
  const home=$('home');let el=$('euv');
- if(!home||!S.students||!S.students.length||isMgr()){if(el)el.remove();return}
+ if(!home||!S.students||!S.students.length){if(el)el.remove();return}
  const m=M();if(!el){el=document.createElement('div');el.id='euv'}
  el.className='euv'+(seen?' euv-static':'');
  el.innerHTML=`<div class="euv-h"><b>📊 نمای گرافیکی کلاس</b><span>${fa(jp(tdy()).d)} ${['','فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'][jp(tdy()).m]||''}</span></div>

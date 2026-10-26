@@ -32,6 +32,8 @@ window.APP_MODULES=[
   {src:'assets/js/features/green-identity.js'},
   {src:'assets/js/features/supervision-log.js'},
   {src:'assets/js/features/supervision-quality.js'},
+  {src:'assets/js/features/question-bank.js'},
+  {src:'assets/js/features/learning-resources.js'},
   {src:'assets/js/ui/home-subtabs.js'},
   {src:'assets/js/features/storage-usage.js'},
   {src:'assets/js/core/service-worker-register.js'},
@@ -51,5 +53,13 @@ window.APP_MODULES=[
   {src:'assets/js/features/parent-contact-log.js'},
   {src:'assets/js/features/homework-review.js'},
   {src:'assets/js/features/theme-toggle.js'},
-  {src:'assets/js/features/etoud-ui.js'}
+  {src:'assets/js/features/etoud-ui.js'},
+  {src:'assets/js/features/ai-config.js'},
+  {src:'assets/js/features/ai-client.js'},
+  {src:'assets/js/features/text-extract-core.js'},
+  {src:'assets/js/features/text-extract.js'},
+  {src:'assets/js/features/question-import-core.js'},
+  {src:'assets/js/features/question-import.js'},
+  {src:'assets/js/features/exam-builder-core.js'},
+  {src:'assets/js/features/exam-builder.js'}
 ];

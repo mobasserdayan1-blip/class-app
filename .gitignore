@@ -1,0 +1,8 @@
+# رازها و فایل‌های محلی — هرگز منتشر نشوند
+functions/.env
+functions/.env.*
+!functions/.env.example
+functions/.secret.local
+functions/node_modules/
+*.log
+.firebase/

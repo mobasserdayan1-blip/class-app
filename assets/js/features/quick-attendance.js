@@ -13,7 +13,7 @@ const iso=()=>{const n=new Date();return new Date(Date.UTC(n.getFullYear(),n.get
 const isMgr=()=>{try{return !!(window.isSchoolManager&&window.isSchoolManager())}catch(e){return false}};
 function refresh(){try{
  if(typeof S==='undefined'||!S){return}
- if(isMgr()){b.style.display='none';return}b.style.display='';
+ b.style.display='';
  const T=iso(),w=new Date(T+'T12:00:00Z').getUTCDay();
  const off=w===4||w===5||!!(S.closed&&S.closed[T]);
  const stu=S.students||[];

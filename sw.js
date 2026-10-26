@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v103';
+const C='cl-v112';
 const A=[
   './',
   './index.html',
@@ -75,10 +75,21 @@ const A=[
   './assets/js/features/green-identity.js',
   './assets/js/features/supervision-log.js',
   './assets/js/features/supervision-quality.js',
+  './assets/js/features/question-bank.js',
+  './assets/js/features/learning-resources.js',
   './assets/js/features/teacher-self-assessment.js',
   './assets/js/features/homework-review.js',
   './assets/js/features/theme-toggle.js',
-  './assets/js/features/etoud-ui.js'
+  './assets/js/features/etoud-ui.js',
+  './assets/js/features/ai-config.js',
+  './assets/js/features/ai-client.js',
+  './assets/js/features/text-extract-core.js',
+  './assets/js/features/text-extract.js',
+  './assets/js/features/question-import-core.js',
+  './assets/js/features/question-import.js',
+  './assets/js/features/exam-builder-core.js',
+  './assets/js/features/exam-builder.js'
+  /* pdf.js (assets/js/vendor/pdfjs/) عمداً پیش‌ذخیره نمی‌شود (حدود ۱٫۵ مگابایت)؛ بعد از اولین استفاده در کش می‌ماند و آفلاین هم کار می‌کند */
 ];
 /* [CHG-7] کتابخانه‌های PDF/اکسل بعد از اولین بارگذاری موفق، آفلاین هم کار می‌کنند */
 const CDN=['https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js',

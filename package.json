@@ -1,0 +1,6 @@
+{
+  "name": "class-app",
+  "private": true,
+  "description": "برنامه جامع دانش‌آموزی — فقط برای اجرای تست‌ها (برنامه خودش بدون بیلد کار می‌کند)",
+  "scripts": { "test": "node --test tests/*.test.js" }
+}

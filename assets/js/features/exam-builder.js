@@ -219,7 +219,7 @@ try{
   return q.ans||'';
  }
  /* فضای پاسخ: تعداد خط‌ها به اندازه‌ی طول پاسخ ثبت‌شده در بانک است (دست‌خط دانش‌آموز بزرگ‌تر از متن تایپی است، پس هر خط حدود ۶۰ نویسه حساب می‌شود).
-    پاسخ ثبت نشده: تشریحی ۳ خط، بقیه ۱ خط. در حالت «زیر هر سؤال» خط‌ها حذف می‌شوند و فقط خود پاسخ زیر سؤال چاپ می‌شود. */
+    پاسخ ثبت نشده: تشریحی ۳ خط، بقیه ۱ خط. در برگه‌ی دانش‌آموز هیچ خط یا نقطه‌چینی چاپ نمی‌شود؛ فقط همان قدر جای خالی می‌ماند تا دانش‌آموز آزادانه بنویسد. در حالت «زیر هر سؤال» خط‌ها حذف می‌شوند و فقط خود پاسخ زیر سؤال چاپ می‌شود. */
  const LH=26,CPL=60;
  function wrLines(q,a){
   if(a)return Math.min(8,Math.max(1,String(a).split(/\n/).reduce((n,t)=>n+Math.max(1,Math.ceil(t.trim().length/CPL)),0)));
@@ -227,7 +227,7 @@ try{
  }
  function writeArea(q,a,show){
   if(show)return `<div class="wa">${a?E(a):'<i class="na">پاسخ ثبت نشده</i>'}</div>`;
-  return `<div class="wr">${'<div class="wl"></div>'.repeat(wrLines(q,a))}</div>`;
+  return `<div class="wr" style="height:${wrLines(q,a)*LH}px"></div>`;
  }
  function qBlock(q,i,showPts,showAns){
   const L=['الف','ب','ج','د'],a=ansText(q);let body=`<div class="qt"><span>${E(q.q)}</span>${showPts?`<span class="pt">(${F(q.pt||1)} نمره)</span>`:''}</div>`;
@@ -300,7 +300,7 @@ try{
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
- .wr{margin:4px 18px 0}.wl{height:26px;border-bottom:1px dotted #888}
+ .wr{margin:4px 18px 0}
  .wa{margin:3px 18px 0;font-weight:700;color:#14653a;white-space:pre-wrap}.na{color:#999;font-weight:400}.ok{color:#14653a;font-weight:800}
  .kh{flex:none}.kt{text-align:center;font-weight:800;font-size:15px;padding:8px 0 0}.ks{text-align:center;font-size:11.5px;color:#333;padding:0 0 6px;border-bottom:1.5px solid #222}
  .kk td.ka{font-weight:800;color:#14653a;font-size:13px}.kk th:nth-child(2){text-align:right}

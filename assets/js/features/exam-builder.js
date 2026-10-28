@@ -243,7 +243,7 @@ try{
   const rows=sh.result.questions.map((q,i)=>qBlock(q,i,opts.pts,opts.ans==='inline')).join('');
   const fbRows=(opts.fbRows.length?opts.fbRows:['','','']);
   const fb=opts.fb?`<table class="fb"><tr><th>انتظارات</th>${FBL.map(x=>`<th>${x}</th>`).join('')}</tr>${fbRows.map(t=>`<tr><td class="ex">${E(t)}</td>${FBL.map(()=>'<td></td>').join('')}</tr>`).join('')}</table>`:'';
-  const note=opts.fb?'<div class="fbx">بازخورد آموزگار:</div>':'',sg=typeof sigRow==='function'?sigRow('margin:6px 18px 4px;justify-content:space-around'):'';
+  const note=opts.fb?'<div class="fbx">بازخورد آموزگار:</div>':'';
   const key=opts.ans==='sep'?keyHtml(sh,ctx,opts,nm):'';
   const sl=typeof schoolSlogan==='function'?schoolSlogan(P):'',sn=school.length,sf=sn<=16?26:sn<=24?23:sn<=32?20:17;
   const meta=opts.meta?[ctx.scopeText?'محدوده‌ی امتحان: '+ctx.scopeText:'',opts.date?'تاریخ: '+opts.date:''].filter(Boolean).join(' | '):'';
@@ -252,7 +252,7 @@ try{
   <td class="c">${sl?`<div class="bism">${E(sl)}</div>`:''}${school?`<div class="sch" style="font-size:${sf}px">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${meta?`<div class="scp">${E(meta)}</div>`:''}</td>
   <td class="l">${logo}</td></tr></table>
   <table class="qs"><thead><tr><th class="no">–</th><th>سؤالات</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="tl">${note}${fb}${sg}<div class="ft">*** با آرزوی موفقیت ***</div></div>
+  <div class="tl">${note}${fb}<div class="ft">*** با آرزوی موفقیت ***</div></div>
   <div class="ch"><span>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:'.............................'}</span><span>${E(opts.title)} — ${E(ctx.scope.bk)}</span></div></div></div>${key}`;
  }
  /* پاسخ‌نامه‌ی آموزگار: فقط شماره و پاسخ */
@@ -296,7 +296,7 @@ try{
  .qs th{background:#e6e6e6;border-bottom:1px solid #222;padding:2px 6px;font-size:12px}.qs th.no,.qs td.no{width:34px;text-align:center;border-left:1px solid #222;font-weight:800}
  .qs td{border-bottom:1px solid #222;vertical-align:top;padding:6px 10px}.qr{break-inside:avoid;page-break-inside:avoid}
  .qt{font-weight:700}.pt{font-weight:400;font-size:11px;margin-right:8px}.op{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin:3px 18px;font-weight:600}.tf{margin:4px 18px;font-weight:700}
- .tl{margin-top:auto;flex:none}
+ .tl{margin-top:0;flex:1 1 auto;display:flex;flex-direction:column}.tl .ft{margin-top:auto}
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}

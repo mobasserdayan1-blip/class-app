@@ -78,6 +78,7 @@ try{
   <div class="exb-g"><div><label>عنوان آزمون</label><input id="exbTitle" placeholder="مثلاً ارزشیابی آغازین"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
   <label>سربرگ بالای برگه</label><input id="exbBism" value="به نام خداوند آفریننده‌ی دانا">
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (بله / تاحدودی / خیر)</label>
+  <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
   <label>انتظارات جدول بازخورد (هر خط یک مورد؛ خالی = چند ردیف خالی برای نوشتن دستی)</label><textarea id="exbFbRows" rows="3"></textarea>
   <details><summary>ترکیب سطح سؤال‌ها برای ۱۰ سؤال (قابل تنظیم)</summary><p class="exb-n">برای تعداد دیگر، نسبت‌ها خودکار مقیاس می‌شوند.</p><table class="exb-mx" id="exbMix"></table><button class="sm" type="button" id="exbMixReset" style="margin-top:6px">بازگشت به پیش‌فرض</button></details></div>
  <button class="big" type="button" id="exbGo" style="margin:6px 0 12px">👁️ ساخت برگه و پیش‌نمایش</button>
@@ -85,7 +86,7 @@ try{
  (main||document.body).appendChild(sec);
 
  const ov=document.createElement('div');ov.id='exbOv';
- ov.innerHTML=`<div class="exb-bar"><span id="exbOvT"></span><button class="big" type="button" id="exbPrint">🖨️ چاپ / ذخیره به‌صورت PDF</button><button class="sm" type="button" id="exbAgain">🎲 سؤال‌های تصادفی جدید</button><button class="sm" type="button" id="exbClose">✖ بستن</button></div><iframe id="exbFr" title="پیش‌نمایش برگه"></iframe>`;
+ ov.innerHTML=`<div class="exb-bar"><span id="exbOvT"></span><button class="big" type="button" id="exbPrint">🖨️ چاپ / ذخیره به‌صورت PDF</button><button class="sm" type="button" id="exbTab">↗️ باز کردن در تب جدید (برای چاپ مطمئن‌تر)</button><button class="sm" type="button" id="exbAgain">🎲 سؤال‌های تصادفی جدید</button><button class="sm" type="button" id="exbClose">✖ بستن</button></div><iframe id="exbFr" title="پیش‌نمایش برگه"></iframe>`;
  document.body.appendChild(ov);
 
  if(typeof pages!=='undefined'){[['exh','🧪 آزمون‌ساز'],['exb','📝 ساخت برگه‌ی امتحانی']].forEach(p=>{if(!pages.some(x=>x[0]===p[0]))pages.push(p)})}
@@ -206,28 +207,41 @@ try{
  }
 
  /* ---------- HTML برگه (A4، راست‌به‌چپ) ---------- */
- function qBlock(q,i,showPts,teacherBlank){
+ function ansText(q){
+  const L=['الف','ب','ج','د'];
+  if(q.ty==='tf')return q.ans==='T'?'صحیح':q.ans==='F'?'غلط':'';
+  if(q.ty==='mc'){const o=Array.isArray(q.op)?q.op[q.ok]:null;if(o!=null&&o!=='')return (L[q.ok]||F(q.ok+1))+') '+o;return q.ans||''}
+  return q.ans||'';
+ }
+ function qBlock(q,i,showPts,showAns){
   const L=['الف','ب','ج','د'];let body=`<div class="qt"><span>${E(q.q)}</span>${showPts?`<span class="pt">(${F(q.pt||1)} نمره)</span>`:''}</div>`;
   if(q.ty==='mc'&&Array.isArray(q.op)&&q.op.length)body+=`<div class="op">${q.op.map((o,j)=>`<div>${L[j]||F(j+1)}) ${E(o)}</div>`).join('')}</div>`;
   else if(q.ty==='tf')body+=`<div class="tf">صحیح ☐ &nbsp;&nbsp;&nbsp; غلط ☐</div>`;
   else if(q.ty==='es')body+=`<div class="sp" style="height:70px"></div>`;
   else body+=`<div class="sp" style="height:34px"></div>`;
+  if(showAns){const a=ansText(q);body+=`<div class="an">پاسخ: ${a?E(a):'<i>ثبت نشده</i>'}</div>`}
   return `<tr class="qr"><td class="no">${F(i+1)}</td><td class="bd">${body}</td></tr>`;
  }
  function sheetHtml(sh,ctx,opts){
   const P=prof(),school=P.school&&typeof schoolFull==='function'?schoolFull():(P.school||''),teacher=P.teacher||'';
   const nm=sh.student._general?'':(sh.student.name||'');
   const logo=P.logo?`<img src="${E(P.logo)}" alt="">`:'';
-  const rows=sh.result.questions.map((q,i)=>qBlock(q,i,opts.pts)).join('');
+  const rows=sh.result.questions.map((q,i)=>qBlock(q,i,opts.pts,opts.ans==='inline')).join('');
   const fbRows=(opts.fbRows.length?opts.fbRows:['','','']);
   const fb=opts.fb?`<table class="fb"><tr><th>انتظارات</th><th>بله</th><th>تاحدودی</th><th>خیر</th></tr>${fbRows.map(t=>`<tr><td class="ex">${E(t)}</td><td></td><td></td><td></td></tr>`).join('')}</table>`:'';
   const note=opts.fb?'<div class="fbx">بازخورد آموزگار:</div>':'',sg=typeof sigRow==='function'?sigRow('margin:6px 18px 4px;justify-content:space-around'):'';
+  const key=opts.ans==='sep'?keyHtml(sh,ctx,opts,nm):'';
   return `<div class="sheet"><div class="frame">
   <table class="hd"><tr><td class="r"><div>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:'.................................'}</div><div>نام درس: <b>${E(ctx.scope.bk)}</b></div><div>پایه: <b>${E(P.grade||'')}${P.sec?E(' ('+P.sec+')'):''}</b></div><div>آموزگار: ${teacher?`<b>${E(teacher)}</b>`:'.....................'}</div><div>مدیر: ${P.principal?`<b>${E(P.principal)}</b>`:'.....................'}</div></td>
   <td class="c"><div class="bism">${E(opts.bism)}</div>${school?`<div class="sch">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${ctx.scopeText?`<div class="scp">محدوده‌ی امتحان: ${E(ctx.scopeText)}</div>`:''}<div class="scp">تاریخ: ${opts.date?E(opts.date):'................'}</div></td>
   <td class="l">${logo}</td></tr></table>
   <table class="qs"><tr><th class="no">–</th><th>سؤالات</th></tr>${rows}</table>
-  ${note}${fb}${sg}<div class="ft">*** با آرزوی موفقیت ***</div></div></div>`;
+  ${note}${fb}${sg}<div class="ft">*** با آرزوی موفقیت ***</div></div></div>${key}`;
+ }
+ function keyHtml(sh,ctx,opts,nm){
+  const rows=sh.result.questions.map((q,i)=>{const a=ansText(q);return `<tr class="qr"><td class="no">${F(i+1)}</td><td class="kq">${E(String(q.q).slice(0,80))}${String(q.q).length>80?'…':''}</td><td class="ka">${a?E(a):'<i>ثبت نشده</i>'}</td></tr>`}).join('');
+  return `<div class="sheet key"><div class="frame"><div class="kt">پاسخ‌نامه‌ی آموزگار — ${E(opts.title)}</div><div class="ks">${E(ctx.scope.bk)}${nm?' | '+E(nm):''}${ctx.scopeText?' | '+E(ctx.scopeText):''}</div>
+  <table class="qs kk"><tr><th class="no">–</th><th>سؤال</th><th>پاسخ</th></tr>${rows}</table></div></div>`;
  }
  const CSS=`@page{size:A4;margin:8mm}*{box-sizing:border-box}html,body{margin:0}body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;direction:rtl;color:#111;font-size:12.5px;line-height:1.9;background:#777}
  .sheet{width:210mm;min-height:297mm;margin:10px auto;background:#fff;padding:8mm;box-shadow:0 2px 8px rgba(0,0,0,.4)}
@@ -240,25 +254,33 @@ try{
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
- @media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:auto;min-height:0;padding:0;page-break-after:always}.sheet:last-child{page-break-after:auto}}`;
- function docHtml(b){
-  const o={pts:false,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim()};
-  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title><link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}</body></html>`;
+ .an{margin:4px 18px 0;padding:1px 8px;border:1px solid #2a7a4b;background:#eef9f2;border-radius:6px;font-size:11.5px;font-weight:700;color:#14653a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .kt{text-align:center;font-weight:800;font-size:15px;padding:8px 0 0}.ks{text-align:center;font-size:11.5px;color:#333;padding:0 0 6px;border-bottom:1.5px solid #222}
+ .kk td.kq{font-size:11.5px;color:#333;width:50%}.kk td.ka{font-weight:800;color:#14653a}.kk th:nth-child(2),.kk th:nth-child(3){text-align:right}.kk td.kq,.kk td.ka{border-right:1px solid #ccc}
+ .tb{position:sticky;top:0;z-index:5;background:#fff;padding:8px;text-align:center;border-bottom:1px solid #999}.tb button{font:inherit;font-size:15px;padding:8px 18px;cursor:pointer}
+ .sheet{break-after:page;page-break-after:always}
+ @media print{body{background:#fff}.tb{display:none!important}.sheet{margin:0;box-shadow:none;width:auto;min-height:0;padding:0;break-after:page;page-break-after:always;break-inside:auto}.sheet:last-child{break-after:auto;page-break-after:auto}.frame{break-inside:auto}.ft{break-before:avoid}}`;
+ /* اگر محتوای یک برگه کمی بلندتر از یک صفحه‌ی A4 شد، کمی کوچک می‌شود (حداکثر تا ۶۵٪) تا هر برگه دقیقاً یک صفحه بماند */
+ const FIT="(function(){function fit(){var H=1045;document.querySelectorAll('.sheet').forEach(function(s){var f=s.querySelector('.frame');s.style.zoom='';var h=f.offsetHeight;if(h>H)s.style.zoom=Math.max(H/h,.65)})}addEventListener('load',function(){if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);else fit()});})();";
+ function docHtml(b,standalone){
+  const o={pts:false,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
+  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title>${standalone?`<base href="${E(document.baseURI)}">`:''}<link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${standalone?'<div class="tb"><button type="button" onclick="print()">🖨️ چاپ / ذخیره به‌صورت PDF</button></div>':''}${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}<script>${FIT}</script></body></html>`;
  }
+ function missingAns(b){return $('exbAns').value==='none'?0:b.sheets.reduce((n,sh)=>n+sh.result.questions.filter(q=>!ansText(q)).length,0)}
  function openPreview(){
   const b=last;if(!b)return;
   $('exbFr').srcdoc=docHtml(b);
-  $('exbOvT').textContent=`پیش‌نمایش: ${F(b.sheets.length)} برگه — در پنجره‌ی چاپ مقصد «ذخیره به‌صورت PDF» را بزنید.`;
+  $('exbOvT').textContent=`پیش‌نمایش: ${F(b.sheets.length)} برگه${$('exbAns').value==='sep'?' + '+F(b.sheets.length)+' صفحه‌ی پاسخ‌نامه':''} — در پنجره‌ی چاپ مقصد «ذخیره به‌صورت PDF» را بزنید.${missingAns(b)?' ⚠️ برای '+F(missingAns(b))+' سؤال پاسخ ثبت نشده است.':''}`;
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.title=$('exbTitle').value;c.count=$('exbCount').value;c.bism=$('exbBism').value;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.bk=$('exbBk').value;
+  const c=cfg();c.title=$('exbTitle').value;c.count=$('exbCount').value;c.bism=$('exbBism').value;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
   if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.bism!=null)$('exbBism').value=c.bism;
-  if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;
+  if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){
   const b=build(),rep=$('exbRep');
@@ -269,6 +291,7 @@ try{
  /* ---------- رویدادها ---------- */
  $('exbGo').onclick=go;
  $('exbAgain').onclick=go;
+ $('exbTab').onclick=()=>{if(!last)return;const u=URL.createObjectURL(new Blob([docHtml(last,true)],{type:'text/html;charset=utf-8'}));if(!window.open(u,'_blank'))alert('مرورگر باز شدن تب جدید را مسدود کرد؛ اجازه‌ی پاپ‌آپ بدهید یا از دکمه‌ی چاپ همین صفحه استفاده کنید.');setTimeout(()=>URL.revokeObjectURL(u),120000)};
  $('exbClose').onclick=()=>ov.classList.remove('on');
  $('exbPrint').onclick=()=>{const w=$('exbFr').contentWindow;if(w){w.focus();w.print()}};
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))ov.classList.remove('on')});

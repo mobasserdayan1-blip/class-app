@@ -85,7 +85,7 @@ function card(x){const l=lvO(x.lv),path=[x.gr?'پایه '+x.gr:'',x.bk,x.ls,x.ln
  let body=`<div class="qbk-q">${E(x.q)}</div>`;
  if(x.ty==='mc')body+=(x.op||[]).map((o,i)=>`<div class="qbk-o${i===x.ok?' ok':''}"><span>${LET[i]||fa(i+1)})</span><span>${E(o)}${i===x.ok?' ✔':''}</span></div>`).join('');
  else body+=`<div class="qbk-a"><b>پاسخ:</b> ${E(ansT(x)||'ثبت نشده')}</div>`;
- return `<div class="qbk-e"><div class="qbk-h"><span class="qbk-bd" style="background:${l[2]}">${l[1]}</span><span class="qbk-ty">${tyN(x.ty)}</span><span class="qbk-pt">بارم: ${nf(x.pt)}</span></div>
+ return `<div class="qbk-e"><div class="qbk-h"><span class="qbk-bd" style="background:${l[2]}">${l[1]}</span><span class="qbk-ty">${tyN(x.ty)}</span></div>
  <div class="qbk-p">${path}</div>${body}${x.src?`<div class="qbk-s">📖 منبع: ${E(x.src)}</div>`:''}
  <div class="qbk-ac"><button class="sm" data-qb="edit" data-i="${x.id}">✏️ ویرایش</button><button class="sm" data-qb="del" data-i="${x.id}">🗑 حذف</button></div></div>`}
 function renderList(){if(!$('qbkL'))return;const A=list(),R=A.filter(match).sort((a,b)=>(b.ca||b.id)-(a.ca||a.id));
@@ -125,7 +125,6 @@ function formHtml(){const g=grades();
  <div id="qfMc"><label>گزینه‌ها (اختیاری؛ در صورت داشتن پاسخ صحیح، دکمه‌ی کنار گزینه را بزنید)</label>${[0,1,2,3].map(i=>`<div class="qbk-op"><button type="button" data-qb="ok" data-i="${i}" class="${ed.ok===i?'on':''}">${LET[i]}</button><input id="qfO${i}" value="${E(ed.op[i]||'')}" placeholder="گزینه‌ی ${LET[i]}" autocomplete="off"></div>`).join('')}</div>
  <div id="qfTf"><label>پاسخ درست (اختیاری)</label><div class="qbk-tf"><button type="button" data-qb="tf" data-v="T" class="${ed.tfv==='T'?'on':''}">صحیح</button><button type="button" data-qb="tf" data-v="F" class="${ed.tfv==='F'?'on':''}">غلط</button></div></div>
  <div id="qfAn"><label>پاسخ (اختیاری)</label><textarea id="qfA">${E(ed.ans)}</textarea></div>
- <label>بارم</label><input id="qfPt" type="text" inputmode="decimal" value="${E(String(ed.pt).replace('.','٫'))}" autocomplete="off">
  <label>منبع (اختیاری)</label><input id="qfR" value="${E(ed.src)}" placeholder="مثلاً کتاب درسی صفحه‌ی ۴۲ یا طرح معلم" autocomplete="off">
  <div class="pmt-er" id="qfEr"></div>
  <div class="pmt-fa"><button class="go" type="button" data-qb="save">💾 ${ed.id?'ذخیره‌ی تغییرات':'ثبت در بانک'}</button><button type="button" data-qb="cancel">انصراف</button></div>`}
@@ -146,7 +145,7 @@ function saveForm(){const er=t=>{$('qfEr').textContent=t},v=id=>$(id).value.trim
  if(!ls){er('درس را بنویسید.');$('qfL').focus();return}
  if(!ed.lv){er('سطح دشواری را انتخاب کنید.');return}
  if(!q){er('متن سؤال را بنویسید.');$('qfQ').focus();return}
- const pt=parseFloat(toLat(v('qfPt')));if(!(pt>0)||pt>100){er('بارم باید عددی بزرگ‌تر از صفر (حداکثر ۱۰۰) باشد.');$('qfPt').focus();return}
+ const pt=parseFloat(ed.pt)>0?parseFloat(ed.pt):1; /* ابتدایی: ارزشیابی توصیفی؛ بارم نمایش/دریافت نمی‌شود */
  const nz=id=>{const t=toLat(v(id));if(!t)return{ok:true,n:null};return /^\d{1,4}$/.test(t)&&+t>0?{ok:true,n:+t}:{ok:false}};
  const rLn=nz('qfLn'),rP1=nz('qfP1'),rP2=nz('qfP2');
  if(!rLn.ok){er('شماره‌ی درس باید یک عدد صحیح مثبت باشد (یا خالی بماند).');$('qfLn').focus();return}

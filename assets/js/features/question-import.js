@@ -49,7 +49,7 @@ try{
  <div class="card" id="qiExamCard" style="display:none"><h3>📝 ساخت برگه‌ی سؤال و خروجی PDF</h3>
  <p class="qi-note">از سؤال‌هایی که قبلاً ذخیره کرده‌ای انتخاب کن، ظاهر برگه را تنظیم کن و روی «آماده‌سازی PDF» بزن. در پنجره‌ی چاپ، مقصد را «Save as PDF / ذخیره به‌صورت PDF» انتخاب کن.</p>
  <div class="qi-meta"><div><label>عنوان برگه</label><input id="qeTitle" value="برگه‌ی سؤال"></div><div><label>نام مدرسه</label><input id="qeSchool" placeholder="مثلاً دبستان ..."></div><div><label>نام آموزگار</label><input id="qeTeacher" placeholder="اختیاری"></div><div><label>پایه</label><select id="qeGrade"><option value="">همه‌ی پایه‌ها</option>${['اول','دوم','سوم','چهارم','پنجم','ششم'].map(x=>`<option>${x}</option>`).join('')}</select></div><div><label>کتاب</label><select id="qeBook"><option value="">همه‌ی کتاب‌ها</option></select></div><div><label>درس</label><select id="qeLesson"><option value="">همه‌ی درس‌ها</option></select></div><div><label>فصل</label><select id="qeChapter"><option value="">همه‌ی فصل‌ها</option></select></div><div><label>مبحث</label><select id="qeTopic"><option value="">همه‌ی مباحث</option></select></div><div><label>تعداد سؤال در برگه</label><input id="qeCount" type="number" min="1" max="100" value="10"></div></div>
- <div class="qi-meta"><div><label>نام دانش‌آموز روی برگه</label><select id="qeNameMode"><option value="line">جای خالی برای نوشتن نام</option><option value="hidden">نمایش نده</option></select></div><div><label>نمایش نمره‌ی هر سؤال</label><select id="qePoints"><option value="yes">بله</option><option value="no">خیر</option></select></div><div><label>دستورالعمل</label><input id="qeInstructions" value="با دقت به سؤال‌ها پاسخ دهید."></div></div>
+ <div class="qi-meta"><div><label>نام دانش‌آموز روی برگه</label><select id="qeNameMode"><option value="line">جای خالی برای نوشتن نام</option><option value="hidden">نمایش نده</option></select></div><div><label>دستورالعمل</label><input id="qeInstructions" value="با دقت به سؤال‌ها پاسخ دهید."></div></div>
  <div class="qi-row"><b>🎲 انتخاب تصادفی بر اساس سطح</b><p class="qi-note">ابتدا پایه، کتاب، درس، فصل و مبحث را مشخص کن؛ سپس تعداد هر سطح را وارد کن. فقط از همان دسته‌بندی انتخاب می‌شود.</p><div class="qi-meta"><div><label>آسان</label><input id="qeEasy" type="number" min="0" max="100" value="3"></div><div><label>متوسط</label><input id="qeMedium" type="number" min="0" max="100" value="5"></div><div><label>سخت</label><input id="qeHard" type="number" min="0" max="100" value="2"></div></div><button class="big" id="qeRandom" type="button">🎲 ساخت برگه با سؤال‌های تصادفی</button></div><div class="qi-toolbar"><button class="sm" id="qeSelectVisible" type="button">انتخاب سؤال‌های نمایش‌داده‌شده</button><button class="sm" id="qeClearSelect" type="button">لغو انتخاب‌ها</button><button class="big" id="qeMakePdf" type="button">🖨️ آماده‌سازی PDF</button></div>
  <div id="qeQuestionList" class="qi-exam-list"></div><h4>✏️ برگه‌ی من — ترتیب و متن سؤال‌ها</h4><p class="qi-note">با دکمه‌های بالا/پایین ترتیب را عوض کن. متن هر سؤال را هم می‌توانی فقط برای همین برگه اصلاح کنی؛ بانک اصلی تغییر نمی‌کند.</p><div id="qeSelectedList"></div><p id="qeStatus" class="qi-note" aria-live="polite"></p></div>`;
  const qb=$('qbk');if(qb)qb.after(section);else document.querySelector('main')?.appendChild(section);
@@ -83,7 +83,7 @@ try{
    const r=Core.parseStructured(paras);
    if(!r.items.length)throw Error('سؤالی تشخیص داده نشد. هر سؤال را با «س:» و پاسخ را با «پ:» شروع کن و کتاب و درس را با عنوان ۱ و عنوان ۲ بنویس.');
    const blocks=[];
-   for(const it of r.items){const b=blocks[blocks.length-1];if(b&&b.bk===it.bk&&b.ls===it.ls)b.items.push(it);else blocks.push({bk:it.bk,ls:it.ls,items:[it]})}
+   for(const it of r.items){const b=blocks[blocks.length-1];if(b&&b.bk===it.bk&&b.ls===it.ls&&b.ln===it.ln)b.items.push(it);else blocks.push({bk:it.bk,ls:it.ls,ln:it.ln,lp1:it.lp1,lp2:it.lp2,items:[it]})}
    st={items:r.items,blocks,warnings:r.warnings,ended:r.ended,bookMap:autoMap(blocks),open:new Set()};structured=true;candidates=[];
    refreshFlags();st.items.forEach(it=>{it.include=!it.flags.some(f=>f==='dup'||f==='short'||f==='noans'||f==='nobook'||f==='nolesson');it.src=fileName});
    $('qiMeta').hidden=false;showStructuredUi(true);
@@ -92,8 +92,10 @@ try{
    $('qiStatus').textContent=`${fa(st.items.length)} سؤال در ${fa(st.blocks.length)} درس پیدا شد.`+(st.items.some(i=>!i.include)?' موردهای تکراری، بدون پاسخ یا ناقص علامت خورده و خودکار انتخاب نشده‌اند.':'');
   }
   const cnt=items=>{const c={dup:0,noans:0,short:0};items.forEach(i=>i.flags.forEach(f=>{if(f in c)c[f]++}));return c};
+  const num=v=>{const t=String(v==null?'':v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).trim();return /^\d{1,4}$/.test(t)&&+t>0?+t:null};
+  const pgTxt=(a,b)=>{a=num(a);b=num(b);return a==null?'':' · ص '+fa(a)+(b!=null&&b!==a?'–'+fa(b):'')};
   const sumText=b=>{const c=cnt(b.items),n=b.items.filter(i=>i.include).length;
-   return `${bookOf(b)||'؟'} › ${b.ls||'(بدون درس)'} — ${fa(b.items.length)} سؤال، ${fa(n)} انتخاب`+(c.dup?` · ${fa(c.dup)} تکراری`:'')+(c.noans?` · ${fa(c.noans)} بدون پاسخ`:'')+(c.short?` · ${fa(c.short)} ناقص`:'')};
+   return `${bookOf(b)||'؟'} › ${b.ls||'(بدون درس)'}${num(b.ln)!=null?' (درس '+fa(num(b.ln))+')':''}${pgTxt(b.lp1,b.lp2)} — ${fa(b.items.length)} سؤال، ${fa(n)} انتخاب`+(c.dup?` · ${fa(c.dup)} تکراری`:'')+(c.noans?` · ${fa(c.noans)} بدون پاسخ`:'')+(c.short?` · ${fa(c.short)} ناقص`:'')};
   function renderTop(){
    const books=new Set(st.blocks.map(b=>bookOf(b))),n=st.items.filter(i=>i.include).length;
    $('qiTop').innerHTML=`<div class="qi-row"><b>خلاصه:</b> ${fa(books.size)} کتاب · ${fa(st.blocks.length)} درس · ${fa(st.items.length)} سؤال؛ ${fa(n)} مورد برای ذخیره انتخاب شده است.${st.ended?' متن بعد از «پایان سؤالات» نادیده گرفته شد.':''}
@@ -109,8 +111,9 @@ try{
     <textarea data-f="q" aria-label="متن سؤال">${E(it.q)}</textarea><textarea data-f="ans" aria-label="پاسخ" placeholder="پاسخ">${E(it.ans)}</textarea>
     ${it.type==='mc'?`<label>گزینه‌ها (هر خط یک گزینه)</label><textarea data-f="op">${E(it.op.join('\n'))}</textarea><label>شماره‌ی گزینه‌ی درست</label><input data-f="ok" inputmode="numeric" value="${E(it.ok||'')}">`:''}
     <div class="qi-grid"><div><label>سطح</label><select data-f="lv"><option value="">مثل سطح همه‌ی سؤال‌ها</option>${Object.keys(LV).map(k=>`<option value="${k}" ${it.lv===k?'selected':''}>${LV[k]}</option>`).join('')}</select></div>
-    <div><label>نوع</label><select data-f="type">${TY.map(x=>`<option value="${x[0]}" ${it.type===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div></div></div>`}
-  function bodyHtml(b){return `<div class="qi-toolbar"><button class="sm" type="button" data-bact="all">همه‌ی این درس</button><button class="sm" type="button" data-bact="none">هیچ‌کدام</button><button class="sm" type="button" data-bact="clean">فقط سالم‌ها</button></div><label>نام درس</label><input data-bls value="${E(b.ls)}">`+b.items.map(rowHtml).join('')}
+    <div><label>نوع</label><select data-f="type">${TY.map(x=>`<option value="${x[0]}" ${it.type===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>
+    <div><label>از صفحه</label><input data-f="p1" inputmode="numeric" value="${E(it.p1==null?'':it.p1)}"></div><div><label>تا صفحه</label><input data-f="p2" inputmode="numeric" value="${E(it.p2==null?'':it.p2)}"></div></div></div>`}
+  function bodyHtml(b){return `<div class="qi-toolbar"><button class="sm" type="button" data-bact="all">همه‌ی این درس</button><button class="sm" type="button" data-bact="none">هیچ‌کدام</button><button class="sm" type="button" data-bact="clean">فقط سالم‌ها</button></div><label>نام درس</label><input data-bls value="${E(b.ls)}"><div class="qi-grid"><div><label>شماره‌ی درس</label><input data-bln inputmode="numeric" value="${E(b.ln==null?'':b.ln)}"></div><div><label>از صفحه‌ی کتاب</label><input data-blp1 inputmode="numeric" value="${E(b.lp1==null?'':b.lp1)}"></div><div><label>تا صفحه‌ی کتاب</label><input data-blp2 inputmode="numeric" value="${E(b.lp2==null?'':b.lp2)}"></div></div><small class="qi-note">این سه مورد از عنوان درس در Word خوانده شده‌اند و برای همه‌ی سؤال‌های این درس اعمال می‌شوند؛ سؤالی که صفحه‌ی خودش را دارد ([ص ..] یا مبحث) دست‌نخورده می‌ماند.</small>`+b.items.map(rowHtml).join('')}
   function renderBlocks(){
    $('qiBlocks').innerHTML=st.blocks.map((b,bi)=>`<details class="qi-row" data-bi="${bi}" ${st.open.has(bi)?'open':''}><summary>${E(sumText(b))}</summary>${st.open.has(bi)?bodyHtml(b):''}</details>`).join('')}
   function renderStructured(){refreshFlags();renderTop();renderMaps();renderBlocks()}
@@ -122,10 +125,19 @@ try{
    if(t.dataset.bookmap!==undefined){const had=!!st.bookMap[t.dataset.bookmap];st.bookMap[t.dataset.bookmap]=t.value;renderMaps();refreshSummaries();if(!had&&t.value){st.items.forEach(i=>{i.include=!i.flags.length});renderStructured()}return}
    const det=t.closest('[data-bi]');if(!det)return;const b=st.blocks[+det.dataset.bi];
    if(t.dataset.bls!==undefined){b.ls=t.value.trim();if(e.type==='change')refreshSummaries();else det.querySelector('summary').textContent=sumText(b);return}
+   if(t.dataset.bln!==undefined||t.dataset.blp1!==undefined||t.dataset.blp2!==undefined){
+    const bk2=t.dataset.bln!==undefined?'ln':t.dataset.blp1!==undefined?'lp1':'lp2';b[bk2]=t.value.trim();
+    if(bk2==='ln')b.items.forEach(i=>{i.ln=b.ln});else b.items.forEach(i=>{if(!i.pov){i.p1=b.lp1;i.p2=b.lp2}});
+    /* بدون ساخت دوباره‌ی کادرها تا جای مکان‌نما هنگام Tab/تایپ نپرد */
+    det.querySelectorAll('[data-ii]').forEach(r=>{const it=b.items[+r.dataset.ii];if(!it)return;
+     const a=r.querySelector('[data-f="p1"]'),c=r.querySelector('[data-f="p2"]');
+     if(bk2!=='ln'&&!it.pov){if(a)a.value=it.p1==null?'':it.p1;if(c)c.value=it.p2==null?'':it.p2}});
+    if(e.type==='change')refreshSummaries();else det.querySelector('summary').textContent=sumText(b);
+    return}
    const row=t.closest('[data-ii]');if(!row)return;const it=b.items[+row.dataset.ii],k=t.dataset.f;if(!k)return;
    if(k==='include')it.include=t.checked;
    else if(k==='op')it.op=t.value.split('\n').map(x=>x.trim()).filter(Boolean);
-   else{it[k]=t.value;if(k==='q'||k==='ans'){it.flags=it.flags.filter(f=>f!=='short'&&f!=='noans');if(it.q.trim().length<3)it.flags.push('short');if(!it.ans.trim()&&it.type!=='mc')it.flags.push('noans')}}
+   else{it[k]=t.value;if(k==='p1'||k==='p2')it.pov=true;if(k==='q'||k==='ans'){it.flags=it.flags.filter(f=>f!=='short'&&f!=='noans');if(it.q.trim().length<3)it.flags.push('short');if(!it.ans.trim()&&it.type!=='mc')it.flags.push('noans')}}
    if(k==='type'){Array.from(det.children).forEach(c=>{if(c.tagName!=='SUMMARY')c.remove()});det.insertAdjacentHTML('beforeend',bodyHtml(b))}
    if(k==='include'||k==='type'||e.type==='change')refreshSummaries();else{det.querySelector('summary').textContent=sumText(b)}
   }
@@ -146,26 +158,41 @@ try{
    const gr=String((S.prof&&S.prof.grade)||''),ch=$('qiChapter').value.trim(),lv=$('qiLevel').value;
    if(!gr){$('qiResult').textContent='پایه‌ی کلاس در «اطلاعات مدرسه و پایه» ثبت نشده است؛ ابتدا آن را ثبت کن.';return}
    refreshFlags();
-   const bank=QBK.all(),now=Date.now(),toAdd=[],dups=[];let bad=0;
+   const bank=QBK.all(),now=Date.now(),toAdd=[],dups=[],fills=new Map();let bad=0,badPg=0;
+   const readPg=it=>{const a=String(it.ln==null?'':it.ln).trim(),b1=String(it.p1==null?'':it.p1).trim(),b2=String(it.p2==null?'':it.p2).trim();
+    const ln=a?num(a):null,p1=b1?num(b1):null,p2=b2?num(b2):null;
+    const ok=!((a&&ln==null)||(b1&&p1==null)||(b2&&p2==null)||(b2&&!b1)||(p1!=null&&p2!=null&&p2<p1));
+    return {ok,ln,p1,p2:p1!=null?(p2!=null?p2:p1):null}};
+   const queueFill=(ex,pg)=>{if(!ex||!pg.ok)return;if((pg.ln!=null&&ex.ln==null)||(pg.p1!=null&&ex.p1==null))fills.set(ex,pg)};
    for(const b of st.blocks){const bk=bookOf(b);
-    for(const it of b.items){if(!it.include)continue;
+    for(const it of b.items){
+     const pg=readPg(it);
+     if(!it.include){
+      /* سؤال تکراریِ تیک‌نخورده: فقط شماره‌ی درس/صفحه‌ی خالی‌ماندهٔ نسخه‌ی قبلی تکمیل می‌شود */
+      if(it.flags.includes('dup')&&bk&&b.ls&&String(it.q||'').trim()){const gr0=gr,k0=Core.duplicateKey({gr:gr0,bk,ls:b.ls,q:String(it.q).trim()});queueFill(bank.find(x=>Core.duplicateKey(x)===k0),pg)}
+      continue}
      const q=String(it.q||'').trim(),ty=it.type||'es';
      if(!bk||!b.ls||q.length<3){bad++;continue}
+     if(!pg.ok){badPg++;continue}
      let op=[],ok=-1;
      if(ty==='mc'){op=(it.op||[]).map(x=>String(x).trim()).filter(Boolean);if(op.length===1){bad++;continue}const n=parseInt(String(it.ok||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)),10);if(n>0&&n<=op.length)ok=n-1}
      let ans=String(it.ans||'').trim();
      if(ty==='tf'&&ans){const a=Core.norm(ans);if(['t','صحیح','درست','بله','true'].includes(a))ans='T';else if(['f','غلط','نادرست','خیر','false'].includes(a))ans='F'}
      const rec={v:1,gr,bk,ls:b.ls,ch,tp:it.tp||'',lv:it.lv||lv,ty,q,op,ok,ans:ty==='mc'&&ok>=0?op[ok]:ans,pt:1,src:String(it.src||fileName).trim(),ca:now};
-     const key=Core.duplicateKey(rec);
-     if(bank.some(x=>Core.duplicateKey(x)===key)||toAdd.some(x=>Core.duplicateKey(x)===key)){dups.push(q);continue}
+     if(pg.ln!=null)rec.ln=pg.ln;if(pg.p1!=null){rec.p1=pg.p1;rec.p2=pg.p2}
+     const key=Core.duplicateKey(rec),ex=bank.find(x=>Core.duplicateKey(x)===key);
+     if(ex){dups.push(q);queueFill(ex,pg);continue}
+     if(toAdd.some(x=>Core.duplicateKey(x)===key)){dups.push(q);continue}
      toAdd.push(rec);
     }}
    if(bad){$('qiResult').textContent=`${fa(bad)} سؤال انتخاب‌شده کتاب یا درس ندارد، متنش خیلی کوتاه است یا گزینه‌هایش ناقص است. اصلاحشان کن یا تیک ذخیره را بردار؛ چیزی ذخیره نشد.`;return}
-   if(!toAdd.length){$('qiResult').textContent=dups.length?'سؤال‌های انتخاب‌شده قبلاً وجود داشتند؛ چیزی ذخیره نشد.':'هیچ سؤالی برای ذخیره انتخاب نشده است.';return}
+   if(badPg){$('qiResult').textContent=`${fa(badPg)} سؤال انتخاب‌شده شماره‌ی درس یا صفحه‌ی نامعتبر دارد (فقط عدد مثبت؛ «تا صفحه» نباید از «از صفحه» کوچک‌تر باشد). اصلاحشان کن؛ چیزی ذخیره نشد.`;return}
+   if(!toAdd.length&&!fills.size){$('qiResult').textContent=dups.length?'سؤال‌های انتخاب‌شده قبلاً وجود داشتند؛ چیزی ذخیره نشد.':'هیچ سؤالی برای ذخیره انتخاب نشده است.';return}
+   fills.forEach((pg,ex)=>{if(ex.ln==null&&pg.ln!=null)ex.ln=pg.ln;if(ex.p1==null&&pg.p1!=null){ex.p1=pg.p1;ex.p2=pg.p2}});
    const existing=new Set(bank.map(x=>x.id));let id=now;toAdd.forEach(r=>{while(existing.has(id))id++;r.id=id++;existing.add(r.id)});
    S.qbk=(Array.isArray(S.qbk)?S.qbk:[]).concat(toAdd);save();QBK.render();fillExamFilters();renderExamList();
    const lessons=new Set(toAdd.map(r=>r.bk+'|'+r.ls)).size;
-   $('qiResult').textContent=`${fa(toAdd.length)} سؤال از ${fa(lessons)} درس ذخیره شد${dups.length?'؛ '+fa(dups.length)+' مورد تکراری نادیده گرفته شد':''}.`;
+   $('qiResult').textContent=`${fa(toAdd.length)} سؤال از ${fa(lessons)} درس ذخیره شد${dups.length?'؛ '+fa(dups.length)+' مورد تکراری نادیده گرفته شد':''}${fills.size?'؛ شماره‌ی درس/صفحه‌ی '+fa(fills.size)+' سؤال قبلی (که این‌ها را نداشتند) تکمیل شد':''}.`;
    st=null;structured=false;showStructuredUi(false);$('qiCandidates').innerHTML='';$('qiFile').value='';$('qiPasteText').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='تمام شد؛ می‌توانی فایل بعدی را انتخاب کنی.';
   }
  function renderCandidates(){
@@ -250,7 +277,7 @@ try{
   const byId=new Map(QBK.all().map(q=>[String(q.id),q]));let pool=selectedOrder.map(id=>byId.get(id)).filter(Boolean).map(q=>Object.assign({},q,{q:examEdits[String(q.id)]??q.q}));
   const max=Math.max(1,Math.min(100,parseInt(normVal('qeCount'),10)||100));pool=pool.slice(0,max);
   if(!pool.length){$('qeStatus').textContent='ابتدا دست‌کم یک سؤال را انتخاب کن.';return}
-  const esc=E,withPts=normVal('qePoints')!=='no';
+  const esc=E,withPts=false; /* ابتدایی: ارزشیابی توصیفی، بدون بارم */
   const items=pool.map((q,i)=>`<article class="question"><div class="qtext"><b>${fa(i+1)}.</b> ${esc(q.q)} ${withPts?`<span class="points">(${fa(q.pt||1)} نمره)</span>`:''}</div>${Array.isArray(q.op)&&q.op.length?`<div class="options">${q.op.map((op,j)=>`<div>${['الف','ب','پ','ت','ث','ج','چ','ح','خ','د'][j]||fa(j+1)}) ${esc(op)}</div>`).join('')}</div>`:''}<div class="answer-space" style="height:${['es','sa','fb'].includes(q.ty)?'42px':'8px'}"></div></article>`).join('');
   const title=esc(normVal('qeTitle')||'ارزشیابی آغازین'),school=esc(normVal('qeSchool')),instructions=esc(normVal('qeInstructions')),examGrade=esc(normVal('qeGrade')),examLesson=esc(normVal('qeLesson')),examBook=esc(normVal('qeBook')),teacher=esc(normVal('qeTeacher')||'');
   const nameLine=normVal('qeNameMode')==='line'?`<div class="meta">نام و نام خانوادگی: .............................................　 پایه: ${examGrade||'........'}　 تاریخ: ................</div>`:'';

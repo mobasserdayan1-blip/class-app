@@ -77,7 +77,6 @@ try{
  <div class="card"><b>۳. مشخصات برگه</b>
   <div class="exb-g"><div><label>عنوان آزمون</label><input id="exbTitle" placeholder="مثلاً ارزشیابی آغازین"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
   <label>سربرگ بالای برگه</label><input id="exbBism" value="به نام خداوند آفریننده‌ی دانا">
-  <label style="display:flex;align-items:center"><input type="checkbox" id="exbPts"> نمایش بارم کنار هر سؤال</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (بله / تاحدودی / خیر)</label>
   <label>انتظارات جدول بازخورد (هر خط یک مورد؛ خالی = چند ردیف خالی برای نوشتن دستی)</label><textarea id="exbFbRows" rows="3"></textarea>
   <details><summary>ترکیب سطح سؤال‌ها برای ۱۰ سؤال (قابل تنظیم)</summary><p class="exb-n">برای تعداد دیگر، نسبت‌ها خودکار مقیاس می‌شوند.</p><table class="exb-mx" id="exbMix"></table><button class="sm" type="button" id="exbMixReset" style="margin-top:6px">بازگشت به پیش‌فرض</button></details></div>
@@ -243,7 +242,7 @@ try{
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
  @media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:auto;min-height:0;padding:0;page-break-after:always}.sheet:last-child{page-break-after:auto}}`;
  function docHtml(b){
-  const o={pts:$('exbPts').checked,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim()};
+  const o={pts:false,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim()};
   return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title><link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}</body></html>`;
  }
  function openPreview(){
@@ -253,13 +252,13 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.title=$('exbTitle').value;c.count=$('exbCount').value;c.bism=$('exbBism').value;c.fb=$('exbFb').checked;c.pts=$('exbPts').checked;c.fbRows=$('exbFbRows').value;c.bk=$('exbBk').value;
+  const c=cfg();c.title=$('exbTitle').value;c.count=$('exbCount').value;c.bism=$('exbBism').value;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
   if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.bism!=null)$('exbBism').value=c.bism;
-  if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.pts!=null)$('exbPts').checked=!!c.pts;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;
+  if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;
  }
  function go(){
   const b=build(),rep=$('exbRep');

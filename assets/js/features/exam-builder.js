@@ -213,13 +213,22 @@ try{
   if(q.ty==='mc'){const o=Array.isArray(q.op)?q.op[q.ok]:null;if(o!=null&&o!=='')return (L[q.ok]||F(q.ok+1))+') '+o;return q.ans||''}
   return q.ans||'';
  }
+ /* فضای پاسخ: تعداد خط‌ها به اندازه‌ی طول پاسخ ثبت‌شده در بانک است (دست‌خط دانش‌آموز بزرگ‌تر از متن تایپی است، پس هر خط حدود ۶۰ نویسه حساب می‌شود).
+    پاسخ ثبت نشده: تشریحی ۳ خط، بقیه ۱ خط. پاسخ آموزگار (در حالت «زیر هر سؤال») همان‌جا روی همین خط‌ها نوشته می‌شود، نه در کادر جدا. */
+ const LH=26,CPL=60;
+ function wrLines(q,a){
+  if(a)return Math.min(8,Math.max(1,String(a).split(/\n/).reduce((n,t)=>n+Math.max(1,Math.ceil(t.trim().length/CPL)),0)));
+  return q.ty==='es'?3:1;
+ }
+ function writeArea(q,a,show){
+  const n=wrLines(q,a);
+  return `<div class="wr" style="height:${n*LH}px">${'<div class="wl"></div>'.repeat(n)}${show&&a?`<div class="wa">${E(a)}</div>`:''}</div>`;
+ }
  function qBlock(q,i,showPts,showAns){
-  const L=['الف','ب','ج','د'];let body=`<div class="qt"><span>${E(q.q)}</span>${showPts?`<span class="pt">(${F(q.pt||1)} نمره)</span>`:''}</div>`;
-  if(q.ty==='mc'&&Array.isArray(q.op)&&q.op.length)body+=`<div class="op">${q.op.map((o,j)=>`<div>${L[j]||F(j+1)}) ${E(o)}</div>`).join('')}</div>`;
-  else if(q.ty==='tf')body+=`<div class="tf">صحیح ☐ &nbsp;&nbsp;&nbsp; غلط ☐</div>`;
-  else if(q.ty==='es')body+=`<div class="sp" style="height:70px"></div>`;
-  else body+=`<div class="sp" style="height:34px"></div>`;
-  if(showAns){const a=ansText(q);body+=`<div class="an">پاسخ: ${a?E(a):'<i>ثبت نشده</i>'}</div>`}
+  const L=['الف','ب','ج','د'],a=ansText(q);let body=`<div class="qt"><span>${E(q.q)}</span>${showPts?`<span class="pt">(${F(q.pt||1)} نمره)</span>`:''}</div>`;
+  if(q.ty==='mc'&&Array.isArray(q.op)&&q.op.length)body+=`<div class="op">${q.op.map((o,j)=>{const ok=showAns&&j===q.ok;return `<div${ok?' class="ok"':''}>${ok?'✔ ':''}${L[j]||F(j+1)}) ${E(o)}</div>`}).join('')}</div>`;
+  else if(q.ty==='tf'){const t=showAns&&q.ans==='T',f=showAns&&q.ans==='F';body+=`<div class="tf"><span${t?' class="ok"':''}>صحیح ${t?'☒':'☐'}</span> &nbsp;&nbsp;&nbsp; <span${f?' class="ok"':''}>غلط ${f?'☒':'☐'}</span></div>`}
+  else body+=writeArea(q,a,showAns);
   return `<tr class="qr"><td class="no">${F(i+1)}</td><td class="bd">${body}</td></tr>`;
  }
  function sheetHtml(sh,ctx,opts){
@@ -235,7 +244,7 @@ try{
   <table class="hd"><tr><td class="r"><div>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:'.................................'}</div><div>نام درس: <b>${E(ctx.scope.bk)}</b></div><div>پایه: <b>${E(P.grade||'')}${P.sec?E(' ('+P.sec+')'):''}</b></div><div>آموزگار: ${teacher?`<b>${E(teacher)}</b>`:'.....................'}</div><div>مدیر: ${P.principal?`<b>${E(P.principal)}</b>`:'.....................'}</div></td>
   <td class="c"><div class="bism">${E(opts.bism)}</div>${school?`<div class="sch">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${ctx.scopeText?`<div class="scp">محدوده‌ی امتحان: ${E(ctx.scopeText)}</div>`:''}<div class="scp">تاریخ: ${opts.date?E(opts.date):'................'}</div></td>
   <td class="l">${logo}</td></tr></table>
-  <table class="qs"><tr><th class="no">–</th><th>سؤالات</th></tr>${rows}</table>
+  <table class="qs"><thead><tr><th class="no">–</th><th>سؤالات</th></tr></thead><tbody>${rows}</tbody></table>
   ${note}${fb}${sg}<div class="ft">*** با آرزوی موفقیت ***</div></div></div>${key}`;
  }
  function keyHtml(sh,ctx,opts,nm){
@@ -250,18 +259,18 @@ try{
  .bism{font-weight:800;font-size:12px}.sch{font-weight:800;font-size:16px}.tt{font-size:12.5px}.scp{font-size:11.5px;color:#333}
  .qs{width:100%;border-collapse:collapse}.qs th{background:#e6e6e6;border-bottom:1px solid #222;padding:2px 6px;font-size:12px}.qs th.no,.qs td.no{width:34px;text-align:center;border-left:1px solid #222;font-weight:800}
  .qs td{border-bottom:1px solid #222;vertical-align:top;padding:6px 10px}.qr{break-inside:avoid;page-break-inside:avoid}
- .qt{font-weight:700}.pt{font-weight:400;font-size:11px;margin-right:8px}.op{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin:3px 18px;font-weight:600}.tf{margin:4px 18px;font-weight:700}.sp{border-bottom:1px dotted #aaa}
+ .qt{font-weight:700}.pt{font-weight:400;font-size:11px;margin-right:8px}.op{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin:3px 18px;font-weight:600}.tf{margin:4px 18px;font-weight:700}
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
- .an{margin:4px 18px 0;padding:1px 8px;border:1px solid #2a7a4b;background:#eef9f2;border-radius:6px;font-size:11.5px;font-weight:700;color:#14653a;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ .wr{position:relative;margin:4px 18px 0}.wl{height:26px;border-bottom:1px dotted #888}.wa{position:absolute;left:0;right:0;top:0;line-height:26px;font-weight:700;color:#14653a;white-space:pre-wrap;padding:0 4px}.ok{color:#14653a;font-weight:800}.qs thead{display:table-header-group}
  .kt{text-align:center;font-weight:800;font-size:15px;padding:8px 0 0}.ks{text-align:center;font-size:11.5px;color:#333;padding:0 0 6px;border-bottom:1.5px solid #222}
  .kk td.kq{font-size:11.5px;color:#333;width:50%}.kk td.ka{font-weight:800;color:#14653a}.kk th:nth-child(2),.kk th:nth-child(3){text-align:right}.kk td.kq,.kk td.ka{border-right:1px solid #ccc}
  .tb{position:sticky;top:0;z-index:5;background:#fff;padding:8px;text-align:center;border-bottom:1px solid #999}.tb button{font:inherit;font-size:15px;padding:8px 18px;cursor:pointer}
  .sheet{break-after:page;page-break-after:always}
  @media print{body{background:#fff}.tb{display:none!important}.sheet{margin:0;box-shadow:none;width:auto;min-height:0;padding:0;break-after:page;page-break-after:always;break-inside:auto}.sheet:last-child{break-after:auto;page-break-after:auto}.frame{break-inside:auto}.ft{break-before:avoid}}`;
- /* اگر محتوای یک برگه کمی بلندتر از یک صفحه‌ی A4 شد، کمی کوچک می‌شود (حداکثر تا ۶۵٪) تا هر برگه دقیقاً یک صفحه بماند */
- const FIT="(function(){function fit(){var H=1045;document.querySelectorAll('.sheet').forEach(function(s){var f=s.querySelector('.frame');s.style.zoom='';var h=f.offsetHeight;if(h>H)s.style.zoom=Math.max(H/h,.65)})}addEventListener('load',function(){if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);else fit()});})();";
+ /* اگر برگه فقط تا ۱۲٪ از یک صفحه‌ی A4 بلندتر بود، کمی کوچک می‌شود تا یک صفحه بماند؛ اگر بیشتر بود (سؤال‌های زیاد) به‌طور طبیعی به صفحه‌ی بعد می‌رود و سرستون جدول در هر صفحه تکرار می‌شود */
+ const FIT="(function(){function fit(){var H=1045;document.querySelectorAll('.sheet').forEach(function(s){var f=s.querySelector('.frame');s.style.zoom='';var h=f.offsetHeight;if(h>H&&h<=H*1.12)s.style.zoom=H/h})}addEventListener('load',function(){if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);else fit()});})();";
  function docHtml(b,standalone){
   const o={pts:false,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
   return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title>${standalone?`<base href="${E(document.baseURI)}">`:''}<link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${standalone?'<div class="tb"><button type="button" onclick="print()">🖨️ چاپ / ذخیره به‌صورت PDF</button></div>':''}${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}<script>${FIT}</script></body></html>`;

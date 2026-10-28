@@ -2,7 +2,7 @@
 (function(){try{
 const $=id=>document.getElementById(id);
 const E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const META=['classes','cur','stash','archive','glib'],SH=['school','principal','city','logo','stype'];
+const META=['classes','cur','stash','archive','glib'],SH=['school','principal','city','logo','stype','slogan'];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const FN=n=>typeof fa==='function'?fa(n):String(n);
 if(!pages.some(p=>p[0]==='bz'))pages.push(['bz','📦 خروجی گروهی گزارش‌ها']);

@@ -2,7 +2,7 @@
 (function(){
 window.clsOK=id=>{try{const a=JSON.parse(localStorage.getItem('schAcc')||'null');if(!a||a.role!=='teacher'||String(id)==='9999001')return true;return (a.ids||[]).map(String).includes(String(id))}catch(e){return true}};
 const VC=()=>S.classes.filter(c=>window.clsOK(c.id));
-const $=id=>document.getElementById(id),E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'),META=['classes','cur','stash','archive','glib'],SH=['school','principal','city','logo','stype'];
+const $=id=>document.getElementById(id),E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'),META=['classes','cur','stash','archive','glib'],SH=['school','principal','city','logo','stype','slogan'];
 let mg=false;if(!S.classes||!S.classes.length){S.classes=[{id:1}];S.cur=1;S.stash={};mg=true}if(!S.stash)S.stash={};if(!S.cur)S.cur=S.classes[0].id;if(mg)save();
 const gOrd=g=>{const i=GR.indexOf(g);return i<0?9:i};
 const meta=c=>{const a=c.id===S.cur,P=a?S.prof:c,T=a?null:(S.stash[c.id]||{});return{g:P.grade,s:P.sec,t:P.teacher,n:a?S.students.length:((T.students)||[]).length}};

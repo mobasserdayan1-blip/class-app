@@ -7,7 +7,7 @@ window.PH=(id,inl)=>{const s=S.students.find(x=>x.id===id);if(!s||!s.photo)retur
 window.AV=s=>s.photo?`<img class="av" src="${s.photo}">`:`<span class="av">${E((s.name||'?').trim()[0])}</span>`;
 window.imgFit=(f,mx,cb)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,mx/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);cb(c.toDataURL('image/jpeg',.6))};im.src=r.result};r.readAsDataURL(f)};
 function showLogo(){const P=S.prof;$('p_logo').innerHTML=P.logo?`<img src="${P.logo}" style="height:64px;border-radius:8px"><button class="sm" id="p_logod">حذف لوگو</button>`:'<span class="sub" style="margin:0">لوگویی انتخاب نشده</span>'}
-$('p_logof').onchange=e=>{const f=e.target.files[0];if(f)imgFit(f,160,u=>{S.prof.logo=u;save();showLogo()})};
+$('p_logof').onchange=e=>{const f=e.target.files[0];if(f)imgFit(f,420,u=>{S.prof.logo=u;save();showLogo()})};
 document.addEventListener('click',e=>{const t=e.target;if(t.id==='p_logod'){delete S.prof.logo;save();showLogo()}
  if(t.dataset&&t.dataset.phd){const id=+t.dataset.phd,s=S.students.find(x=>x.id===id);if(s){delete s.photo;save();window.openProf(id)}}});
 document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||!t.dataset.ph)return;const id=+t.dataset.ph,f=t.files[0];if(!f)return;imgFit(f,150,u=>{const s=S.students.find(x=>x.id===id);if(s){s.photo=u;save();window.openProf(id)}})});

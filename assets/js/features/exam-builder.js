@@ -10,6 +10,9 @@ try{
  const E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
  const F=n=>typeof fa==='function'?fa(n):String(n);
  const LVN={e:'آسان',m:'متوسط',h:'سخت'};
+ const TYPES=['ارزشیابی آغازین','آزمون ماهانه','آزمون مستمر','آزمون نیم‌سال اول','آزمون نیم‌سال دوم','آزمون پایان فصل','آزمون پایان سال','آزمونک',''];
+ const FBL=['خیلی خوب','خوب','قابل قبول','نیاز به تلاش دارد'];
+ const fullTitle=()=>[($('exbType')||{}).value||'',(($('exbTitle')||{}).value||'').trim()].filter(Boolean).join(' ')||'ارزشیابی';
  const prof=()=>S.prof||{};
  const grade=()=>String(prof().grade||'');
  const bank=()=>QBK.all();
@@ -75,9 +78,11 @@ try{
   <div class="exb-g"><div><label>سطح برگه‌ی عمومی</label><select id="exbGenLv">${C.STUDENT_LEVELS.map(l=>`<option value="${l.k}" ${l.k==='m'?'selected':''}>${l.label}</option>`).join('')}</select></div></div>
   <div style="display:flex;gap:8px;margin:6px 0"><button class="sm" type="button" id="exbAll">انتخاب همه</button><button class="sm" type="button" id="exbNone">لغو انتخاب‌ها</button></div><div id="exbStu"></div></div>
  <div class="card"><b>۳. مشخصات برگه</b>
-  <div class="exb-g"><div><label>عنوان آزمون</label><input id="exbTitle" placeholder="مثلاً ارزشیابی آغازین"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
-  <label>سربرگ بالای برگه</label><input id="exbBism" value="به نام خداوند آفریننده‌ی دانا">
-  <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (بله / تاحدودی / خیر)</label>
+  <p class="exb-n">شعار، نام مدرسه، لوگو، نام آموزگار و نام درس خودکار از «اطلاعات مدرسه و پایه» و محدوده‌ی انتخابی خوانده می‌شود. شعار را هم همان‌جا می‌نویسید.</p>
+  <div class="exb-g"><div><label>نوع آزمون</label><select id="exbType">${TYPES.map(t=>`<option value="${E(t)}">${E(t||'فقط عنوان دلخواه (بدون نوع)')}</option>`).join('')}</select></div><div><label>توضیح تکمیلی (اختیاری)</label><input id="exbTitle" placeholder="مثلاً ورودی سوم به چهارم"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
+  <label style="display:flex;align-items:center"><input type="checkbox" id="exbMeta"> زیر عنوان، «محدوده‌ی امتحان و تاریخ» هم نوشته شود</label>
+  <label style="display:flex;align-items:center"><input type="checkbox" id="exbPts"> بارم هر سؤال (نمره) کنار سؤال نمایش داده شود</label>
+  <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش دارد)</label>
   <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
   <label>انتظارات جدول بازخورد (هر خط یک مورد؛ خالی = چند ردیف خالی برای نوشتن دستی)</label><textarea id="exbFbRows" rows="3"></textarea>
   <details><summary>ترکیب سطح سؤال‌ها برای ۱۰ سؤال (قابل تنظیم)</summary><p class="exb-n">برای تعداد دیگر، نسبت‌ها خودکار مقیاس می‌شوند.</p><table class="exb-mx" id="exbMix"></table><button class="sm" type="button" id="exbMixReset" style="margin-top:6px">بازگشت به پیش‌فرض</button></details></div>
@@ -232,17 +237,19 @@ try{
   return `<tr class="qr"><td class="no">${F(i+1)}</td><td class="bd">${body}</td></tr>`;
  }
  function sheetHtml(sh,ctx,opts){
-  const P=prof(),school=P.school&&typeof schoolFull==='function'?schoolFull():(P.school||''),teacher=P.teacher||'';
+  const P=prof(),school=P.school&&typeof schoolFull==='function'?schoolFull(P):(P.school||''),teacher=P.teacher||'';
   const nm=sh.student._general?'':(sh.student.name||'');
   const logo=P.logo?`<img src="${E(P.logo)}" alt="">`:'';
   const rows=sh.result.questions.map((q,i)=>qBlock(q,i,opts.pts,opts.ans==='inline')).join('');
   const fbRows=(opts.fbRows.length?opts.fbRows:['','','']);
-  const fb=opts.fb?`<table class="fb"><tr><th>انتظارات</th><th>بله</th><th>تاحدودی</th><th>خیر</th></tr>${fbRows.map(t=>`<tr><td class="ex">${E(t)}</td><td></td><td></td><td></td></tr>`).join('')}</table>`:'';
+  const fb=opts.fb?`<table class="fb"><tr><th>انتظارات</th>${FBL.map(x=>`<th>${x}</th>`).join('')}</tr>${fbRows.map(t=>`<tr><td class="ex">${E(t)}</td>${FBL.map(()=>'<td></td>').join('')}</tr>`).join('')}</table>`:'';
   const note=opts.fb?'<div class="fbx">بازخورد آموزگار:</div>':'',sg=typeof sigRow==='function'?sigRow('margin:6px 18px 4px;justify-content:space-around'):'';
   const key=opts.ans==='sep'?keyHtml(sh,ctx,opts,nm):'';
+  const sl=typeof schoolSlogan==='function'?schoolSlogan(P):'',sn=school.length,sf=sn<=16?26:sn<=24?23:sn<=32?20:17;
+  const meta=opts.meta?[ctx.scopeText?'محدوده‌ی امتحان: '+ctx.scopeText:'',opts.date?'تاریخ: '+opts.date:''].filter(Boolean).join(' | '):'';
   return `<div class="sheet unit"><div class="frame">
-  <table class="hd"><tr><td class="r"><div>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:'.................................'}</div><div>نام درس: <b>${E(ctx.scope.bk)}</b></div><div>پایه: <b>${E(P.grade||'')}${P.sec?E(' ('+P.sec+')'):''}</b></div><div>آموزگار: ${teacher?`<b>${E(teacher)}</b>`:'.....................'}</div><div>مدیر: ${P.principal?`<b>${E(P.principal)}</b>`:'.....................'}</div></td>
-  <td class="c"><div class="bism">${E(opts.bism)}</div>${school?`<div class="sch">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${ctx.scopeText?`<div class="scp">محدوده‌ی امتحان: ${E(ctx.scopeText)}</div>`:''}<div class="scp">تاریخ: ${opts.date?E(opts.date):'................'}</div></td>
+  <table class="hd"><tr><td class="r"><div>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:''}</div><div>نام درس: <b>${E(ctx.scope.bk)}</b></div><div>آموزگار: ${teacher?`<b>${E(teacher)}</b>`:''}</div></td>
+  <td class="c">${sl?`<div class="bism">${E(sl)}</div>`:''}${school?`<div class="sch" style="font-size:${sf}px">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${meta?`<div class="scp">${E(meta)}</div>`:''}</td>
   <td class="l">${logo}</td></tr></table>
   <table class="qs"><thead><tr><th class="no">–</th><th>سؤالات</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="tl">${note}${fb}${sg}<div class="ft">*** با آرزوی موفقیت ***</div></div>
@@ -283,8 +290,9 @@ try{
  .sheet{width:210mm;height:297mm;margin:10px auto;background:#fff;padding:8mm;box-shadow:0 2px 8px rgba(0,0,0,.4);break-after:page;page-break-after:always}
  .frame{border:2px solid #222;border-radius:4px;display:flex;flex-direction:column;position:relative;padding-bottom:18px}.frame.fx{height:280mm}
  .hd,.qs{flex:none;width:100%;border-collapse:collapse}.hd{border-bottom:1.5px solid #222}.hd td{vertical-align:middle;padding:6px 10px}
- .hd .r{width:34%;font-size:12px}.hd .c{text-align:center}.hd .l{width:18%;text-align:left}.hd img{max-width:70px;max-height:70px;object-fit:contain}
- .bism{font-weight:800;font-size:12px}.sch{font-weight:800;font-size:16px}.tt{font-size:12.5px}.scp{font-size:11.5px;color:#333}
+ .hd .r{width:27%;font-size:14px;font-weight:700}.hd .r div{line-height:2.7;white-space:nowrap}.hd .r b{font-weight:800}.hd .c{width:46%;text-align:center}.hd .c>*{margin:2px 0}.hd .l{width:27%;text-align:left;padding:4px 8px}
+ .hd img{display:block;width:100%;height:33mm;object-fit:contain;object-position:left center}
+ .bism{font-weight:800;font-size:15px}.sch{font-weight:900;line-height:1.5}.tt{font-size:15px}.scp{font-size:11.5px;color:#333}
  .qs th{background:#e6e6e6;border-bottom:1px solid #222;padding:2px 6px;font-size:12px}.qs th.no,.qs td.no{width:34px;text-align:center;border-left:1px solid #222;font-weight:800}
  .qs td{border-bottom:1px solid #222;vertical-align:top;padding:6px 10px}.qr{break-inside:avoid;page-break-inside:avoid}
  .qt{font-weight:700}.pt{font-weight:400;font-size:11px;margin-right:8px}.op{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin:3px 18px;font-weight:600}.tf{margin:4px 18px;font-weight:700}
@@ -300,7 +308,7 @@ try{
  .pn{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:10px;color:#555;line-height:1.6}
  @media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:auto;height:auto;padding:0}.sheet:last-child{break-after:auto;page-break-after:auto}}`;
  function docHtml(b){
-  const o={pts:false,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:($('exbTitle').value||'').trim()||'ارزشیابی',bism:($('exbBism').value||'').trim(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
+  const o={pts:$('exbPts').checked,meta:$('exbMeta').checked,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:fullTitle(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
   return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title><link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}<script>addEventListener('load',function(){var g=${paginate.toString()};if(document.fonts&&document.fonts.ready)document.fonts.ready.then(g);else g()})<\/script></body></html>`;
  }
  function missingAns(b){return $('exbAns').value==='none'?0:b.sheets.reduce((n,sh)=>n+sh.result.questions.filter(q=>!ansText(q)).length,0)}
@@ -311,12 +319,13 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.title=$('exbTitle').value;c.count=$('exbCount').value;c.bism=$('exbBism').value;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
+  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.pts=$('exbPts').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
-  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.bism!=null)$('exbBism').value=c.bism;
+  if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
+  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.pts!=null)$('exbPts').checked=!!c.pts;
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){

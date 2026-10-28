@@ -597,7 +597,8 @@ const CURR=g=>{const i=GR.indexOf(g);if(i<0)return[];const a=[['فارسی',i<2?
 const LESSONS=g=>CURR(g).map(x=>x[0]);const LESSONS_OLD=g=>{const i=GR.indexOf(g);if(i<0)return[];const L=['فارسی','ریاضی','علوم تجربی','هدیه‌های آسمان','قرآن','هنر','تربیت بدنی'];if(i>=2)L.push('مطالعات اجتماعی','کار و فناوری');return L};
 $('p_grade').innerHTML='<option value="">انتخاب کنید</option>'+GR.map(g=>`<option value="${g}">پایه ${g} ابتدایی</option>`).join('');
 const chkT=()=>{const i=$('p_teacher'),w=$('p_teacher_w');if(!i)return;const bad=!i.value.trim();i.style.borderColor=bad?'#d9534f':'';if(w)w.textContent=bad?'(اجباری؛ نام آموزگار را بنویسید)':''};
-['school','sec','teacher','principal','city'].forEach(k=>{$('p_'+k).value=S.prof[k]||'';$('p_'+k).oninput=e=>{S.prof[k]=e.target.value.trim();save();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨';if(k==='teacher')chkT()}});chkT();
+window.DEF_SLOGAN='به نام خداوند آفریننده‌ی دانا';window.schoolSlogan=P=>{P=P||(typeof S!=='undefined'&&S&&S.prof)||{};return P.slogan===undefined?window.DEF_SLOGAN:String(P.slogan||'').trim()};
+['school','sec','teacher','principal','city','slogan'].forEach(k=>{$('p_'+k).value=k==='slogan'?schoolSlogan():(S.prof[k]||'');$('p_'+k).oninput=e=>{S.prof[k]=e.target.value.trim();save();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨';if(k==='teacher')chkT()}});chkT();
 $('p_grade').value=S.prof.grade||'';
 function renderProf(){const L=LESSONS(S.prof.grade);$('p_sug').textContent=L.length?'پایه '+S.prof.grade+': '+L.join('، '):'ابتدا پایه را انتخاب کنید'}
 $('p_grade').onchange=e=>{S.prof.grade=e.target.value;save();renderProf();$('hsub').textContent=profLine()||'رقابت سالم، پیشرفت بی‌نهایت ✨'};

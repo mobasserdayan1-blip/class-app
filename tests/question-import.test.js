@@ -46,7 +46,7 @@ test('multiple lessons and books, topic heading, tags, multi-line answers',()=>{
 test('missing answer is flagged; unknown tag is kept and warned',()=>{
  const r=Core.parseStructured([{h:1,t:'ب'},{h:2,t:'د'},{h:0,t:'س: بدون پاسخ'},{h:0,t:'س: عجیب [نمونه]\nپ: ب'}]);
  assert.ok(r.items[0].flags.includes('noans'));
- assert.equal(r.items[1].q,'عجیب [نمونه]');assert.equal(r.warnings.length,1);
+ assert.equal(r.items[1].q,'عجیب [نمونه]');assert.equal(r.warnings.filter(w=>/برچسب/.test(w.msg)).length,1);
 });
 test('duplicates inside file and against bank are flagged',()=>{
  const r=Core.parseStructured([{h:1,t:'ب'},{h:2,t:'د'},{h:0,t:'س: يک سؤال\nپ: ا'},{h:0,t:'س: یک سؤال\nپ: ا'},{h:0,t:'س: در بانک\nپ: ا'}]);
@@ -60,4 +60,35 @@ test('plain format (question line then answer line) works under headings',()=>{
 test('multiple-choice options inside س: block',()=>{
  const r=Core.parseStructured([{h:1,t:'ب'},{h:2,t:'د'},{h:0,t:'س: حاصل ۲+۲؟\nالف) ۳\nب) ۴\nج) ۵\nپ: ب'}]);
  assert.equal(r.items[0].type,'mc');assert.equal(r.items[0].op.length,3);assert.equal(r.items[0].ok,'2');
+});
+
+
+/* ===== نسخه‌ی ۱۱۵: شماره‌ی درس و محدوده‌ی صفحه از عنوان‌ها ===== */
+test('lesson heading: number + page range are read from the Word heading',()=>{
+ const h=Core.parseLessonHeading('درس ۲: ماه و خورشید (ص ۱۵ تا ۲۶)');
+ assert.deepEqual([h.name,h.ln,h.p1,h.p2],['درس ۲: ماه و خورشید',2,15,26]);
+ assert.equal(Core.parseLessonHeading('درس دوم - نور (صفحه‌ی 15-26)').ln,2);
+ assert.equal(Core.parseLessonHeading('درس بیست و یکم: آب').ln,21);
+ assert.equal(Core.parseLessonHeading('درس سی‌ام؛ گرما صفحات ۵۰ تا ۶۰').p2,60);
+ assert.equal(Core.parseLessonHeading('۳- هوا (۳۰-۳۵)').p1,30);
+ assert.equal(Core.parseLessonHeading('درس ۴').name,'درس ۴');
+ assert.equal(Core.parseLessonHeading('درس اول: زنگ علوم (ص ۱۰ تا ۱۹)').name,'درس اول: زنگ علوم');
+ assert.equal(Core.parseLessonHeading('خاک (ص ۹ تا ۵)').badPages,true);
+});
+test('structured parse: ln/p1/p2 inherit lesson -> topic -> [ص ..] tag',()=>{
+ const r=Core.parseStructured([{h:1,t:'مطالعات'},{h:2,t:'درس ۲: ماه (ص ۱۵ تا ۲۶)'},
+  {h:0,t:'س: اول؟\nپ: الف'},{h:3,t:'مبحث (ص ۲۰ تا ۲۲)'},{h:0,t:'س: دوم؟\nپ: ب'},{h:0,t:'س: سوم؟ [ص ۱۸] [سخت]\nپ: ج'},
+  {h:2,t:'درس ۳: نور'},{h:0,t:'س: چهارم؟\nپ: د'}]);
+ const g=i=>[i.ls,i.ln,i.p1,i.p2];
+ assert.deepEqual(g(r.items[0]),['درس ۲: ماه',2,15,26]);
+ assert.deepEqual(g(r.items[1]),['درس ۲: ماه',2,20,22]);
+ assert.deepEqual(g(r.items[2]),['درس ۲: ماه',2,18,18]);
+ assert.equal(r.items[2].lv,'h');
+ assert.deepEqual(g(r.items[3]),['درس ۳: نور',3,null,null]);
+ assert.equal(r.warnings.length,0);
+});
+test('missing lesson number falls back to order and warns',()=>{
+ const r=Core.parseStructured([{h:1,t:'علوم'},{h:2,t:'زنگ علوم'},{h:0,t:'س: الف؟\nپ: ب'},{h:2,t:'نور'},{h:0,t:'س: ج؟\nپ: د'}]);
+ assert.deepEqual(r.items.map(i=>i.ln),[1,2]);
+ assert.equal(r.warnings.length,2);
 });

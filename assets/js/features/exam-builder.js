@@ -81,7 +81,6 @@ try{
   <p class="exb-n">شعار، نام مدرسه، لوگو، نام آموزگار و نام درس خودکار از «اطلاعات مدرسه و پایه» و محدوده‌ی انتخابی خوانده می‌شود. شعار را هم همان‌جا می‌نویسید.</p>
   <div class="exb-g"><div><label>نوع آزمون</label><select id="exbType">${TYPES.map(t=>`<option value="${E(t)}">${E(t||'فقط عنوان دلخواه (بدون نوع)')}</option>`).join('')}</select></div><div><label>توضیح تکمیلی (اختیاری)</label><input id="exbTitle" placeholder="مثلاً ورودی سوم به چهارم"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbMeta"> زیر عنوان، «محدوده‌ی امتحان و تاریخ» هم نوشته شود</label>
-  <label style="display:flex;align-items:center"><input type="checkbox" id="exbPts"> بارم هر سؤال (نمره) کنار سؤال نمایش داده شود</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش دارد)</label>
   <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
   <label>انتظارات جدول بازخورد (هر خط یک مورد؛ خالی = چند ردیف خالی برای نوشتن دستی)</label><textarea id="exbFbRows" rows="3"></textarea>
@@ -207,7 +206,7 @@ try{
    const bad=r.shortage>0,chg=r.changedMix;
    return `<tr><td>${E(nm)}</td><td>${E(lvl(s.levelKey))}${s.levelKnown?(s.levelSrc==='auto'?' (خودکار)':''):' (پیش‌فرض)'}</td><td>${F(r.requested)}</td><td>${F(r.questions.length)}</td><td>${F(r.actual.e)}/${F(r.actual.m)}/${F(r.actual.h)}</td><td>${bad?'⚠️ کمبود '+F(r.shortage):(chg?'ترکیب تغییر کرد':'✔')}</td></tr>`}).join('');
   const anyShort=b.sheets.some(s=>s.result.shortage>0),anyChg=b.sheets.some(s=>s.result.changedMix);
-  return `<div class="card"><b>گزارش ساخت</b>${anyShort?'<div class="exb-warn">⚠️ در این محدوده به اندازه‌ی کافی سؤال نبود؛ تعداد واقعی کمتر شد. برای تکمیل، سؤال از بیرون محدوده نیاورده‌ایم. محدوده را بازتر کنید یا سؤال بیشتری به بانک اضافه کنید.</div>':''}${!anyShort&&anyChg?'<div class="exb-warn">تعداد بعضی سطح‌ها کافی نبود و با سؤال‌های دیگرِ همان محدوده جایگزین شد (ترکیب آسان/متوسط/سخت در جدول زیر دیده می‌شود).</div>':''}${b.ctx.unknownUsed?'<div class="exb-warn">سؤال‌های بدون شماره‌ی درس/صفحه هم به انتخاب شما در نظر گرفته شدند.</div>':''}
+  return `<div class="card"><b>گزارش ساخت</b>${anyShort?'<div class="exb-warn">⚠️ در این محدوده به اندازه‌ی کافی سؤال نبود؛ تعداد واقعی کمتر شد. برای تکمیل، سؤال از بیرون محدوده نیاورده‌ایم. محدوده را بازتر کنید یا سؤال بیشتری به بانک اضافه کنید.</div>':''}${!anyShort&&anyChg?'<div class="exb-warn">در بانک شما از بعضی سطح‌ها (آسان/متوسط/سخت) به اندازه‌ی لازم سؤال نبود؛ جای خالی را با سؤال‌های سطح‌های دیگرِ همین محدوده پر کردیم. تعداد واقعیِ هر سطح در ستون «آسان/متوسط/سخت» جدول زیر است.</div>':''}${b.ctx.unknownUsed?'<div class="exb-warn">سؤال‌های بدون شماره‌ی درس/صفحه هم به انتخاب شما در نظر گرفته شدند.</div>':''}
   <div style="overflow-x:auto"><table class="exb-mx"><tr><th>برگه برای</th><th>سطح</th><th>درخواست</th><th>ساخته شد</th><th>آسان/متوسط/سخت</th><th>وضعیت</th></tr>${rows}</table></div></div>`;
  }
 
@@ -277,7 +276,7 @@ try{
    function next(){
     var s=document.createElement('div');s.className='sheet'+(isKey?' key':'');
     var nf=document.createElement('div');nf.className='frame';
-    if(ch){var c=ch.cloneNode(true);c.className='ch on';nf.appendChild(c)}
+    if(ch&&(frames.length+1)%2===1){var c=ch.cloneNode(true);c.className='ch on';nf.appendChild(c)}
     var t=tb.cloneNode(false);t.appendChild(th.cloneNode(true));var nb=document.createElement('tbody');t.appendChild(nb);nf.appendChild(t);
     s.appendChild(nf);last.parentNode.insertBefore(s,last.nextSibling);last=s;frames.push(nf);cur=nf;cb=nb;
    }
@@ -296,7 +295,7 @@ try{
  .qs th{background:#e6e6e6;border-bottom:1px solid #222;padding:2px 6px;font-size:12px}.qs th.no,.qs td.no{width:34px;text-align:center;border-left:1px solid #222;font-weight:800}
  .qs td{border-bottom:1px solid #222;vertical-align:top;padding:6px 10px}.qr{break-inside:avoid;page-break-inside:avoid}
  .qt{font-weight:700}.pt{font-weight:400;font-size:11px;margin-right:8px}.op{display:grid;grid-template-columns:1fr 1fr;gap:2px 16px;margin:3px 18px;font-weight:600}.tf{margin:4px 18px;font-weight:700}
- .tl{margin-top:0;flex:1 1 auto;display:flex;flex-direction:column}.tl .ft{margin-top:auto}
+ .tl{margin-top:0;flex:none}
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
@@ -308,7 +307,7 @@ try{
  .pn{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:10px;color:#555;line-height:1.6}
  @media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:auto;height:auto;padding:0}.sheet:last-child{break-after:auto;page-break-after:auto}}`;
  function docHtml(b){
-  const o={pts:$('exbPts').checked,meta:$('exbMeta').checked,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:fullTitle(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
+  const o={pts:false,meta:$('exbMeta').checked,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:fullTitle(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
   return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title><link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}<script>addEventListener('load',function(){var g=${paginate.toString()};if(document.fonts&&document.fonts.ready)document.fonts.ready.then(g);else g()})<\/script></body></html>`;
  }
  function missingAns(b){return $('exbAns').value==='none'?0:b.sheets.reduce((n,sh)=>n+sh.result.questions.filter(q=>!ansText(q)).length,0)}
@@ -319,13 +318,13 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.pts=$('exbPts').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
+  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
   if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
-  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.pts!=null)$('exbPts').checked=!!c.pts;
+  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){

@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v112';
+const C='cl-v114';
 const A=[
   './',
   './index.html',
@@ -86,7 +86,9 @@ const A=[
   './assets/js/features/text-extract-core.js',
   './assets/js/features/text-extract.js',
   './assets/js/features/question-import-core.js',
+  './assets/js/features/question-import-docx.js',
   './assets/js/features/question-import.js',
+  './assets/templates/question-import-template.docx',
   './assets/js/features/exam-builder-core.js',
   './assets/js/features/exam-builder.js'
   /* pdf.js (assets/js/vendor/pdfjs/) عمداً پیش‌ذخیره نمی‌شود (حدود ۱٫۵ مگابایت)؛ بعد از اولین استفاده در کش می‌ماند و آفلاین هم کار می‌کند */

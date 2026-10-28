@@ -12,6 +12,7 @@ try{
  #qimp .qi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
  #qimp input,#qimp select,#qimp textarea{width:100%;box-sizing:border-box;margin:4px 0 8px}
  #qimp textarea{min-height:60px}
+ #qimp input,#qimp select,#qimp textarea{font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;line-height:2}
  #qimp .qi-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
  #qimp .qi-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
  #qimp .qi-note{font-size:13px;line-height:1.9;color:var(--mut)}
@@ -29,6 +30,7 @@ try{
  const section=document.createElement('section');section.id='qimp';
  section.innerHTML=`<h2>📥 ورود سؤال از فایل معلم</h2><div class="card">
  <p class="qi-note">فایل روی همین دستگاه خوانده می‌شود. سؤال تازه ساخته نمی‌شود؛ متن استخراج‌شده فقط برای پیشنهاد اولیه است و پیش از ذخیره می‌توانید آن را اصلاح کنید.</p>
+ <p class="qi-note">📘 فایل Word چندکتابی/چنددرسی: از <a href="assets/templates/question-import-template.docx" download>الگوی Word</a> استفاده کن (عنوان ۱ = کتاب، عنوان ۲ = درس، «س:» و «پ:» برای سؤال و پاسخ). برنامه خودش کتاب‌ها و درس‌ها را جدا می‌کند و پیش‌نمایش هر درس را نشان می‌دهد.</p>
  <label>انتخاب فایل PDF، Word (DOCX) یا متن</label><input id="qiFile" type="file" accept=".pdf,.docx,.txt,.md,.csv,.tsv,.log,.json,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
  <details style="margin-top:8px"><summary>یا متن سؤال‌ها را اینجا کپی و پیست کن</summary>
  <p class="qi-note">متن را از Word، PDF یا هر جای دیگر کپی کن و داخل کادر بچسبان. بهتر است هر سؤال با شماره شروع شود؛ مثلاً «۱- حاصل ۲+۲ چیست؟»</p>
@@ -36,11 +38,10 @@ try{
  <div class="qi-toolbar"><button class="big" id="qiParsePaste" type="button">🔎 تشخیص سؤال‌ها از متن</button><button class="sm" id="qiClearPaste" type="button">پاک‌کردن متن</button></div></details>
  <p id="qiStatus" class="qi-note" aria-live="polite">فایل PDF باید متن قابل انتخاب داشته باشد؛ PDF اسکن‌شده و عکس نیازمند OCR هستند و در این نسخه هنوز پشتیبانی نمی‌شوند.</p>
  <div id="qiMeta" hidden><div class="qi-meta">
- <div><label>پایه</label><select id="qiGrade"><option value="">انتخاب پایه</option>${['اول','دوم','سوم','چهارم','پنجم','ششم'].map(x=>`<option${x===(S.prof&&S.prof.grade)?' selected':''}>${x}</option>`).join('')}</select></div>
- <div><label>کتاب</label><input id="qiBook" placeholder="نام کتاب"></div>
+ <div><label>کتاب</label><select id="qiBook"></select></div>
  <div><label>درس</label><input id="qiLesson" placeholder="نام درس"></div>
  <div><label>فصل (اختیاری)</label><input id="qiChapter" placeholder="مثلاً فصل دوم"></div><div><label>مبحث</label><input id="qiTopic" placeholder="اختیاری"></div>
- <div><label>سطح اولیه‌ی سؤال‌ها</label><select id="qiLevel">${levels.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select></div>
+ <div><label>سطح همه‌ی سؤال‌ها</label><select id="qiLevel">${levels.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select></div>
  </div><div id="qiCandidates"></div>
  <div class="qi-actions"><button class="big" id="qiImport" type="button">💾 ذخیره‌ی سؤال‌های تأییدشده</button><button class="sm" id="qiCancel" type="button">پاک‌کردن پیش‌نمایش</button></div>
  <p id="qiResult" class="qi-note"></p></div></div>
@@ -54,49 +55,127 @@ try{
  const qb=$('qbk');if(qb)qb.after(section);else document.querySelector('main')?.appendChild(section);
  if(typeof pages!=='undefined'&&!pages.some(x=>x[0]==='qimp'))pages.push(['qimp','📥 ورود سؤال از فایل']);
  if(typeof nav!=='undefined'&&!nav.querySelector('[data-p="qimp"]')){const b=document.createElement('button');b.textContent='📥 ورود سؤال از فایل';b.dataset.p='qimp';b.onclick=()=>show('qimp');nav.appendChild(b)}
- function xmlText(xml){const doc=new DOMParser().parseFromString(xml,'application/xml');if(doc.querySelector('parsererror'))throw Error('ساختار فایل Word معتبر نیست.');
-  const body=doc.getElementsByTagNameNS('*','body')[0];if(!body)throw Error('متن اصلی فایل Word پیدا نشد.');
-  const out=[];for(const node of Array.from(body.childNodes)){if(node.nodeType!==1)continue;const tag=node.localName;
-   if(tag==='p'){const parts=[];for(const t of Array.from(node.getElementsByTagNameNS('*','t')))parts.push(t.textContent||'');const v=parts.join('');if(v.trim())out.push(v)}
-   else if(tag==='tbl'){for(const tr of Array.from(node.getElementsByTagNameNS('*','tr'))){const cells=[];for(const tc of Array.from(tr.getElementsByTagNameNS('*','tc'))){const ps=[];for(const p of Array.from(tc.getElementsByTagNameNS('*','p'))){ps.push(Array.from(p.getElementsByTagNameNS('*','t')).map(t=>t.textContent||'').join(''))}cells.push(ps.join(' '))}if(cells.some(x=>x.trim()))out.push(cells.join(' | '))}}
-  }return out.join('\n');
- }
- async function docxText(file){
-  if(typeof DecompressionStream==='undefined')throw Error('مرورگر این روش محلی خواندن DOCX را پشتیبانی نمی‌کند. فایل را در Word با فرمت TXT ذخیره کنید.');
-  const b=new Uint8Array(await file.arrayBuffer()),v=new DataView(b.buffer,b.byteOffset,b.byteLength);
-  let eocd=-1;for(let i=b.length-22;i>=Math.max(0,b.length-65557);i--){if(v.getUint32(i,true)===0x06054b50){eocd=i;break}}
-  if(eocd<0)throw Error('ساختار ZIP داخل فایل DOCX پیدا نشد.');
-  const count=v.getUint16(eocd+10,true),cdOff=v.getUint32(eocd+16,true);let p=cdOff,target=null;
-  for(let i=0;i<count&&p+46<=b.length;i++){
-   if(v.getUint32(p,true)!==0x02014b50)break;
-   const method=v.getUint16(p+10,true),cs=v.getUint32(p+20,true),nl=v.getUint16(p+28,true),el=v.getUint16(p+30,true),cl=v.getUint16(p+32,true),lo=v.getUint32(p+42,true);
-   const name=new TextDecoder().decode(b.slice(p+46,p+46+nl));
-   if(name==='word/document.xml'){target={method,cs,lo};break}
-   p+=46+nl+el+cl;
+  /* ---------- خواندن DOCX با حفظ سبک عنوان‌ها (نسخه‌ی ۱۱۴) ---------- */
+  async function extract(file){
+   const ext=(file.name.split('.').pop()||'').toLowerCase();
+   if(ext==='docx'){if(!window.QuestionImportDocx)throw Error('ابزار خواندن Word هنوز بارگذاری نشده است.');const paras=await window.QuestionImportDocx.parse(await file.arrayBuffer());return {paras,text:paras.map(p=>p.t).join('\n')}}
+   if(!window.TextExtract)throw Error('ابزار استخراج متن هنوز بارگذاری نشده است.');
+   const r=await window.TextExtract.extractFile(file);
+   return {text:r.text};
   }
-  if(!target)throw Error('بخش متن اصلی در فایل DOCX پیدا نشد.');
-  const lo=target.lo,nl=v.getUint16(lo+26,true),el=v.getUint16(lo+28,true),start=lo+30+nl+el,packed=b.slice(start,start+target.cs);let raw;
-  if(target.method===0)raw=packed;
-  else if(target.method===8){const stream=new Blob([packed]).stream().pipeThrough(new DecompressionStream('deflate-raw'));raw=new Uint8Array(await new Response(stream).arrayBuffer())}
-  else throw Error('روش فشرده‌سازی این DOCX پشتیبانی نمی‌شود.');
-  return xmlText(new TextDecoder('utf-8').decode(raw));
- }
- async function extract(file){
-  const ext=(file.name.split('.').pop()||'').toLowerCase();
-  if(ext==='docx')return await docxText(file);
-  if(!window.TextExtract)throw Error('ابزار استخراج متن هنوز بارگذاری نشده است.');
-  const r=await window.TextExtract.extractFile(file);
-  return r.text;
- }
+  /* ---------- ورود ساختاریافته: چند کتاب و چند درس در یک فایل (نسخه‌ی ۱۱۴) ---------- */
+  let st=null,structured=false;
+  const LV={e:'آسان',m:'متوسط',h:'سخت'},TY=[['es','تشریحی'],['sa','کوتاه‌پاسخ'],['mc','چندگزینه‌ای'],['tf','صحیح/غلط'],['fb','جای‌خالی']];
+  const courseNames=()=>[...new Set((S.courses||[]).map(c=>c&&c.name).filter(Boolean))];
+  const bookOf=b=>{const m=st.bookMap[b.bk];return String(m!==undefined?m:b.bk||'').trim()};
+  function showStructuredUi(on){['qiBook','qiLesson','qiTopic'].forEach(id=>{const d=$(id)&&$(id).closest('div');if(d)d.hidden=on})}
+  function autoMap(blocks){const names=courseNames(),map={};
+   for(const b of blocks){if(b.bk in map)continue;const n=Core.norm(b.bk);
+    map[b.bk]=!n?'':(names.find(x=>Core.norm(x)===n)||names.find(x=>n.includes(Core.norm(x))||Core.norm(x).includes(n))||b.bk)}
+   return map}
+  function refreshFlags(){
+   const pr=[];for(const b of st.blocks)for(const it of b.items)pr.push({it,bk:bookOf(b),ls:b.ls,q:it.q,flags:[]});
+   Core.markDuplicates(pr,QBK.all());
+   for(const p of pr){const it=p.it;it.flags=it.flags.filter(f=>f!=='dup'&&f!=='nobook'&&f!=='nolesson');
+    if(p.flags.includes('dup'))it.flags.push('dup');if(!p.bk)it.flags.push('nobook');if(!p.ls)it.flags.push('nolesson')}
+  }
+  function startStructured(paras){
+   const r=Core.parseStructured(paras);
+   if(!r.items.length)throw Error('سؤالی تشخیص داده نشد. هر سؤال را با «س:» و پاسخ را با «پ:» شروع کن و کتاب و درس را با عنوان ۱ و عنوان ۲ بنویس.');
+   const blocks=[];
+   for(const it of r.items){const b=blocks[blocks.length-1];if(b&&b.bk===it.bk&&b.ls===it.ls)b.items.push(it);else blocks.push({bk:it.bk,ls:it.ls,items:[it]})}
+   st={items:r.items,blocks,warnings:r.warnings,ended:r.ended,bookMap:autoMap(blocks),open:new Set()};structured=true;candidates=[];
+   refreshFlags();st.items.forEach(it=>{it.include=!it.flags.some(f=>f==='dup'||f==='short'||f==='noans'||f==='nobook'||f==='nolesson');it.src=fileName});
+   $('qiMeta').hidden=false;showStructuredUi(true);
+   $('qiCandidates').innerHTML='<div id="qiTop"></div><div id="qiMaps"></div><div id="qiBlocks"></div>';
+   renderStructured();$('qiResult').textContent='';
+   $('qiStatus').textContent=`${fa(st.items.length)} سؤال در ${fa(st.blocks.length)} درس پیدا شد.`+(st.items.some(i=>!i.include)?' موردهای تکراری، بدون پاسخ یا ناقص علامت خورده و خودکار انتخاب نشده‌اند.':'');
+  }
+  const cnt=items=>{const c={dup:0,noans:0,short:0};items.forEach(i=>i.flags.forEach(f=>{if(f in c)c[f]++}));return c};
+  const sumText=b=>{const c=cnt(b.items),n=b.items.filter(i=>i.include).length;
+   return `${bookOf(b)||'؟'} › ${b.ls||'(بدون درس)'} — ${fa(b.items.length)} سؤال، ${fa(n)} انتخاب`+(c.dup?` · ${fa(c.dup)} تکراری`:'')+(c.noans?` · ${fa(c.noans)} بدون پاسخ`:'')+(c.short?` · ${fa(c.short)} ناقص`:'')};
+  function renderTop(){
+   const books=new Set(st.blocks.map(b=>bookOf(b))),n=st.items.filter(i=>i.include).length;
+   $('qiTop').innerHTML=`<div class="qi-row"><b>خلاصه:</b> ${fa(books.size)} کتاب · ${fa(st.blocks.length)} درس · ${fa(st.items.length)} سؤال؛ ${fa(n)} مورد برای ذخیره انتخاب شده است.${st.ended?' متن بعد از «پایان سؤالات» نادیده گرفته شد.':''}
+    ${st.warnings.length?'<br><small class="qi-note">⚠️ '+st.warnings.slice(0,5).map(w=>E(w.msg)).join('<br>')+(st.warnings.length>5?'<br>و '+fa(st.warnings.length-5)+' هشدار دیگر':'')+'</small>':''}
+    <div class="qi-toolbar"><button class="sm" type="button" data-gact="clean">فقط سؤال‌های سالم را انتخاب کن</button><button class="sm" type="button" data-gact="all">همه را انتخاب کن</button><button class="sm" type="button" data-gact="none">هیچ‌کدام</button></div></div>`}
+  function renderMaps(){
+   const names=courseNames(),books=[...new Set(st.blocks.map(b=>b.bk))];
+   $('qiMaps').innerHTML=books.map(bk=>{const cur=st.bookMap[bk],opts=names.slice();if(cur&&!opts.includes(cur))opts.unshift(cur);
+    return `<div class="qi-row"><label>کتابِ «${E(bk||'بدون نام')}» در فایل ← کتاب در برنامه</label><select data-bookmap="${E(bk)}">${cur?'':'<option value="">انتخاب کتاب</option>'}${opts.map(x=>`<option ${x===cur?'selected':''}>${E(x)}</option>`).join('')}</select>${cur&&!names.includes(cur)?'<small class="qi-note">این کتاب در درس‌های برنامه تعریف نشده؛ با همین نام ذخیره می‌شود.</small>':''}</div>`}).join('')}
+  function rowHtml(it,ii){
+   const f=it.flags,badge=(f.includes('dup')?' <b style="color:#b45309">⚠️ تکراری</b>':'')+(f.includes('noans')?' <b style="color:#b45309">⚠️ بدون پاسخ</b>':'')+(f.includes('short')?' <b style="color:#b91c1c">⚠️ ناقص</b>':'');
+   return `<div class="qe-edit-row" data-ii="${ii}"><label><input type="checkbox" data-f="include" ${it.include?'checked':''} style="width:auto"> ${fa(ii+1)}${badge}</label>
+    <textarea data-f="q" aria-label="متن سؤال">${E(it.q)}</textarea><textarea data-f="ans" aria-label="پاسخ" placeholder="پاسخ">${E(it.ans)}</textarea>
+    ${it.type==='mc'?`<label>گزینه‌ها (هر خط یک گزینه)</label><textarea data-f="op">${E(it.op.join('\n'))}</textarea><label>شماره‌ی گزینه‌ی درست</label><input data-f="ok" inputmode="numeric" value="${E(it.ok||'')}">`:''}
+    <div class="qi-grid"><div><label>سطح</label><select data-f="lv"><option value="">مثل سطح همه‌ی سؤال‌ها</option>${Object.keys(LV).map(k=>`<option value="${k}" ${it.lv===k?'selected':''}>${LV[k]}</option>`).join('')}</select></div>
+    <div><label>نوع</label><select data-f="type">${TY.map(x=>`<option value="${x[0]}" ${it.type===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div></div></div>`}
+  function bodyHtml(b){return `<div class="qi-toolbar"><button class="sm" type="button" data-bact="all">همه‌ی این درس</button><button class="sm" type="button" data-bact="none">هیچ‌کدام</button><button class="sm" type="button" data-bact="clean">فقط سالم‌ها</button></div><label>نام درس</label><input data-bls value="${E(b.ls)}">`+b.items.map(rowHtml).join('')}
+  function renderBlocks(){
+   $('qiBlocks').innerHTML=st.blocks.map((b,bi)=>`<details class="qi-row" data-bi="${bi}" ${st.open.has(bi)?'open':''}><summary>${E(sumText(b))}</summary>${st.open.has(bi)?bodyHtml(b):''}</details>`).join('')}
+  function renderStructured(){refreshFlags();renderTop();renderMaps();renderBlocks()}
+  function refreshSummaries(){refreshFlags();renderTop();document.querySelectorAll('#qiBlocks details').forEach(d=>{d.querySelector('summary').textContent=sumText(st.blocks[+d.dataset.bi])})}
+  $('qiCandidates').addEventListener('toggle',e=>{const d=e.target;if(!st||!d.matches||!d.matches('#qiBlocks > details'))return;const bi=+d.dataset.bi;
+   if(d.open){if(!st.open.has(bi)||!d.querySelector('[data-bls]')){st.open.add(bi);if(!d.querySelector('[data-bls]'))d.insertAdjacentHTML('beforeend',bodyHtml(st.blocks[bi]))}}else st.open.delete(bi)},true);
+  function onStructuredEdit(e){
+   if(!st)return;const t=e.target;
+   if(t.dataset.bookmap!==undefined){const had=!!st.bookMap[t.dataset.bookmap];st.bookMap[t.dataset.bookmap]=t.value;renderMaps();refreshSummaries();if(!had&&t.value){st.items.forEach(i=>{i.include=!i.flags.length});renderStructured()}return}
+   const det=t.closest('[data-bi]');if(!det)return;const b=st.blocks[+det.dataset.bi];
+   if(t.dataset.bls!==undefined){b.ls=t.value.trim();if(e.type==='change')refreshSummaries();else det.querySelector('summary').textContent=sumText(b);return}
+   const row=t.closest('[data-ii]');if(!row)return;const it=b.items[+row.dataset.ii],k=t.dataset.f;if(!k)return;
+   if(k==='include')it.include=t.checked;
+   else if(k==='op')it.op=t.value.split('\n').map(x=>x.trim()).filter(Boolean);
+   else{it[k]=t.value;if(k==='q'||k==='ans'){it.flags=it.flags.filter(f=>f!=='short'&&f!=='noans');if(it.q.trim().length<3)it.flags.push('short');if(!it.ans.trim()&&it.type!=='mc')it.flags.push('noans')}}
+   if(k==='type'){Array.from(det.children).forEach(c=>{if(c.tagName!=='SUMMARY')c.remove()});det.insertAdjacentHTML('beforeend',bodyHtml(b))}
+   if(k==='include'||k==='type'||e.type==='change')refreshSummaries();else{det.querySelector('summary').textContent=sumText(b)}
+  }
+  $('qiCandidates').addEventListener('input',onStructuredEdit);$('qiCandidates').addEventListener('change',onStructuredEdit);
+  $('qiCandidates').addEventListener('click',e=>{if(!st)return;const g=e.target.closest('[data-gact]'),a=e.target.closest('[data-bact]');
+   const sel=(items,mode)=>items.forEach(i=>{i.include=mode==='all'?true:mode==='none'?false:!i.flags.length});
+   if(g){sel(st.items,g.dataset.gact);renderStructured()}
+   else if(a){const det=a.closest('[data-bi]'),b=st.blocks[+det.dataset.bi];sel(b.items,a.dataset.bact);refreshSummaries();det.querySelector('[data-bls]').parentNode.querySelectorAll('[data-f="include"]').forEach((c,i)=>{c.checked=b.items[i].include})}});
+  function loadSource(r,name){
+   const text=r.text!=null?r.text:r.paras.map(p=>p.t).join('\n');
+   if(!String(text).trim())throw Error('متن خالی است.');
+   fileName=name||'متن کپی‌شده';
+   const paras=r.paras||String(text).split(/\n/).map(t=>({h:0,t}));
+   if(paras.some(p=>p.h)||/^\s*س\s*[:：]/m.test(text)){startStructured(paras);return}
+   structured=false;st=null;showStructuredUi(false);previewText(text,fileName);
+  }
+  function importStructured(){
+   const gr=String((S.prof&&S.prof.grade)||''),ch=$('qiChapter').value.trim(),lv=$('qiLevel').value;
+   if(!gr){$('qiResult').textContent='پایه‌ی کلاس در «اطلاعات مدرسه و پایه» ثبت نشده است؛ ابتدا آن را ثبت کن.';return}
+   refreshFlags();
+   const bank=QBK.all(),now=Date.now(),toAdd=[],dups=[];let bad=0;
+   for(const b of st.blocks){const bk=bookOf(b);
+    for(const it of b.items){if(!it.include)continue;
+     const q=String(it.q||'').trim(),ty=it.type||'es';
+     if(!bk||!b.ls||q.length<3){bad++;continue}
+     let op=[],ok=-1;
+     if(ty==='mc'){op=(it.op||[]).map(x=>String(x).trim()).filter(Boolean);if(op.length===1){bad++;continue}const n=parseInt(String(it.ok||'').replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)),10);if(n>0&&n<=op.length)ok=n-1}
+     let ans=String(it.ans||'').trim();
+     if(ty==='tf'&&ans){const a=Core.norm(ans);if(['t','صحیح','درست','بله','true'].includes(a))ans='T';else if(['f','غلط','نادرست','خیر','false'].includes(a))ans='F'}
+     const rec={v:1,gr,bk,ls:b.ls,ch,tp:it.tp||'',lv:it.lv||lv,ty,q,op,ok,ans:ty==='mc'&&ok>=0?op[ok]:ans,pt:1,src:String(it.src||fileName).trim(),ca:now};
+     const key=Core.duplicateKey(rec);
+     if(bank.some(x=>Core.duplicateKey(x)===key)||toAdd.some(x=>Core.duplicateKey(x)===key)){dups.push(q);continue}
+     toAdd.push(rec);
+    }}
+   if(bad){$('qiResult').textContent=`${fa(bad)} سؤال انتخاب‌شده کتاب یا درس ندارد، متنش خیلی کوتاه است یا گزینه‌هایش ناقص است. اصلاحشان کن یا تیک ذخیره را بردار؛ چیزی ذخیره نشد.`;return}
+   if(!toAdd.length){$('qiResult').textContent=dups.length?'سؤال‌های انتخاب‌شده قبلاً وجود داشتند؛ چیزی ذخیره نشد.':'هیچ سؤالی برای ذخیره انتخاب نشده است.';return}
+   const existing=new Set(bank.map(x=>x.id));let id=now;toAdd.forEach(r=>{while(existing.has(id))id++;r.id=id++;existing.add(r.id)});
+   S.qbk=(Array.isArray(S.qbk)?S.qbk:[]).concat(toAdd);save();QBK.render();fillExamFilters();renderExamList();
+   const lessons=new Set(toAdd.map(r=>r.bk+'|'+r.ls)).size;
+   $('qiResult').textContent=`${fa(toAdd.length)} سؤال از ${fa(lessons)} درس ذخیره شد${dups.length?'؛ '+fa(dups.length)+' مورد تکراری نادیده گرفته شد':''}.`;
+   st=null;structured=false;showStructuredUi(false);$('qiCandidates').innerHTML='';$('qiFile').value='';$('qiPasteText').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='تمام شد؛ می‌توانی فایل بعدی را انتخاب کنی.';
+  }
  function renderCandidates(){
   $('qiCandidates').innerHTML=`<p class="qi-note">سؤال‌ها را بررسی کن؛ پاسخ لازم نیست. اگر متن اشتباه استخراج شده، همان‌جا اصلاحش کن.</p>`+candidates.map((c,i)=>`<div class="qi-row" data-qi="${i}">
    <label><input type="checkbox" data-field="include" ${c.include?'checked':''} style="width:auto"> ذخیره شود</label>
-   <label>سطح این سؤال <select data-field="lv"><option value="">مثل سطح پیش‌فرض مجموعه</option>${[['e','آسان'],['m','متوسط'],['h','سخت']].map(l=>`<option value="${l[0]}" ${c.lv===l[0]?'selected':''}>${l[1]}</option>`).join('')}</select></label>
    <div class="qi-note">سؤال ${fa(i+1)}${c.confidence==='low'?' · نیازمند بررسی':''}</div>
    <textarea aria-label="متن سؤال" data-field="q">${E(c.q)}</textarea>
    <details><summary>تنظیمات اختیاری این سؤال</summary>
     <div class="qi-grid"><div><label>نوع سؤال</label><select data-field="type">${[['es','تشریحی'],['sa','کوتاه‌پاسخ'],['mc','چندگزینه‌ای'],['tf','صحیح/غلط'],['fb','جای‌خالی']].map(x=>`<option value="${x[0]}" ${c.type===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>
-    <div><label>سطح</label><select data-field="lv"><option value="">سطح عمومی</option>${levels.map(x=>`<option value="${x[0]}" ${c.lv===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div></div>
+    <div><label>سطح</label><select data-field="lv"><option value="">مثل سطح همه‌ی سؤال‌ها</option>${levels.map(x=>`<option value="${x[0]}" ${c.lv===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div></div>
     <label>گزینه‌ها (هر گزینه در یک خط، در صورت وجود)</label><textarea data-field="op">${E(c.op.join('\\n'))}</textarea>
     <label>پاسخ (اختیاری)</label><textarea data-field="ans">${E(c.ans)}</textarea>
     <label>شماره گزینه درست (اختیاری)</label><input data-field="ok" inputmode="numeric" value="${E(c.ok||'')}" placeholder="مثلاً ۲">
@@ -114,16 +193,21 @@ try{
   renderCandidates();$('qiResult').textContent='';
  }
  $('qiFile').addEventListener('change',async()=>{const f=$('qiFile').files&&$('qiFile').files[0];if(!f)return;busy=true;$('qiStatus').textContent='در حال خواندن فایل روی همین دستگاه…';$('qiMeta').hidden=true;
-  try{if(f.size>30*1024*1024)throw Error('حجم فایل بیش از ۳۰ مگابایت است.');const text=await extract(f);previewText(text,f.name);$('qiPasteText').value='';$('qiFile').value='';}
+  try{if(f.size>30*1024*1024)throw Error('حجم فایل بیش از ۳۰ مگابایت است.');const r=await extract(f);loadSource(r,f.name);$('qiPasteText').value='';$('qiFile').value='';}
   catch(err){$('qiStatus').textContent='خطا: '+(err&&err.message||'خواندن فایل ناموفق بود.');candidates=[];$('qiMeta').hidden=true;$('qiFile').value=''}
   finally{busy=false}
  });
- $('qiParsePaste').addEventListener('click',()=>{try{previewText($('qiPasteText').value,'متن کپی‌شده');$('qiResult').textContent='';}catch(err){$('qiStatus').textContent=err.message;$('qiMeta').hidden=true}});
+ $('qiParsePaste').addEventListener('click',()=>{try{loadSource({text:$('qiPasteText').value},'متن کپی‌شده');$('qiResult').textContent='';}catch(err){$('qiStatus').textContent=err.message;$('qiMeta').hidden=true}});
+ function fillBooks(){const el=$('qiBook'),old=el.value,names=[...new Set((S.courses||[]).map(c=>c&&c.name).filter(Boolean))];
+  el.innerHTML=names.length?'<option value="">انتخاب کتاب</option>'+names.map(n=>`<option${n===old?' selected':''}>${E(n)}</option>`).join(''):'<option value="">ابتدا درس‌ها را در برنامه تعریف کن</option>'}
+ fillBooks();['mousedown','focus'].forEach(ev=>$('qiBook').addEventListener(ev,fillBooks));
  $('qiClearPaste').addEventListener('click',()=>{$('qiPasteText').value='';$('qiStatus').textContent='متن کپی‌شده پاک شد.'});
- $('qiCancel').onclick=()=>{candidates=[];$('qiFile').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='پیش‌نمایش پاک شد.';$('qiResult').textContent=''};
+ $('qiCancel').onclick=()=>{st=null;structured=false;showStructuredUi(false);$('qiCandidates').innerHTML='';candidates=[];$('qiFile').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='پیش‌نمایش پاک شد.';$('qiResult').textContent=''};
  $('qiImport').onclick=()=>{
-  const gr=$('qiGrade').value,bk=$('qiBook').value.trim(),ls=$('qiLesson').value.trim(),ch=$('qiChapter').value.trim(),tp=$('qiTopic').value.trim(),lv=$('qiLevel').value;
-  if(!gr||!bk||!ls){$('qiResult').textContent='برای کل مجموعه، پایه، کتاب و درس را انتخاب کن.';return}
+  if(structured&&st)return importStructured();
+  const gr=String((S.prof&&S.prof.grade)||''),bk=$('qiBook').value.trim(),ls=$('qiLesson').value.trim(),ch=$('qiChapter').value.trim(),tp=$('qiTopic').value.trim(),lv=$('qiLevel').value;
+  if(!gr){$('qiResult').textContent='پایه‌ی کلاس در «اطلاعات مدرسه و پایه» ثبت نشده است؛ ابتدا آن را ثبت کن.';return}
+  if(!bk||!ls){$('qiResult').textContent='برای کل مجموعه، کتاب و درس را وارد کن.';return}
   const selected=candidates.filter(c=>c.include),bank=QBK.all(),now=Date.now(),toAdd=[],dups=[];
   for(const c of selected){
    const q=String(c.q||'').trim(),ans=String(c.ans||'').trim(),ty=c.type||'es';
@@ -145,7 +229,7 @@ try{
   if(!toAdd.length){$('qiResult').textContent=dups.length?'سؤال‌های انتخاب‌شده قبلاً وجود داشتند؛ چیزی ذخیره نشد.':'هیچ سؤالی برای ذخیره انتخاب نشده است.';return}
   const existing=new Set(bank.map(x=>x.id));let id=now;toAdd.forEach(r=>{while(existing.has(id))id++;r.id=id++;existing.add(r.id)});S.qbk=(Array.isArray(S.qbk)?S.qbk:[]).concat(toAdd);save();QBK.render();fillExamFilters();renderExamList();
   $('qiResult').textContent=`${fa(toAdd.length)} سؤال ذخیره شد${dups.length?'؛ '+fa(dups.length)+' مورد تکراری نادیده گرفته شد':''}. فایل اصلی روی لپ‌تاپت دست‌نخورده می‌ماند؛ برنامه فقط فایل انتخاب‌شده‌ی موقت را نگه نمی‌دارد.`;
-  candidates=[];$('qiCandidates').innerHTML='';$('qiFile').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='تمام شد؛ فایل موقت از انتخاب برنامه پاک شد. می‌توانی فایل بعدی را انتخاب کنی.';
+  candidates=[];$('qiCandidates').innerHTML='';$('qiFile').value='';$('qiPasteText').value='';$('qiMeta').hidden=true;$('qiStatus').textContent='تمام شد؛ فایل موقت از انتخاب برنامه پاک شد. می‌توانی فایل بعدی را انتخاب کنی.';
  };
  /* ساخت برگه‌ی سفارشی؛ فیلتر دقیق درس/فصل/مبحث و انتخاب تصادفی قابل ویرایش */
  const normVal=id=>$(id)?.value||'';

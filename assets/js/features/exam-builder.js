@@ -80,6 +80,7 @@ try{
  <div class="card"><b>۳. مشخصات برگه</b>
   <p class="exb-n">شعار، نام مدرسه، لوگو، نام آموزگار و نام درس خودکار از «اطلاعات مدرسه و پایه» و محدوده‌ی انتخابی خوانده می‌شود. شعار را هم همان‌جا می‌نویسید.</p>
   <div class="exb-g"><div><label>نوع آزمون</label><select id="exbType">${TYPES.map(t=>`<option value="${E(t)}">${E(t||'فقط عنوان دلخواه (بدون نوع)')}</option>`).join('')}</select></div><div><label>توضیح تکمیلی (اختیاری)</label><input id="exbTitle" placeholder="مثلاً ورودی سوم به چهارم"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
+  <label style="display:flex;align-items:center"><input type="checkbox" id="exbSame"> سؤال‌های همه‌ی دانش‌آموزان انتخاب‌شده یکسان باشد (مثل ارزشیابی آغازین؛ سطح سؤال‌ها از «سطح برگه‌ی عمومی» در بخش ۲ تعیین می‌شود و فقط نام دانش‌آموز فرق می‌کند)</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbMeta"> زیر عنوان، «محدوده‌ی امتحان و تاریخ» هم نوشته شود</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش دارد)</label>
   <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
@@ -194,7 +195,9 @@ try{
   const picked=Array.from(sec.querySelectorAll('[data-sc]:checked')).map(x=>students().find(s=>String(s.id)===x.dataset.sc)).filter(Boolean);
   const genLv=$('exbGenLv').value||'m';
   const targets=picked.length?picked:[{id:0,name:'',qbkLevel:genLv,_general:true}];
+  const same=$('exbSame').checked&&picked.length>0,shared=same?C.pick(pool,C.mixFor(genLv,cnt,rm.mix)):null;
   const sheets=targets.map(s=>{
+   if(shared)return {student:s,levelKey:genLv,levelKnown:true,levelSrc:'manual',want:C.mixFor(genLv,cnt,rm.mix),result:shared};
    const R=s._general?{key:genLv,src:'manual'}:lvFor(s,rs.scope.bk),key=R.key,want=C.mixFor(key,cnt,rm.mix),r=C.pick(pool,want);
    return {student:s,levelKey:key,levelKnown:R.src!=='none',levelSrc:R.src,want,result:r};
   });
@@ -318,13 +321,13 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
+  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
   if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
-  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;
+  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.same!=null)$('exbSame').checked=!!c.same;
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){
@@ -344,6 +347,7 @@ try{
  $('exbMixReset').onclick=()=>{cfg().mix=DEF_MIX();fillMix()};
  sec.addEventListener('change',e=>{
   const t=e.target;
+  if(t.id==='exbType')$('exbSame').checked=t.value==='ارزشیابی آغازین';
   if(t.dataset&&t.dataset.sl!=null){const s=students().find(x=>String(x.id)===t.dataset.sl),bk=$('exbBk').value;
    if(s&&bk){s.qbkLv=s.qbkLv||{};s.qbkLvD=s.qbkLvD||{};if(t.value){s.qbkLv[bk]=t.value;s.qbkLvD[bk]=new Date().toISOString().slice(0,10)}else{delete s.qbkLv[bk];delete s.qbkLvD[bk];delete s.qbkLevel}save();fillStudents()}return}
   if(t.id==='exbGr'){$('exbBk').value='';$('exbTp').value=''}

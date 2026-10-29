@@ -61,6 +61,17 @@ st.textContent=`
 #qbk .qd-tt{flex:0 1 auto;min-width:0}#qbk .qd-tt small{display:inline-block;margin-right:8px;color:var(--mut);font-weight:700;font-size:11.5px}
 #qbk .qd-td{flex:1;min-width:18px;border-bottom:2px dotted var(--mut);opacity:.6;transform:translateY(-5px)}
 #qbk .qd-tp{flex:none;min-width:48px;text-align:left;font-weight:800;color:var(--p);white-space:nowrap}
+#qbk .qd-row{display:flex;align-items:center;gap:4px;border-bottom:1px solid var(--line)}
+#qbk .qd-row .qd-tr{flex:1;min-width:0;width:auto;border-bottom:0}
+#qbk .qd-row.pk{background:var(--bg2)}
+#qbk .qd-ck{flex:none;width:22px;height:22px;margin:0 2px 0 6px;accent-color:var(--p);cursor:pointer}
+#qbk .qd-ra{display:flex;gap:4px;flex:none}
+#qbk .qd-ra button{width:auto;margin:0;flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--tx);border-radius:10px;padding:5px 9px;font:800 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#qbk .qd-ra button.dg{color:#d9534f}
+#qbk .qd-bulk{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0 4px}
+#qbk .qd-bulk button{width:auto;margin:0;flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:7px 12px;font:800 12.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#qbk .qd-bulk button.dg{background:#d9534f;border-color:#d9534f;color:#fff}
+#qbk .qd-bulk button:disabled{opacity:.45;cursor:not-allowed}
 #qbk .qd-toca{width:100%;margin:10px 0 0;border:1.5px dashed var(--line);background:transparent;color:var(--p);border-radius:14px;padding:11px;font:800 13.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #qbk .qd-ty{width:auto;margin:0;flex:none;border-radius:999px;padding:6px 12px 6px 30px;font:800 12.5px Vazirmatn,Tahoma,sans-serif}
 #qbk .qd-gh{display:flex;align-items:center;gap:8px;margin:14px 2px 8px;font-weight:800;font-size:14px;color:var(--p)}
@@ -100,7 +111,7 @@ const anchor=$('exp')||$('mk')||$('crs')||$('rep');anchor?anchor.after(sec):docu
 if(typeof pages!=='undefined'&&!pages.some(q=>q[0]==='qbk'))pages.push(['qbk','🗂️ بانک سؤالات']);
 
 /* ---------- وضعیت نمایش (داشبورد ← کتاب ← سؤال‌ها) ---------- */
-const V={book:'',gf:'',gs:'',lv:'',ty:'',ls:'',s:'',all:false,lim:20};
+const V={sel:false,pick:new Set(),book:'',gf:'',gs:'',lv:'',ty:'',ls:'',s:'',all:false,lim:20};
 const PAGE=20;
 const bkey=q=>(q.gr||'')+'§'+(q.bk||'');
 const gOrd=g=>{const i=grades().indexOf(g);return i<0?99:i};
@@ -157,9 +168,11 @@ const lsTitle=g=>g.ln<9999&&!/^\s*(درس|فصل|واحد|بخش|مرحله)/.te
 /* محدوده‌ی صفحه‌ی درس: کمترین «از صفحه» تا بیشترین «تا صفحه»ی سؤال‌های ثبت‌شده */
 function pgRange(items){let a=null,b=null;items.forEach(q=>{if(q.p1==null)return;const e=q.p2!=null?q.p2:q.p1;if(a==null||q.p1<a)a=q.p1;if(b==null||e>b)b=e});
  return a==null?'':(a===b?fa(a):fa(a)+' تا '+fa(b))}
-function tocHtml(all){const G=groupLs(all);
+function tocHtml(all){const G=groupLs(all),sel=V.sel,n=V.pick.size;
  return `<div class="qd-toc"><div class="qd-toch">📑 فهرست درس‌ها <small>(${fa(G.length)} درس · ${fa(all.length)} سؤال)</small></div>
- ${G.map(g=>`<button type="button" class="qd-tr" data-qb="ls" data-v="${E(g.name)}"><span class="qd-tt">${E(lsTitle(g))}<small>${fa(g.items.length)} سؤال</small></span><span class="qd-td"></span><span class="qd-tp">${pgRange(g.items)||'—'}</span></button>`).join('')}
+ <div class="qd-bulk">${sel?`<button type="button" data-qb="pkall">☑️ ${n===G.length?'برداشتن همه':'انتخاب همه'}</button><button type="button" class="dg" data-qb="pkdel"${n?'':' disabled'}>🗑 حذف ${n?fa(n)+' درس انتخاب‌شده':'انتخاب‌شده‌ها'}</button><button type="button" data-qb="pkoff">انصراف</button>`:`<button type="button" data-qb="pkon">☑️ انتخاب چند درس</button>`}</div>
+ ${G.map(g=>{const on=sel&&V.pick.has(g.name);
+  return `<div class="qd-row${on?' pk':''}">${sel?`<input type="checkbox" class="qd-ck" data-qb="pk" data-v="${E(g.name)}"${on?' checked':''} aria-label="انتخاب ${E(g.name)}">`:''}<button type="button" class="qd-tr" data-qb="${sel?'pkrow':'ls'}" data-v="${E(g.name)}"><span class="qd-tt">${E(lsTitle(g))}<small>${fa(g.items.length)} سؤال</small></span><span class="qd-td"></span><span class="qd-tp">${pgRange(g.items)||'—'}</span></button>${sel?'':`<span class="qd-ra"><button type="button" data-qb="lsed" data-v="${E(g.name)}" title="ویرایش درس">✏️</button><button type="button" class="dg" data-qb="lsdel" data-v="${E(g.name)}" title="حذف درس">🗑</button></span>`}</div>`}).join('')}
  <button type="button" class="qd-toca" data-qb="all">📚 نمایش همه‌ی ${fa(all.length)} سؤال این کتاب</button></div>`}
 function bookHtml(){const b=books().find(x=>x.key===V.book);if(!b){V.book='';return dashHtml()}
  return `<div class="qd-crumb"><button class="qd-back" data-qb="back">→ همه‌ی کتاب‌ها</button><b style="font-size:15px">${E(b.bk)}</b>${b.gr?`<span class="qbk-ty">پایه ${E(b.gr)}</span>`:''}<button class="qd-btn p" data-qb="new" style="background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;margin-right:auto">➕ سؤال در این کتاب</button></div>
@@ -262,21 +275,74 @@ ov.addEventListener('click',e=>{const t=e.target;if(t===ov){closeForm();return}
  else if(k==='tf'){ed.tfv=a.dataset.v;ov.querySelectorAll('[data-qb="tf"]').forEach(b=>b.classList.toggle('on',b===a))}});
 ov.addEventListener('change',e=>{if(ed&&e.target.id==='qfT')togType()});
 ov.addEventListener('input',e=>{if(ed&&(e.target.id==='qfB'||e.target.id==='qfL'))refreshDL()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))closeForm()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(ov.classList.contains('on'))closeForm();if(typeof lov!=='undefined'&&lov.classList.contains('on'))closeLs()}});
+
+/* ---------- ویرایش / حذف درس (همه‌ی سؤال‌های همان درس در کتاب جاری) ---------- */
+const lsKey=q=>q.ls||'بدون درس';
+const inLs=(name)=>list().filter(q=>bkey(q)===V.book&&lsKey(q)===name);
+const lov=document.createElement('div');lov.className='pmt-ov';lov.id='qbkLsOv';lov.innerHTML='<div class="pmt-bx" role="dialog" aria-modal="true"></div>';document.body.appendChild(lov);
+let led=null;
+function openLsEdit(name){const items=inLs(name);if(!items.length)return;
+ const g=groupLs(items)[0],lns=[...new Set(items.map(q=>q.ln).filter(x=>x!=null))];
+ let a=null,b=null;items.forEach(q=>{if(q.p1==null)return;const e=q.p2!=null?q.p2:q.p1;if(a==null||q.p1<a)a=q.p1;if(b==null||e>b)b=e});
+ led={name,n:items.length,p1:a==null?'':String(a),p2:a==null||b===a?'':String(b),ln:g.ln<9999?String(g.ln):'',multiLn:lns.length>1};
+ lov.firstElementChild.innerHTML=`<h3>✏️ ویرایش درس</h3><p class="sub" style="text-align:right;margin:0 0 6px;line-height:1.9">تغییرات روی همه‌ی ${fa(items.length)} سؤال این درس اعمال می‌شود.</p>
+ <label>نام درس</label><input id="qlN" value="${E(name==='بدون درس'?'':name)}" placeholder="نام درس" autocomplete="off">
+ <label>شماره‌ی درس (اختیاری)</label><input id="qlLn" type="text" inputmode="numeric" value="${E(led.ln)}" placeholder="مثلاً ۳" autocomplete="off">
+ <label>محدوده‌ی صفحه‌ی درس (اختیاری)</label><div class="qbk-fl"><input id="qlP1" type="text" inputmode="numeric" value="${E(led.p1)}" placeholder="از صفحه" autocomplete="off"><input id="qlP2" type="text" inputmode="numeric" value="${E(led.p2)}" placeholder="تا صفحه (اگر یک صفحه است خالی)" autocomplete="off"></div>
+ <p class="sub" style="text-align:right;margin:6px 0 0;line-height:1.9;font-size:12px">اگر محدوده‌ی صفحه را تغییر دهید، برای همه‌ی سؤال‌های این درس ثبت می‌شود؛ اگر دست نزنید، صفحه‌ی هر سؤال همان‌طور که هست می‌ماند. اگر نام را با درس دیگری یکسان کنید، دو درس ادغام می‌شوند.</p>
+ <div class="pmt-er" id="qlEr"></div>
+ <div class="pmt-fa"><button class="go" type="button" data-ql="save">💾 ذخیره‌ی تغییرات</button><button type="button" data-ql="cancel">انصراف</button></div>`;
+ lov.classList.add('on')}
+const closeLs=()=>{lov.classList.remove('on');led=null};
+function saveLsEdit(){if(!led)return;const er=t=>{$('qlEr').textContent=t},v=id=>$(id).value.trim();
+ const name=v('qlN');if(!name){er('نام درس را بنویسید.');$('qlN').focus();return}
+ const nz=id=>{const t=toLat(v(id));if(!t)return{ok:true,n:null};return /^\d{1,4}$/.test(t)&&+t>0?{ok:true,n:+t}:{ok:false}};
+ const rLn=nz('qlLn'),r1=nz('qlP1'),r2=nz('qlP2');
+ if(!rLn.ok){er('شماره‌ی درس باید یک عدد صحیح مثبت باشد (یا خالی بماند).');$('qlLn').focus();return}
+ if(!r1.ok||!r2.ok){er('شماره‌ی صفحه باید عدد صحیح مثبت باشد (یا خالی بماند).');return}
+ if(r2.n!=null&&r1.n==null){er('اگر «تا صفحه» را نوشته‌اید، «از صفحه» را هم بنویسید.');$('qlP1').focus();return}
+ if(r1.n!=null&&r2.n!=null&&r2.n<r1.n){er('«تا صفحه» نباید کوچک‌تر از «از صفحه» باشد.');$('qlP2').focus();return}
+ const items=inLs(led.name);if(!items.length){closeLs();return}
+ const merge=name!==led.name&&name!==(led.name==='بدون درس'?'':led.name)&&list().some(q=>bkey(q)===V.book&&lsKey(q)===name);
+ if(merge&&!confirm('درسی با نام «'+name+'» از قبل در این کتاب هست. سؤال‌های این دو درس در هم ادغام شوند؟'))return;
+ const oldLn=led.ln,oldP1=led.p1,oldP2=led.p2,now=Date.now();
+ const lnCh=(rLn.n==null?'':String(rLn.n))!==oldLn,pgCh=(r1.n==null?'':String(r1.n))!==oldP1||(r2.n==null?'':String(r2.n))!==oldP2;
+ items.forEach(q=>{q.ls=name;
+  if(lnCh){if(rLn.n==null)delete q.ln;else q.ln=rLn.n}
+  if(pgCh){if(r1.n==null){delete q.p1;delete q.p2}else{q.p1=r1.n;q.p2=r2.n!=null?r2.n:r1.n}}
+  q.ua=now});
+ if(V.ls===led.name)V.ls=name;
+ save();closeLs();render();say('✅ درس «'+name+'» ذخیره شد'+(merge?' (ادغام شد)':''))}
+lov.addEventListener('click',e=>{const t=e.target;if(t===lov){closeLs();return}const a=t.closest('[data-ql]');if(!a)return;if(a.dataset.ql==='cancel')closeLs();else if(a.dataset.ql==='save')saveLsEdit()});
+lov.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();saveLsEdit()}});
+function delLessons(names){const set=new Set(names);
+ const hit=list().filter(q=>bkey(q)===V.book&&set.has(lsKey(q)));if(!hit.length)return;
+ const msg=names.length===1?'درس «'+names[0]+'» به همراه '+fa(hit.length)+' سؤال و پاسخ‌هایش حذف شود؟':fa(names.length)+' درس انتخاب‌شده به همراه '+fa(hit.length)+' سؤال و پاسخ‌هایشان حذف شود؟';
+ if(!confirm(msg+'\nاین کار قابل بازگشت نیست (پیشنهاد: قبل از حذف پشتیبان بگیرید).'))return;
+ const ids=new Set(hit.map(q=>q.id));S.qbk=list().filter(q=>!ids.has(q.id));
+ V.pick.clear();V.sel=false;V.ls='';save();render();say('🗑 '+fa(names.length)+' درس و '+fa(hit.length)+' سؤال حذف شد')}
 
 /* ---------- رویدادهای صفحه ---------- */
 sec.addEventListener('click',e=>{const b=e.target.closest('[data-qb]');if(!b)return;const k=b.dataset.qb;
  if(k==='new'){say('');if(V.book){const bk=books().find(x=>x.key===V.book);if(bk){LAST.gr=bk.gr;LAST.bk=bk.bk}}openForm()}
  else if(k==='edit'){say('');openForm(+b.dataset.i)}
  else if(k==='del'){if(!confirm('این سؤال از بانک حذف شود؟ این کار قابل بازگشت نیست.'))return;S.qbk=list().filter(x=>x.id!==+b.dataset.i);save();render();say('🗑 سؤال حذف شد')}
- else if(k==='book'){V.book=b.dataset.k;V.lv='';V.ty='';V.ls='';V.s='';V.all=false;V.lim=PAGE;say('');render();window.scrollTo({top:sec.offsetTop-10,behavior:'smooth'})}
- else if(k==='back'){V.book='';V.gs='';V.lim=PAGE;say('');render()}
+ else if(k==='book'){V.sel=false;V.pick.clear();V.book=b.dataset.k;V.lv='';V.ty='';V.ls='';V.s='';V.all=false;V.lim=PAGE;say('');render();window.scrollTo({top:sec.offsetTop-10,behavior:'smooth'})}
+ else if(k==='back'){V.sel=false;V.pick.clear();V.book='';V.gs='';V.lim=PAGE;say('');render()}
  else if(k==='gf'){V.gf=b.dataset.v;dashRes()}
  else if(k==='lv'){V.lv=b.dataset.v;V.lim=PAGE;bookRes()}
  else if(k==='ls'){V.ls=b.dataset.v;V.all=false;V.lim=PAGE;render()}
  else if(k==='all'){V.all=true;V.ls='';V.lim=PAGE;bookRes()}
  else if(k==='toc'){V.ls='';V.all=false;V.lv='';V.ty='';V.s='';V.lim=PAGE;render()}
  else if(k==='more'){V.lim+=PAGE;V.book?bookRes():dashRes()}
+ else if(k==='lsed'){say('');openLsEdit(b.dataset.v)}
+ else if(k==='lsdel'){delLessons([b.dataset.v])}
+ else if(k==='pkon'){V.sel=true;V.pick.clear();bookRes()}
+ else if(k==='pkoff'){V.sel=false;V.pick.clear();bookRes()}
+ else if(k==='pkall'){const G=groupLs(bookQs());if(V.pick.size===G.length)V.pick.clear();else G.forEach(g=>V.pick.add(g.name));bookRes()}
+ else if(k==='pk'||k==='pkrow'){const n=b.dataset.v;if(V.pick.has(n))V.pick.delete(n);else V.pick.add(n);bookRes()}
+ else if(k==='pkdel'){if(V.pick.size)delLessons([...V.pick])}
  else if(k==='imp'){if(typeof show==='function')show('qimp')}
  else if(k==='build'){if(typeof show==='function')show('exb')}});
 sec.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.qf==='ty'){V.ty=e.target.value;V.lim=PAGE;bookRes()}});

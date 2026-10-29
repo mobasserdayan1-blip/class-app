@@ -54,6 +54,15 @@ st.textContent=`
 #qbk .qd-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin}#qbk .qd-tabs .qd-chip{white-space:nowrap}
 #qbk .qd-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 10px}
 #qbk .qd-tools input,#qbk .qd-tools select{width:100%;margin:0;box-sizing:border-box}#qbk .qd-tools .qd-sr{grid-column:1/-1;margin:0}
+#qbk .qd-toc{border:1.5px solid var(--line);border-radius:20px;background:var(--card);padding:6px 14px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+#qbk .qd-toch{font-weight:800;font-size:15px;padding:10px 0 6px;color:var(--p)}#qbk .qd-toch small{color:var(--mut);font-weight:700;font-size:12px}
+#qbk .qd-tr{display:flex;align-items:baseline;gap:8px;width:100%;margin:0;padding:12px 4px;background:transparent;border:0;border-bottom:1px solid var(--line);border-radius:0;color:var(--tx);text-align:right;font:700 14.5px/1.9 Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#qbk .qd-tr:hover{background:var(--bg2)}
+#qbk .qd-tt{flex:0 1 auto;min-width:0}#qbk .qd-tt small{display:inline-block;margin-right:8px;color:var(--mut);font-weight:700;font-size:11.5px}
+#qbk .qd-td{flex:1;min-width:18px;border-bottom:2px dotted var(--mut);opacity:.6;transform:translateY(-5px)}
+#qbk .qd-tp{flex:none;min-width:48px;text-align:left;font-weight:800;color:var(--p);white-space:nowrap}
+#qbk .qd-toca{width:100%;margin:10px 0 0;border:1.5px dashed var(--line);background:transparent;color:var(--p);border-radius:14px;padding:11px;font:800 13.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#qbk .qd-ty{width:auto;margin:0;flex:none;border-radius:999px;padding:6px 12px 6px 30px;font:800 12.5px Vazirmatn,Tahoma,sans-serif}
 #qbk .qd-gh{display:flex;align-items:center;gap:8px;margin:14px 2px 8px;font-weight:800;font-size:14px;color:var(--p)}
 #qbk .qd-gh:after{content:"";flex:1;height:2px;border-radius:2px;background:var(--line)}#qbk .qd-gh small{color:var(--mut);font-weight:700}
 #qbk .qbk-e{padding:11px 12px;margin-bottom:9px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);border-right:5px solid var(--lc,var(--line))}
@@ -91,7 +100,7 @@ const anchor=$('exp')||$('mk')||$('crs')||$('rep');anchor?anchor.after(sec):docu
 if(typeof pages!=='undefined'&&!pages.some(q=>q[0]==='qbk'))pages.push(['qbk','🗂️ بانک سؤالات']);
 
 /* ---------- وضعیت نمایش (داشبورد ← کتاب ← سؤال‌ها) ---------- */
-const V={book:'',gf:'',gs:'',lv:'',ty:'',ls:'',s:'',lim:20};
+const V={book:'',gf:'',gs:'',lv:'',ty:'',ls:'',s:'',all:false,lim:20};
 const PAGE=20;
 const bkey=q=>(q.gr||'')+'§'+(q.bk||'');
 const gOrd=g=>{const i=grades().indexOf(g);return i<0?99:i};
@@ -138,26 +147,38 @@ function dashRes(){const box=$('qbkRes');if(!box)return;
  box.innerHTML=(gs.length>1?`<div class="qd-chips"><button class="qd-chip${V.gf?'':' on'}" data-qb="gf" data-v="">همه‌ی پایه‌ها</button>${gs.map(g=>`<button class="qd-chip${V.gf===g?' on':''}" data-qb="gf" data-v="${E(g)}">پایه ${E(g)}</button>`).join('')}</div>`:'')
   +`<div class="qd-h">کتاب‌ها (${fa(vis.length)})</div><div class="qd-grid">${vis.map(bookCard).join('')}</div>`}
 
-/* ---------- نمای یک کتاب ---------- */
+/* ---------- نمای یک کتاب: فهرست درس‌ها (مثل فهرست کتاب) ← سؤال‌های درس ---------- */
 function bookQs(){return list().filter(q=>bkey(q)===V.book)}
 function lvTyFilter(arr){return arr.filter(q=>(!V.lv||q.lv===V.lv)&&(!V.ty||q.ty===V.ty)&&(!V.s||qHay(q).indexOf(V.s)>=0))}
 function groupLs(arr){const m=new Map();arr.forEach(q=>{const k=q.ls||'بدون درس';let g=m.get(k);if(!g){g={name:k,ln:9999,items:[]};m.set(k,g)}if(q.ln!=null&&q.ln<g.ln)g.ln=q.ln;g.items.push(q)});
  const out=[...m.values()].sort((a,b)=>a.ln-b.ln||a.name.localeCompare(b.name,'fa'));out.forEach(g=>g.items.sort(qSort));return out}
+/* عنوان درس: اگر خود نام با «درس/فصل…» شروع نشده باشد، شماره‌ی درس جلوی آن می‌آید (بدون تکرار) */
+const lsTitle=g=>g.ln<9999&&!/^\s*(درس|فصل|واحد|بخش|مرحله)/.test(g.name)?'درس '+fa(g.ln)+' — '+g.name:g.name;
+/* محدوده‌ی صفحه‌ی درس: کمترین «از صفحه» تا بیشترین «تا صفحه»ی سؤال‌های ثبت‌شده */
+function pgRange(items){let a=null,b=null;items.forEach(q=>{if(q.p1==null)return;const e=q.p2!=null?q.p2:q.p1;if(a==null||q.p1<a)a=q.p1;if(b==null||e>b)b=e});
+ return a==null?'':(a===b?fa(a):fa(a)+' تا '+fa(b))}
+function tocHtml(all){const G=groupLs(all);
+ return `<div class="qd-toc"><div class="qd-toch">📑 فهرست درس‌ها <small>(${fa(G.length)} درس · ${fa(all.length)} سؤال)</small></div>
+ ${G.map(g=>`<button type="button" class="qd-tr" data-qb="ls" data-v="${E(g.name)}"><span class="qd-tt">${E(lsTitle(g))}<small>${fa(g.items.length)} سؤال</small></span><span class="qd-td"></span><span class="qd-tp">${pgRange(g.items)||'—'}</span></button>`).join('')}
+ <button type="button" class="qd-toca" data-qb="all">📚 نمایش همه‌ی ${fa(all.length)} سؤال این کتاب</button></div>`}
 function bookHtml(){const b=books().find(x=>x.key===V.book);if(!b){V.book='';return dashHtml()}
  return `<div class="qd-crumb"><button class="qd-back" data-qb="back">→ همه‌ی کتاب‌ها</button><b style="font-size:15px">${E(b.bk)}</b>${b.gr?`<span class="qbk-ty">پایه ${E(b.gr)}</span>`:''}<button class="qd-btn p" data-qb="new" style="background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;margin-right:auto">➕ سؤال در این کتاب</button></div>
  <div class="qd-kpis">${[['کل',b.n,'var(--p)']].concat(LV.map(l=>[l[1],b[l[0]]||0,l[2]])).map(k=>`<div class="qd-k"><b style="color:${k[2]}">${fa(k[1])}</b><span>${k[0]}</span></div>`).join('')}</div>
+ <div class="qd-tools"><input id="qbkSrchB" class="qd-sr" type="text" placeholder="🔎 جستجو در این کتاب…" autocomplete="off" value="${E(V.s)}"></div>
  <div id="qbkCtl"></div>
- <div class="qd-tools"><input id="qbkSrchB" class="qd-sr" type="text" placeholder="🔎 جستجو در این کتاب…" autocomplete="off" value="${E(V.s)}"><select data-qf="ty"><option value="">همه‌ی انواع سؤال</option>${TY.map(x=>`<option value="${x[0]}"${V.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select></div>
  <div id="qbkRes"></div>`}
 function bookRes(){const ctl=$('qbkCtl'),box=$('qbkRes');if(!box)return;
- const all=bookQs(),f=lvTyFilter(all),G=groupLs(f);
- if(V.ls&&!G.some(g=>g.name===V.ls))V.ls='';
+ const all=bookQs(),filtering=!!(V.lv||V.ty||V.s),toc=!V.ls&&!V.all&&!filtering;
+ if(V.ls&&!all.some(q=>(q.ls||'بدون درس')===V.ls))V.ls='';
+ const base=all.filter(q=>(!V.ls||(q.ls||'بدون درس')===V.ls)&&(!V.ty||q.ty===V.ty)&&(!V.s||qHay(q).indexOf(V.s)>=0));
  const lvChip=(v,t,n)=>`<button class="qd-chip${V.lv===v?' on':''}" data-qb="lv" data-v="${v}">${t}<small>${fa(n)}</small></button>`;
- if(ctl)ctl.innerHTML=`<div class="qd-tabs"><button class="qd-chip${V.ls?'':' on'}" data-qb="ls" data-v="">همه‌ی درس‌ها<small>${fa(f.length)}</small></button>${G.map(g=>`<button class="qd-chip${V.ls===g.name?' on':''}" data-qb="ls" data-v="${E(g.name)}">${g.ln<9999?'درس '+fa(g.ln)+' · ':''}${E(g.name)}<small>${fa(g.items.length)}</small></button>`).join('')}</div>
-  <div class="qd-chips">${lvChip('','همه‌ی سطح‌ها',all.filter(q=>(!V.ty||q.ty===V.ty)&&(!V.s||qHay(q).indexOf(V.s)>=0)).length)}${LV.map(l=>lvChip(l[0],l[1],all.filter(q=>q.lv===l[0]&&(!V.ty||q.ty===V.ty)&&(!V.s||qHay(q).indexOf(V.s)>=0)).length)).join('')}</div>`;
- const shown=V.ls?G.filter(g=>g.name===V.ls):G;let left=V.lim,html='',total=shown.reduce((n,g)=>n+g.items.length,0);
- shown.forEach(g=>{if(left<=0)return;const part=g.items.slice(0,left);left-=part.length;
-  html+=`<div class="qd-gh">${g.ln<9999?'درس '+fa(g.ln)+' — ':''}${E(g.name)} <small>(${fa(g.items.length)} سؤال)</small></div>`+part.map(q=>card(q,false)).join('')});
+ const G0=V.ls?groupLs(all.filter(q=>(q.ls||'بدون درس')===V.ls))[0]:null;
+ if(ctl)ctl.innerHTML=(toc?'':`<div class="qd-crumb" style="margin-bottom:8px"><button class="qd-back" data-qb="toc">📑 فهرست درس‌ها</button>${G0?`<b style="font-size:14px">${E(lsTitle(G0))}</b>${pgRange(G0.items)?`<span class="qbk-ty">صفحه‌ی ${pgRange(G0.items)}</span>`:''}`:''}</div>`)
+  +`<div class="qd-chips">${lvChip('','همه‌ی سطح‌ها',base.length)}${LV.map(l=>lvChip(l[0],l[1],all.filter(q=>q.lv===l[0]&&(!V.ls||(q.ls||'بدون درس')===V.ls)&&(!V.ty||q.ty===V.ty)&&(!V.s||qHay(q).indexOf(V.s)>=0)).length)).join('')}<select data-qf="ty" class="qd-ty"><option value="">همه‌ی انواع</option>${TY.map(x=>`<option value="${x[0]}"${V.ty===x[0]?' selected':''}>${x[1]}</option>`).join('')}</select></div>`;
+ if(toc){box.innerHTML=tocHtml(all);return}
+ const f=base.filter(q=>!V.lv||q.lv===V.lv),G=groupLs(f);let left=V.lim,html='',total=f.length;
+ G.forEach(g=>{if(left<=0)return;const part=g.items.slice(0,left);left-=part.length;
+  html+=(V.ls?'':`<div class="qd-gh">${E(lsTitle(g))} <small>(${fa(g.items.length)} سؤال${pgRange(g.items)?' · صفحه‌ی '+pgRange(g.items):''})</small></div>`)+part.map(q=>card(q,false)).join('')});
  box.innerHTML=total?html+(total>V.lim?`<button class="sm qd-more" data-qb="more">نمایش ${fa(Math.min(PAGE,total-V.lim))} سؤال بیشتر (${fa(total-V.lim)} مانده)</button>`:''):'<div class="qbk-em">سؤالی با این فیلترها پیدا نشد.</div>'}
 
 function render(){const m=$('qbkMain');if(!m)return;
@@ -248,11 +269,13 @@ sec.addEventListener('click',e=>{const b=e.target.closest('[data-qb]');if(!b)ret
  if(k==='new'){say('');if(V.book){const bk=books().find(x=>x.key===V.book);if(bk){LAST.gr=bk.gr;LAST.bk=bk.bk}}openForm()}
  else if(k==='edit'){say('');openForm(+b.dataset.i)}
  else if(k==='del'){if(!confirm('این سؤال از بانک حذف شود؟ این کار قابل بازگشت نیست.'))return;S.qbk=list().filter(x=>x.id!==+b.dataset.i);save();render();say('🗑 سؤال حذف شد')}
- else if(k==='book'){V.book=b.dataset.k;V.lv='';V.ty='';V.ls='';V.s='';V.lim=PAGE;say('');render();window.scrollTo({top:sec.offsetTop-10,behavior:'smooth'})}
+ else if(k==='book'){V.book=b.dataset.k;V.lv='';V.ty='';V.ls='';V.s='';V.all=false;V.lim=PAGE;say('');render();window.scrollTo({top:sec.offsetTop-10,behavior:'smooth'})}
  else if(k==='back'){V.book='';V.gs='';V.lim=PAGE;say('');render()}
  else if(k==='gf'){V.gf=b.dataset.v;dashRes()}
  else if(k==='lv'){V.lv=b.dataset.v;V.lim=PAGE;bookRes()}
- else if(k==='ls'){V.ls=b.dataset.v;V.lim=PAGE;bookRes()}
+ else if(k==='ls'){V.ls=b.dataset.v;V.all=false;V.lim=PAGE;render()}
+ else if(k==='all'){V.all=true;V.ls='';V.lim=PAGE;bookRes()}
+ else if(k==='toc'){V.ls='';V.all=false;V.lv='';V.ty='';V.s='';V.lim=PAGE;render()}
  else if(k==='more'){V.lim+=PAGE;V.book?bookRes():dashRes()}
  else if(k==='imp'){if(typeof show==='function')show('qimp')}
  else if(k==='build'){if(typeof show==='function')show('exb')}});

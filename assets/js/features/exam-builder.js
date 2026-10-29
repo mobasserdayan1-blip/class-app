@@ -44,6 +44,15 @@ try{
  #exb .exb-mx{border-collapse:collapse;width:100%;font-size:13px}
  #exb .exb-mx td,#exb .exb-mx th{border:1px solid var(--line);padding:4px;text-align:center}
  #exb .exb-mx input{margin:0;text-align:center}
+ #exb .exb-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+ #exb .exb-seg button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:14px;padding:12px 6px;font:800 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin:0}
+ #exb .exb-seg button.on{color:#fff;border-color:var(--p);background:linear-gradient(90deg,var(--p),var(--p2))}
+ #exb .exb-mb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}#exb .exb-mb button{width:auto;flex:none;margin:0}#exb .exb-mb b{margin-right:auto;font-size:13px}
+ #exb #exbMl{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 8px;background:var(--card)}
+ #exb .exb-mh{position:sticky;top:0;background:var(--bg2,#eef);font-weight:800;font-size:12.5px;padding:5px 8px;margin:6px -8px 2px;color:var(--p)}
+ #exb .exb-mq{display:flex;gap:8px;align-items:flex-start;padding:7px 2px;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.8;cursor:pointer}
+ #exb .exb-mq input{margin-top:6px}#exb .exb-mq .lvb{flex:none;color:#fff;border-radius:999px;padding:0 9px;font-size:11.5px;font-weight:800;line-height:22px;margin-top:2px}
+ #exb .exb-mq small{color:var(--mut);white-space:nowrap}
  #exb .exb-un{display:grid;grid-template-columns:1fr 70px 70px 70px;gap:6px;align-items:center;border-bottom:1px solid var(--line);padding:5px 0;font-size:13px}
  #exb .exb-un input{margin:0}
  #exbOv{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:none;flex-direction:column}
@@ -74,10 +83,19 @@ try{
   <details><summary>یا درس‌ها را دستی انتخاب کنم (مثلاً ۱ و ۳ و ۵ بدون درس‌های بین‌شان)</summary><p class="exb-n">اگر اینجا درسی تیک بخورد، «از/تا درس» نادیده گرفته می‌شود.</p><div class="exb-ls" id="exbLs"></div></details>
   <label style="display:flex;align-items:center;margin-top:8px"><input type="checkbox" id="exbUnk"> سؤال‌هایی که شماره‌ی درس یا صفحه‌شان ثبت نشده هم در نظر گرفته شوند (به مسئولیت خودم)</label>
   <div id="exbSum"></div><div id="exbUnList"></div></div>
- <div class="card"><b>۲. دانش‌آموزان</b><p class="exb-n">سطح هر دانش‌آموز «در هر درس» را بعد از ارزشیابی آغازین شما ثبت می‌کنید؛ از آن به بعد، با ثبت نمره‌ی آزمون‌های بعدی همان درس، برنامه خودکار سطح را به‌روز می‌کند (هر وقت خواستید می‌توانید دستی اصلاح کنید). اگر هیچ‌کس را تیک نزنید، یک برگه‌ی عمومی ساخته می‌شود.</p>
+ <div class="card"><b>۲. انتخاب سؤال‌ها</b>
+  <div class="exb-seg" id="exbMode"><button type="button" data-mode="auto" class="on">🎲 تصادفی و هوشمند</button><button type="button" data-mode="manual">✋ انتخاب دلخواه</button></div>
+  <p class="exb-n" id="exbModeN"></p>
+  <div id="exbManual" hidden>
+   <input id="exbMs" placeholder="🔎 جستجو در سؤال‌های همین محدوده…" autocomplete="off">
+   <div class="exb-mb"><button class="sm" type="button" id="exbMall">✔ انتخاب همه‌ی نمایش‌داده‌شده‌ها</button><button class="sm" type="button" id="exbMnone">✖ لغو همه‌ی انتخاب‌ها</button><b id="exbMc"></b></div>
+   <div id="exbMl"></div>
+   <label style="display:flex;align-items:center;margin-top:8px"><input type="checkbox" id="exbMfill"> اگر تعداد سؤال‌های انتخابی کمتر از «تعداد سؤال هر برگه» بود، بقیه به‌صورت تصادفی (متناسب با سطح هر دانش‌آموز) تکمیل شود</label>
+  </div></div>
+ <div class="card"><b>۳. دانش‌آموزان</b><p class="exb-n">سطح هر دانش‌آموز «در هر درس» را بعد از ارزشیابی آغازین شما ثبت می‌کنید؛ از آن به بعد، با ثبت نمره‌ی آزمون‌های بعدی همان درس، برنامه خودکار سطح را به‌روز می‌کند (هر وقت خواستید می‌توانید دستی اصلاح کنید). اگر هیچ‌کس را تیک نزنید، یک برگه‌ی عمومی ساخته می‌شود.</p>
   <div class="exb-g"><div><label>سطح برگه‌ی عمومی</label><select id="exbGenLv">${C.STUDENT_LEVELS.map(l=>`<option value="${l.k}" ${l.k==='m'?'selected':''}>${l.label}</option>`).join('')}</select></div></div>
   <div style="display:flex;gap:8px;margin:6px 0"><button class="sm" type="button" id="exbAll">انتخاب همه</button><button class="sm" type="button" id="exbNone">لغو انتخاب‌ها</button></div><div id="exbStu"></div></div>
- <div class="card"><b>۳. مشخصات برگه</b>
+ <div class="card"><b>۴. مشخصات برگه</b>
   <p class="exb-n">شعار، نام مدرسه، لوگو، نام آموزگار و نام درس خودکار از «اطلاعات مدرسه و پایه» و محدوده‌ی انتخابی خوانده می‌شود. شعار را هم همان‌جا می‌نویسید.</p>
   <div class="exb-g"><div><label>نوع آزمون</label><select id="exbType">${TYPES.map(t=>`<option value="${E(t)}">${E(t||'فقط عنوان دلخواه (بدون نوع)')}</option>`).join('')}</select></div><div><label>توضیح تکمیلی (اختیاری)</label><input id="exbTitle" placeholder="مثلاً ورودی سوم به چهارم"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbSame"> سؤال‌های همه‌ی دانش‌آموزان انتخاب‌شده یکسان باشد (مثل ارزشیابی آغازین؛ سطح سؤال‌ها از «سطح برگه‌ی عمومی» در بخش ۲ تعیین می‌شود و فقط نام دانش‌آموز فرق می‌کند)</label>
@@ -157,7 +175,7 @@ try{
  }
 
  /* ---------- خلاصه‌ی زنده‌ی محدوده + تکمیل شماره‌ی درس/صفحه با تأیید معلم ---------- */
- function renderSummary(){
+ function renderSummary0(){
   const r=readScope(),box=$('exbSum'),un=$('exbUnList');un.innerHTML='';
   if(r.err){box.innerHTML=`<p class="exb-n">${E(r.err==='پایه را انتخاب کنید.'||r.err==='کتاب / درس را انتخاب کنید.'?'ابتدا کتاب / درس را انتخاب کنید تا تعداد سؤال‌های محدوده نمایش داده شود.':r.err)}</p>`;return}
   const f=C.filterScope(bank(),r.scope),n={e:0,m:0,h:0};f.inside.forEach(q=>{if(n[q.lv]!=null)n[q.lv]++});
@@ -170,6 +188,36 @@ try{
     `<button class="sm" type="button" id="exbUnSave" style="margin-top:8px">💾 ذخیره‌ی شماره‌ها</button><span class="exb-n" id="exbUnMsg"></span></details>`;
   }
  }
+ /* ---------- انتخاب دلخواه سؤال‌ها ---------- */
+ let mode='auto';const selSet=new Set();
+ const LVC={e:'#1a8f55',m:'#f0a030',h:'#d9534f'};
+ function manualPool(){const r=readScope();if(r.err)return null;const f=C.filterScope(bank(),r.scope);return f.inside.concat($('exbUnk').checked?f.unknown:[])}
+ function sortQ(a,b){const la=C.toNum(a.ln),lb=C.toNum(b.ln);return (la==null?9999:la)-(lb==null?9999:lb)||(a.p1==null?9999:a.p1)-(b.p1==null?9999:b.p1)||(a.ca||a.id)-(b.ca||b.id)}
+ function visibleManual(pool){const t=(($('exbMs')||{}).value||'').trim();return pool.filter(q=>!t||[q.q,q.ans,q.tp,q.ls].join(' ').indexOf(t)>=0).sort(sortQ)}
+ function manualCount(){const pool=manualPool()||[],ids=new Set(pool.map(q=>String(q.id)));let n=0;selSet.forEach(i=>{if(ids.has(i))n++});const el=$('exbMc');if(el)el.textContent=n?`${F(n)} سؤال انتخاب شده`:'هنوز سؤالی انتخاب نشده'}
+ function setMode(m){mode=m==='manual'?'manual':'auto';sec.querySelectorAll('#exbMode [data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));$('exbManual').hidden=mode!=='manual';
+  $('exbModeN').textContent=mode==='manual'?'سؤال‌های دلخواه را تیک بزنید؛ همان سؤال‌ها (به ترتیب درس و صفحه) روی برگه‌ی همه‌ی دانش‌آموزان انتخاب‌شده می‌آید. بدون تیک تکمیل خودکار، «تعداد سؤال هر برگه» نادیده گرفته می‌شود.':'برنامه از میان سؤال‌های محدوده، برای هر دانش‌آموز متناسب با سطح خودش به‌صورت تصادفی انتخاب می‌کند.';
+  if(mode==='manual')renderManual()}
+ function renderManual(){
+  const box=$('exbMl');if(!box||mode!=='manual')return;
+  const pool=manualPool();
+  if(!pool){box.innerHTML='<p class="exb-n">ابتدا در بخش ۱ کتاب / درس را انتخاب کنید.</p>';manualCount();return}
+  const vis=visibleManual(pool);
+  if(!vis.length){box.innerHTML='<p class="exb-n">سؤالی در این محدوده پیدا نشد.</p>';manualCount();return}
+  let html='',cur=null;
+  vis.forEach(q=>{const ln=C.toNum(q.ln),h=ln!=null?'درس '+F(ln)+(q.ls?' — '+q.ls:''):(q.ls||'بدون شماره‌ی درس');
+   if(h!==cur){cur=h;html+=`<div class="exb-mh">${E(h)}</div>`}
+   const pg=q.p1!=null?(q.p2!=null&&q.p2!==q.p1?'ص '+F(q.p1)+'–'+F(q.p2):'ص '+F(q.p1)):'';
+   html+=`<label class="exb-mq"><input type="checkbox" data-mq="${E(q.id)}" ${selSet.has(String(q.id))?'checked':''}><span class="lvb" style="background:${LVC[q.lv]||'#888'}">${LVN[q.lv]||'—'}</span><span style="flex:1">${E(String(q.q).slice(0,160))}</span><small>${pg}</small></label>`});
+  box.innerHTML=html;manualCount()}
+ function renderSummary(){renderSummary0();renderManual()}
+ sec.addEventListener('click',e=>{
+  const mb=e.target.closest('#exbMode [data-mode]');if(mb){setMode(mb.dataset.mode);return}
+  if(e.target.id==='exbMall'){const pool=manualPool()||[];visibleManual(pool).forEach(q=>selSet.add(String(q.id)));renderManual();return}
+  if(e.target.id==='exbMnone'){selSet.clear();renderManual();return}
+ });
+ sec.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.mq!=null){if(t.checked)selSet.add(t.dataset.mq);else selSet.delete(t.dataset.mq);manualCount()}});
+ sec.addEventListener('input',e=>{if(e.target.id==='exbMs')renderManual()});
  sec.addEventListener('click',e=>{
   if(e.target.id!=='exbUnSave')return;
   const rows=Array.from(sec.querySelectorAll('[data-uq]')),byId=new Map(bank().map(q=>[String(q.id),q]));let changed=0,bad=false;
@@ -188,17 +236,31 @@ try{
  /* ---------- ساخت برگه ---------- */
  function build(){
   const rs=readScope();if(rs.err)return {err:rs.err};
-  const cnt=C.toNum($('exbCount').value);if(cnt==null||cnt<1||cnt>100)return {err:'تعداد سؤال باید عددی بین ۱ و ۱۰۰ باشد.'};
+  const manual=mode==='manual',fill=manual&&$('exbMfill').checked;
+  let cnt=C.toNum($('exbCount').value);
+  if(!manual||fill){if(cnt==null||cnt<1||cnt>100)return {err:'تعداد سؤال باید عددی بین ۱ و ۱۰۰ باشد.'}}
   const rm=readMix();if(rm.err)return {err:rm.err};
   const f=C.filterScope(bank(),rs.scope),pool=f.inside.concat($('exbUnk').checked?f.unknown:[]);
   if(!pool.length)return {err:'در این محدوده سؤالی پیدا نشد. محدوده را بازتر کنید یا شماره‌ی درس/صفحه‌ی سؤال‌ها را ثبت کنید.'};
+  let pinned=null;
+  if(manual){pinned=pool.filter(q=>selSet.has(String(q.id))).sort(sortQ);
+   if(!pinned.length)return {err:'در حالت «انتخاب دلخواه» دست‌کم یک سؤال را تیک بزنید.'};
+   if(!fill)cnt=pinned.length}
+  const lvc=qs=>{const a={e:0,m:0,h:0};qs.forEach(q=>{if(a[q.lv]!=null)a[q.lv]++});return a};
+  const mk=key=>{
+   if(!pinned)return C.pick(pool,C.mixFor(key,cnt,rm.mix));
+   const rest=Math.max(0,cnt-pinned.length);
+   if(!rest)return {questions:pinned.slice(),requested:cnt,actual:lvc(pinned),shortage:0,changedMix:false};
+   const ids=new Set(pinned.map(q=>String(q.id))),r=C.pick(pool.filter(q=>!ids.has(String(q.id))),C.mixFor(key,rest,rm.mix)),qs=pinned.concat(r.questions);
+   return {questions:qs,requested:cnt,actual:lvc(qs),shortage:r.shortage,changedMix:r.changedMix};
+  };
   const picked=Array.from(sec.querySelectorAll('[data-sc]:checked')).map(x=>students().find(s=>String(s.id)===x.dataset.sc)).filter(Boolean);
   const genLv=$('exbGenLv').value||'m';
   const targets=picked.length?picked:[{id:0,name:'',qbkLevel:genLv,_general:true}];
-  const same=$('exbSame').checked&&picked.length>0,shared=same?C.pick(pool,C.mixFor(genLv,cnt,rm.mix)):null;
+  const same=$('exbSame').checked&&picked.length>0,shared=same||manual&&!fill?mk(genLv):null;
   const sheets=targets.map(s=>{
    if(shared)return {student:s,levelKey:genLv,levelKnown:true,levelSrc:'manual',want:C.mixFor(genLv,cnt,rm.mix),result:shared};
-   const R=s._general?{key:genLv,src:'manual'}:lvFor(s,rs.scope.bk),key=R.key,want=C.mixFor(key,cnt,rm.mix),r=C.pick(pool,want);
+   const R=s._general?{key:genLv,src:'manual'}:lvFor(s,rs.scope.bk),key=R.key,want=C.mixFor(key,cnt,rm.mix),r=mk(key);
    return {student:s,levelKey:key,levelKnown:R.src!=='none',levelSrc:R.src,want,result:r};
   });
   return {sheets,ctx:{scope:rs.scope,scopeText:scopeText(rs.scope),count:cnt,unknownUsed:$('exbUnk').checked&&f.unknown.length>0,mix:rm.mix}};
@@ -220,16 +282,16 @@ try{
   if(q.ty==='mc'){const o=Array.isArray(q.op)?q.op[q.ok]:null;if(o!=null&&o!=='')return (L[q.ok]||F(q.ok+1))+') '+o;return q.ans||''}
   return q.ans||'';
  }
- /* فضای پاسخ: تعداد خط‌ها به اندازه‌ی طول پاسخ ثبت‌شده در بانک است (دست‌خط دانش‌آموز بزرگ‌تر از متن تایپی است، پس هر خط حدود ۶۰ نویسه حساب می‌شود).
-    پاسخ ثبت نشده: تشریحی ۳ خط، بقیه ۱ خط. در برگه‌ی دانش‌آموز هیچ خط یا نقطه‌چینی چاپ نمی‌شود؛ فقط همان قدر جای خالی می‌ماند تا دانش‌آموز آزادانه بنویسد. در حالت «زیر هر سؤال» خط‌ها حذف می‌شوند و فقط خود پاسخ زیر سؤال چاپ می‌شود. */
- const LH=26,CPL=60;
+ /* فضای پاسخ: تعداد خط‌ها به اندازه‌ی طول پاسخ ثبت‌شده در بانک است (دست‌خط دانش‌آموز بزرگ‌تر از متن تایپی است، پس هر خط حدود ۴۸ نویسه و ارتفاع هر خط ۳۴ پیکسل حساب می‌شود تا جای نوشتن کم نیاید).
+    پاسخ ثبت نشده: تشریحی ۴ خط، بقیه ۲ خط. در برگه‌ی دانش‌آموز هیچ خط یا نقطه‌چینی چاپ نمی‌شود؛ فقط همان قدر جای خالی می‌ماند تا دانش‌آموز آزادانه بنویسد. در حالت «زیر هر سؤال» خط‌ها حذف می‌شوند و فقط خود پاسخ زیر سؤال چاپ می‌شود. */
+ const LH=34,CPL=48;
  function wrLines(q,a){
   if(a)return Math.min(8,Math.max(1,String(a).split(/\n/).reduce((n,t)=>n+Math.max(1,Math.ceil(t.trim().length/CPL)),0)));
-  return q.ty==='es'?3:1;
+  return q.ty==='es'?4:2;
  }
  function writeArea(q,a,show){
   if(show)return `<div class="wa">${a?E(a):'<i class="na">پاسخ ثبت نشده</i>'}</div>`;
-  return `<div class="wr" style="height:${wrLines(q,a)*LH}px"></div>`;
+  const h=wrLines(q,a)*LH;return `<div class="wr" data-h="${h}" style="height:${h}px"></div>`;
  }
  function qBlock(q,i,showPts,showAns){
   const L=['الف','ب','ج','د'],a=ansText(q);let body=`<div class="qt"><span>${E(q.q)}</span>${showPts?`<span class="pt">(${F(q.pt||1)} نمره)</span>`:''}</div>`;
@@ -264,8 +326,8 @@ try{
   <table class="qs kk"><thead><tr><th class="no">–</th><th>پاسخ</th></tr></thead><tbody>${rows}</tbody></table>
   <div class="ch"><span>پاسخ‌نامه‌ی آموزگار (ادامه)</span><span>${E(opts.title)}${nm?' — '+E(nm):''}</span></div></div></div>`;
  }
- /* هر صفحه‌ی A4 یک کادر کامل و بسته دارد. سؤال‌ها به ترتیب در صفحه‌ها چیده می‌شوند و هر وقت صفحه پر شد، سؤال بعدی به صفحه‌ی تازه می‌رود
-    (سر برگه‌ی کوتاه و سرستون در صفحه‌ی بعد تکرار می‌شود). بازخورد و امضا ته آخرین صفحه می‌نشینند. این تابع داخل خود سند چاپی اجرا می‌شود. */
+ /* هر صفحه‌ی A4 یک کادر کامل و بسته دارد. سؤال‌ها به ترتیب در صفحه‌ها چیده می‌شوند و هر وقت صفحه پر شد، سؤال بعدی به صفحه‌ی تازه می‌رود.
+    کادر بازخورد و جدول بلافاصله بعد از آخرین سؤال می‌آید. اگر کمی جا کم بود، فضای پاسخ‌ها تا حداکثر ۲۶٪ (نه کمتر از اندازه‌ی قدیمی) فشرده می‌شود؛ اگر باز هم جا نشد، کادر بازخورد به صفحه‌ی بعد می‌رود و هیچ سؤالی جابه‌جا نمی‌شود. این تابع داخل خود سند چاپی اجرا می‌شود. */
  function paginate(){
   var pr=document.createElement('div');pr.style.cssText='position:absolute;visibility:hidden;width:1px;height:280mm';document.body.appendChild(pr);
   var H=pr.offsetHeight;document.body.removeChild(pr);
@@ -276,15 +338,19 @@ try{
    rows.forEach(function(r){body.removeChild(r)});
    var frames=[f],cur=f,cb=body,last=u,isKey=/\bkey\b/.test(u.className);
    function fits(x){return x.offsetHeight<=H}
-   function next(){
+   function next(noTable){
     var s=document.createElement('div');s.className='sheet'+(isKey?' key':'');
     var nf=document.createElement('div');nf.className='frame';
     if(ch&&(frames.length+1)%2===1){var c=ch.cloneNode(true);c.className='ch on';nf.appendChild(c)}
-    var t=tb.cloneNode(false);t.appendChild(th.cloneNode(true));var nb=document.createElement('tbody');t.appendChild(nb);nf.appendChild(t);
+    var nb=cb;
+    if(!noTable){var t=tb.cloneNode(false);t.appendChild(th.cloneNode(true));nb=document.createElement('tbody');t.appendChild(nb);nf.appendChild(t)}
     s.appendChild(nf);last.parentNode.insertBefore(s,last.nextSibling);last=s;frames.push(nf);cur=nf;cb=nb;
    }
    rows.forEach(function(r){cb.appendChild(r);if(!fits(cur)&&cb.rows.length>1){cb.removeChild(r);next();cb.appendChild(r)}});
-   if(tl){cur.appendChild(tl);if(!fits(cur)&&cb.rows.length>1){var r=cb.rows[cb.rows.length-1];cb.removeChild(r);next();cb.appendChild(r);cur.appendChild(tl)}}
+   function squeeze(fr){var w=[].slice.call(fr.querySelectorAll('.wr[data-h]'));if(!w.length)return false;
+    for(var k=0.92;k>=0.74;k-=0.06){w.forEach(function(e){e.style.height=Math.round(+e.getAttribute('data-h')*k)+'px'});if(fits(fr))return true}
+    w.forEach(function(e){e.style.height=e.getAttribute('data-h')+'px'});return false}
+   if(tl){cur.appendChild(tl);if(!fits(cur)&&!squeeze(cur)){tl.className+=' cmp';if(!squeeze(cur)&&!fits(cur)){tl.className=tl.className.replace(' cmp','');cur.removeChild(tl);next(true);cur.appendChild(tl)}}}
    frames.forEach(function(x,i){x.className+=' fx';if(frames.length>1){var p=document.createElement('div');p.className='pn';p.textContent='صفحه '+fa(i+1)+' از '+fa(frames.length);x.appendChild(p)}});
   });
  }
@@ -301,6 +367,7 @@ try{
  .tl{margin-top:0;flex:none}
  .fb{width:94%;margin:12px auto 4px;border-collapse:collapse;font-size:11px;break-inside:avoid}.fb th,.fb td{border:1px solid #444;padding:3px 5px;text-align:center}.fb th{background:#e6e6e6}.fb td.ex{text-align:right;height:22px}
  .fbx{border:1.5px dashed #444;border-radius:18px;margin:10px 14px 0;padding:6px 12px;min-height:64px;font-weight:800;font-size:12px}
+ .tl.cmp .fbx{min-height:36px;margin-top:6px;padding:3px 12px}.tl.cmp .fb{margin-top:6px}.tl.cmp .fb td.ex{height:18px}.tl.cmp .ft{padding:2px 0}
  .ft{text-align:center;font-weight:800;font-size:11px;padding:6px 0}
  .wr{margin:4px 18px 0}
  .wa{margin:3px 18px 0;font-weight:700;color:#14653a;white-space:pre-wrap}.na{color:#999;font-weight:400}.ok{color:#14653a;font-weight:800}
@@ -321,13 +388,13 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
+  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.mode=mode;c.mfill=$('exbMfill').checked;c.sel=Array.from(selSet);c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
  function restore(){
   const c=cfg();
   if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
-  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.same!=null)$('exbSame').checked=!!c.same;
+  if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.same!=null)$('exbSame').checked=!!c.same;if(c.mfill!=null)$('exbMfill').checked=!!c.mfill;if(Array.isArray(c.sel)){selSet.clear();c.sel.forEach(i=>selSet.add(String(i)))}setMode(c.mode);
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){

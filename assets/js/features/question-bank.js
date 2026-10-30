@@ -49,14 +49,6 @@ st.textContent=`
 #qbk .qd-bm{font-size:12px;color:var(--mut);margin:2px 0 8px;line-height:1.8}
 #qbk .qd-bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--bg2)}#qbk .qd-bar i{display:block;height:100%}
 #qbk .qd-bl{display:flex;gap:8px;margin-top:6px;font-size:11.5px;font-weight:800}
-<<<<<<< HEAD
-#qbk .qd-bk-wrap{position:relative;display:flex;flex-direction:column}
-#qbk .qd-bk-wrap .qd-bk{width:100%;height:100%}
-#qbk .qd-bk-act{position:absolute;top:8px;left:8px;display:flex;gap:4px;z-index:2}
-#qbk .qd-bk-act button{width:auto;margin:0;flex:none;border:1.5px solid rgba(255,255,255,.7);background:rgba(255,255,255,.9);color:var(--tx);border-radius:10px;padding:4px 8px;font:800 11px Vazirmatn,Tahoma,sans-serif;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-#qbk .qd-bk-act button.dg{color:#d9534f}
-=======
->>>>>>> 6c453253a077a0446fd29617eb9d45fa1e41f37f
 #qbk .qd-crumb{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 #qbk .qd-back{width:auto;margin:0;flex:none;border:1.5px solid var(--line);background:var(--card);color:var(--tx);border-radius:12px;padding:8px 14px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #qbk .qd-tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;margin:0 0 6px;scrollbar-width:thin}#qbk .qd-tabs .qd-chip{white-space:nowrap}
@@ -146,18 +138,10 @@ function card(x,full){const l=lvO(x.lv);
 
 /* ---------- داشبورد (صفحه‌ی اول): کتاب‌ها ---------- */
 function bookCard(b){const ls=b.ls.size;
-<<<<<<< HEAD
- return `<div class="qd-bk-wrap"><button type="button" class="qd-bk" data-qb="book" data-k="${E(b.key)}"><div class="qd-bt" style="background:${grad(b.key)}"></div><div class="qd-bb">
- <div class="qd-ic" style="background:${grad(b.key)}">📘</div><div class="qd-bn">${E(b.bk)}</div>
- <div class="qd-bm">${b.gr?'پایه '+E(b.gr)+' · ':''}${fa(b.n)} سؤال${ls?' · '+fa(ls)+' درس':''}</div>${bar(b)}
- <div class="qd-bl">${LV.map(l=>`<span style="color:${l[2]}">${fa(b[l[0]]||0)} ${l[1]}</span>`).join('')}</div></div></button>
- <div class="qd-bk-act"><button type="button" data-qb="bked" data-k="${E(b.key)}" data-bk="${E(b.bk)}" data-gr="${E(b.gr||'')}" title="ویرایش کتاب">✏️</button><button type="button" class="dg" data-qb="bkdel" data-k="${E(b.key)}" data-bk="${E(b.bk)}" title="حذف کتاب">🗑</button></div></div>`}
-=======
  return `<button type="button" class="qd-bk" data-qb="book" data-k="${E(b.key)}"><div class="qd-bt" style="background:${grad(b.key)}"></div><div class="qd-bb">
  <div class="qd-ic" style="background:${grad(b.key)}">📘</div><div class="qd-bn">${E(b.bk)}</div>
  <div class="qd-bm">${b.gr?'پایه '+E(b.gr)+' · ':''}${fa(b.n)} سؤال${ls?' · '+fa(ls)+' درس':''}</div>${bar(b)}
  <div class="qd-bl">${LV.map(l=>`<span style="color:${l[2]}">${fa(b[l[0]]||0)} ${l[1]}</span>`).join('')}</div></div></button>`}
->>>>>>> 6c453253a077a0446fd29617eb9d45fa1e41f37f
 function dashHtml(){const A=list(),B=books();
  if(!A.length)return `<div class="qd-first"><div style="font-size:42px">🗂️</div><b style="font-size:16px">بانک سؤال شما هنوز خالی است</b><br>اولین سؤال را ثبت کنید یا سؤال‌های آماده را از فایل Word / PDF / متن وارد کنید.<div class="qd-acts"><button class="qd-btn" data-qb="new">➕ ثبت سؤال جدید</button><button class="qd-btn" data-qb="imp">📥 ورود از فایل</button></div></div>`;
  const kp=(v,t,c)=>`<div class="qd-k"><b${c?` style="color:${c}"`:''}>${fa(v)}</b><span>${t}</span></div>`;
@@ -332,41 +316,6 @@ function saveLsEdit(){if(!led)return;const er=t=>{$('qlEr').textContent=t},v=id=
  save();closeLs();render();say('✅ درس «'+name+'» ذخیره شد'+(merge?' (ادغام شد)':''))}
 lov.addEventListener('click',e=>{const t=e.target;if(t===lov){closeLs();return}const a=t.closest('[data-ql]');if(!a)return;if(a.dataset.ql==='cancel')closeLs();else if(a.dataset.ql==='save')saveLsEdit()});
 lov.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();saveLsEdit()}});
-<<<<<<< HEAD
-
-/* ---------- ویرایش / حذف کتاب (همه‌ی سؤال‌های همان کتاب) ---------- */
-const bov=document.createElement('div');bov.className='pmt-ov';bov.id='qbkBookOv';bov.innerHTML='<div class="pmt-bx" role="dialog" aria-modal="true"></div>';document.body.appendChild(bov);
-let bed=null;
-function openBookEdit(key,bk,gr){const items=list().filter(q=>bkey(q)===key);if(!items.length)return;
-  bed={key,oldBk:bk,oldGr:gr,n:items.length};
-  bov.firstElementChild.innerHTML=`<h3>✏️ ویرایش کتاب</h3><p class="sub" style="text-align:right;margin:0 0 6px;line-height:1.9">تغییرات روی همه‌ی ${fa(items.length)} سؤال این کتاب اعمال می‌شود.</p>
-  <label>نام کتاب</label><input id="qbN" value="${E(bk)}" placeholder="نام کتاب" autocomplete="off">
-  <label>پایه (اختیاری)</label><input id="qbG" value="${E(gr||'')}" placeholder="مثلاً چهارم" autocomplete="off">
-  <div class="pmt-er" id="qbEr"></div>
-  <div class="pmt-fa"><button class="go" type="button" data-qbov="save">💾 ذخیره‌ی تغییرات</button><button type="button" data-qbov="cancel">انصراف</button></div>`;
-  bov.classList.add('on')}
-const closeBook=()=>{bov.classList.remove('on');bed=null};
-function saveBookEdit(){if(!bed)return;const er=t=>{$('qbEr').textContent=t},v=id=>$(id).value.trim();
-  const name=v('qbN');const g=v('qbG');
-  if(!name){er('نام کتاب را بنویسید.');$('qbN').focus();return}
-  const items=list().filter(q=>bkey(q)===bed.key);if(!items.length){closeBook();return}
-  const merge=name!==bed.oldBk&&list().some(q=>q.bk===name&&(q.gr||'')===(g||'')&&bkey(q)!==bed.key);
-  if(merge&&!confirm('کتابی با نام «'+name+'» و همین پایه از قبل هست. سؤال‌های این دو کتاب در هم ادغام شوند؟'))return;
-  const now=Date.now();
-  items.forEach(q=>{q.bk=name;if(g==='')delete q.gr;else q.gr=g;q.ua=now});
-  if(V.book===bed.key)V.book=name+'§'+(g||'');
-  save();closeBook();render();say('✅ کتاب «'+name+'» ذخیره شد'+(merge?' (ادغام شد)':''))}
-bov.addEventListener('click',e=>{const t=e.target;if(t===bov){closeBook();return}const a=t.closest('[data-qbov]');if(!a)return;if(a.dataset.qbov==='cancel')closeBook();else if(a.dataset.qbov==='save')saveBookEdit()});
-bov.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'){e.preventDefault();saveBookEdit()}});
-
-function delBook(key,bk){const hit=list().filter(q=>bkey(q)===key);if(!hit.length)return;
-  const msg='کتاب «'+bk+'» به همراه '+fa(hit.length)+' سؤال و پاسخ‌هایش حذف شود؟';
-  if(!confirm(msg+'\nاین کار قابل بازگشت نیست (پیشنهاد: قبل از حذف پشتیبان بگیرید).'))return;
-  const ids=new Set(hit.map(q=>q.id));S.qbk=list().filter(q=>!ids.has(q.id));
-  if(V.book===key)V.book='';save();render();say('🗑 کتاب «'+bk+'» و '+fa(hit.length)+' سؤال حذف شد')}
-
-=======
->>>>>>> 6c453253a077a0446fd29617eb9d45fa1e41f37f
 function delLessons(names){const set=new Set(names);
  const hit=list().filter(q=>bkey(q)===V.book&&set.has(lsKey(q)));if(!hit.length)return;
  const msg=names.length===1?'درس «'+names[0]+'» به همراه '+fa(hit.length)+' سؤال و پاسخ‌هایش حذف شود؟':fa(names.length)+' درس انتخاب‌شده به همراه '+fa(hit.length)+' سؤال و پاسخ‌هایشان حذف شود؟';
@@ -389,11 +338,6 @@ sec.addEventListener('click',e=>{const b=e.target.closest('[data-qb]');if(!b)ret
  else if(k==='more'){V.lim+=PAGE;V.book?bookRes():dashRes()}
  else if(k==='lsed'){say('');openLsEdit(b.dataset.v)}
  else if(k==='lsdel'){delLessons([b.dataset.v])}
-<<<<<<< HEAD
- else if(k==='bked'){say('');openBookEdit(b.dataset.k,b.dataset.bk,b.dataset.gr||'')}
- else if(k==='bkdel'){delBook(b.dataset.k,b.dataset.bk)}
-=======
->>>>>>> 6c453253a077a0446fd29617eb9d45fa1e41f37f
  else if(k==='pkon'){V.sel=true;V.pick.clear();bookRes()}
  else if(k==='pkoff'){V.sel=false;V.pick.clear();bookRes()}
  else if(k==='pkall'){const G=groupLs(bookQs());if(V.pick.size===G.length)V.pick.clear();else G.forEach(g=>V.pick.add(g.name));bookRes()}

@@ -147,7 +147,7 @@ body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;direction:rtl;color:#1d1b2e;f
 
 /* ---------- DOCX (فایل واقعی Word) ---------- */
 const xe=s=>String(s==null?'':s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-const FONT='Tahoma';
+const FONT='Vazirmatn';
 const rF=`<w:rFonts w:ascii="${FONT}" w:hAnsi="${FONT}" w:cs="${FONT}" w:eastAsia="${FONT}"/>`;
 function run(text,o){o=o||{};const sz=o.sz?`<w:sz w:val="${o.sz}"/><w:szCs w:val="${o.sz}"/>`:'';
  const rp=`<w:rPr>${o.font?`<w:rFonts w:ascii="${o.font}" w:hAnsi="${o.font}" w:cs="${o.font}"/>`:rF}${o.b?'<w:b/><w:bCs/>':''}${o.color?`<w:color w:val="${o.color}"/>`:''}${sz}${o.fill?`<w:shd w:val="clear" w:color="auto" w:fill="${o.fill}"/>`:''}<w:rtl/></w:rPr>`;
@@ -163,18 +163,19 @@ function docxBody(m){
  const sz=(FS[m.size]||FS.m).pt*2,small=Math.max(15,sz-4),IND=454,GREEN='136A3D',MUT='807B94';
  const b=[];
  const top=[];
- if(m.school||m.teacher)b.push(para(run(m.school,{b:1,sz:sz,color:'1D1B2E'})+(m.teacher?run('     آموزگار: '+m.teacher,{sz:small+2,color:MUT}):''),{jc:'center',after:40}));
+ if(m.school)b.push(para(run(m.school,{b:1,sz:sz,color:'1D1B2E'}),{after:0}));
+  if(m.teacher)b.push(para(run('آموزگار: '+m.teacher,{sz:small+2,color:MUT}),{after:60}));
  b.push(para(run(m.title,{b:1,sz:sz+10,color:ACC.slice(1)}),{style:'Heading1',jc:'center',after:30}));
  if(m.sub)b.push(para(run(m.sub,{sz:sz,color:'5D5973'}),{jc:'center',after:30}));
  if(modeBadge(m))b.push(para(run(' '+modeBadge(m)+' ',{b:1,sz:small+2,color:'FFFFFF',fill:ACC.slice(1)}),{jc:'center',after:40}));
- b.push(para(run(chipsOf(m).join('   •   '),{sz:small+2,color:'3F2F98'}),{jc:'center',before:30,after:160,bdr:`<w:bottom w:val="single" w:sz="18" w:space="6" w:color="${ACC.slice(1)}"/>`}));
+ b.push(para(chipsOf(m).map(c=>run(' '+c+' ',{sz:small+2,color:'3F2F98',fill:ACC_L.slice(1)})).join(run('  ',{sz:small})),{jc:'center',before:60,after:160,bdr:`<w:bottom w:val="single" w:sz="18" w:space="6" w:color="${ACC.slice(1)}"/>`}));
  if(m.nameLine)b.push(para(run('نام و نام‌خانوادگی: ................................      پایه / کلاس: ................      تاریخ: ................',{sz:sz,color:'444444'}),{after:120}));
  m.groups.forEach(g=>{
   b.push(para(run(g.title,{b:1,sz:sz+2,color:'2F2377'})+run('      '+F(g.count)+' سؤال'+(g.pg?' · صفحه‌ی '+g.pg:''),{sz:small,color:MUT}),{style:'Heading2',keepNext:1,fill:ACC_L.slice(1),before:240,after:100,bdr:`<w:bottom w:val="single" w:sz="8" w:space="2" w:color="${ACC.slice(1)}"/>`}));
   g.items.forEach(it=>{
-   const meta=m.meta?run('   ('+it.lvName+' · '+it.tyName+')',{sz:small-2,color:it.lvColor.slice(1)}):'';
+   const meta=m.meta?run('     ●',{font:'Segoe UI Symbol',sz:small-4,color:it.lvColor.slice(1)})+run(' '+it.lvName+' · '+it.tyName,{sz:small-2,color:MUT}):'';
    const last=!(it.ty==='mc'&&it.ops.length)&&!(m.showAns&&(it.ty!=='mc'||!it.has))&&it.ty!=='tf'&&!(m.lines&&(it.ty==='es'||it.ty==='sa')&&!m.showAns);
-   b.push(para(run(F(it.n)+'.',{b:1,sz:sz,color:ACC.slice(1)})+tab()+run(it.text,{b:1,sz:sz,color:'1D1B2E'})+meta,{keepNext:last?0:1,keepLines:1,before:140,after:40,left:IND,hang:IND}));
+   b.push(para(run(' '+F(it.n)+' ',{b:1,sz:sz-2,color:'FFFFFF',fill:ACC.slice(1)})+tab()+run(it.text,{b:1,sz:sz,color:'1D1B2E'})+meta,{keepNext:last?0:1,keepLines:1,before:140,after:40,left:IND,hang:IND}));
    if(it.ty==='mc'&&it.ops.length){
     const mx=Math.max(...it.ops.map(o=>o.t.length)),inl=mx<=14&&it.ops.length<=4;
     const opRuns=it.ops.map(o=>{const ok=m.showAns&&o.i===it.ok,lab=(LET[o.i]||F(o.i+1))+') ';
@@ -205,7 +206,7 @@ function docxBody(m){
  return b.join('');
 }
 const NS='xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
-function docxFiles(m){
+function docxFiles(m,fonts){
  const sz=(FS[m.size]||FS.m).pt*2;
  const doc=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${NS}><w:body>${docxBody(m)}<w:sectPr><w:footerReference w:type="default" r:id="rId3"/><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1000" w:right="1000" w:bottom="1000" w:left="1000" w:header="500" w:footer="450" w:gutter="0"/><w:bidi/></w:sectPr></w:body></w:document>`;
  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles ${NS}><w:docDefaults><w:rPrDefault><w:rPr>${rF}<w:sz w:val="${sz}"/><w:szCs w:val="${sz}"/><w:lang w:val="en-US" w:eastAsia="en-US" w:bidi="fa-IR"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:bidi/><w:spacing w:after="0" w:line="340" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults>
@@ -213,17 +214,41 @@ function docxFiles(m){
 <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:outlineLvl w:val="0"/></w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:outlineLvl w:val="1"/></w:pPr><w:rPr><w:b/><w:bCs/></w:rPr></w:style>
 <w:style w:type="paragraph" w:styleId="Footer"><w:name w:val="footer"/><w:basedOn w:val="Normal"/></w:style></w:styles>`;
- const settings=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings ${NS}><w:zoom w:percent="100"/><w:defaultTabStop w:val="720"/><w:characterSpacingControl w:val="doNotCompress"/><w:themeFontLang w:val="en-US" w:bidi="fa-IR"/></w:settings>`;
+ const settings=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings ${NS}><w:zoom w:percent="100"/>${fonts?'<w:embedTrueTypeFonts/>':''}<w:defaultTabStop w:val="720"/><w:characterSpacingControl w:val="doNotCompress"/><w:themeFontLang w:val="en-US" w:bidi="fa-IR"/></w:settings>`;
  const fr=t=>`<w:r><w:rPr>${rF}<w:color w:val="9A96AB"/><w:sz w:val="18"/><w:szCs w:val="18"/><w:rtl/></w:rPr>${t}</w:r>`;
  const footer=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:ftr ${NS}><w:p><w:pPr><w:pStyle w:val="Footer"/><w:bidi/><w:jc w:val="center"/></w:pPr>${fr('<w:t xml:space="preserve">صفحه </w:t>')}<w:fldSimple w:instr=" PAGE ">${fr('<w:t>1</w:t>')}</w:fldSimple>${fr('<w:t xml:space="preserve"> از </w:t>')}<w:fldSimple w:instr=" NUMPAGES ">${fr('<w:t>1</w:t>')}</w:fldSimple></w:p></w:ftr>`;
  const iso=new Date().toISOString().replace(/\.\d+Z$/,'Z');
  const core=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${xe(m.title)}</dc:title><dc:creator>${xe(m.teacher||'برنامه‌ی کلاس')}</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${iso}</dcterms:created><dcterms:modified xsi:type="dcterms:W3CDTF">${iso}</dcterms:modified></cp:coreProperties>`;
  return [
-  ['[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`],
+  ['[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>${fonts?'<Default Extension="odttf" ContentType="application/vnd.openxmlformats-officedocument.obfuscatedFont"/><Override PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"/>':''}<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/><Override PartName="/word/footer1.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.footer+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`],
   ['_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>`],
-  ['word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/></Relationships>`],
+  ['word/_rels/document.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/footer" Target="footer1.xml"/>${fonts?'<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/fontTable" Target="fontTable.xml"/>':''}</Relationships>`],
   ['word/document.xml',doc],['word/styles.xml',styles],['word/settings.xml',settings],['word/footer1.xml',footer],['docProps/core.xml',core]
+ ].concat(fonts?fontParts(fonts):[]);
+}
+
+/* ---------- جاسازی فونت وزیر در Word (فونت مبهم‌شده طبق استاندارد OOXML) ---------- */
+function obf(bytes,guid){
+ const hex=guid.replace(/[{}-]/g,''),k=[];for(let i=0;i<16;i++)k.push(parseInt(hex.substr(i*2,2),16));k.reverse();
+ const o=new Uint8Array(bytes);for(let i=0;i<32&&i<o.length;i++)o[i]^=k[i%16];return o;
+}
+function newGuid(){const h='0123456789ABCDEF';let g='';for(let i=0;i<32;i++)g+=h[Math.floor(Math.random()*16)];return '{'+g.slice(0,8)+'-'+g.slice(8,12)+'-'+g.slice(12,16)+'-'+g.slice(16,20)+'-'+g.slice(20)+'}'}
+function fontParts(f){
+ const g1=newGuid(),g2=newGuid(),H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+ return [
+  ['word/fontTable.xml',`${H}<w:fonts ${NS}><w:font w:name="${FONT}"><w:charset w:val="B2"/><w:family w:val="swiss"/><w:pitch w:val="variable"/><w:embedRegular r:id="rId1" w:fontKey="${g1}"/><w:embedBold r:id="rId2" w:fontKey="${g2}"/></w:font></w:fonts>`],
+  ['word/_rels/fontTable.xml.rels',`${H}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="fonts/font1.odttf"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/font" Target="fonts/font2.odttf"/></Relationships>`],
+  ['word/fonts/font1.odttf',obf(f.regular,g1)],['word/fonts/font2.odttf',obf(f.bold,g2)]
  ];
+}
+let FCACHE=null;
+async function loadFonts(){
+ if(FCACHE)return FCACHE;
+ try{
+  const get=async n=>{const r=await fetch('assets/fonts/'+n);if(!r.ok)throw new Error(n);return new Uint8Array(await r.arrayBuffer())};
+  const [regular,bold]=await Promise.all([get('Vazirmatn-Regular.ttf'),get('Vazirmatn-Bold.ttf')]);
+  FCACHE={regular,bold};return FCACHE;
+ }catch(e){console.warn('Vazirmatn embed skipped',e);return null}
 }
 /* zip ساده (بدون فشرده‌سازی) با crc32 */
 const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
@@ -245,9 +270,10 @@ function zipStore(files){
  const out=new Uint8Array(n);let p=0;all.forEach(x=>{out.set(x,p);p+=x.length});return out;
 }
 const fileBase=m=>(m.bk+' - '+(m.showAns?'با پاسخ':m.key?'با پاسخنامه':'بدون پاسخ')).replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim().slice(0,90);
-function saveDocx(){
+async function saveDocx(){
  const m=model();if(!m.total)return;
- const bytes=zipStore(docxFiles(m));
+ const fonts=await loadFonts();
+ const bytes=zipStore(docxFiles(m,fonts));
  const name=fileBase(m)+'.docx';
  if(typeof window.dlFile==='function')window.dlFile(name,bytes);
  else{const u=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
@@ -373,6 +399,6 @@ window.QEXP={
   openDlg();
  },
  /* برای تست و استفاده‌ی برنامه‌نویسی */
- _model:()=>X?model():null,_html:()=>X?htmlDoc(model()):'',_docx:()=>X?zipStore(docxFiles(model())):null
+ _model:()=>X?model():null,_html:()=>X?htmlDoc(model()):'',_docx:()=>X?zipStore(docxFiles(model())):null,_docxFonts:async()=>X?zipStore(docxFiles(model(),await loadFonts())):null
 };
 }catch(e){console.error('question-export',e)}})();

@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v123';
+const C='cl-v130';
 const A=[
   './',
   './index.html',
@@ -90,7 +90,8 @@ const A=[
   './assets/js/features/question-import.js',
   './assets/templates/question-import-template.docx',
   './assets/js/features/exam-builder-core.js',
-  './assets/js/features/exam-builder.js'
+  './assets/js/features/exam-builder.js',
+  './assets/js/features/question-export.js'
   /* pdf.js (assets/js/vendor/pdfjs/) عمداً پیش‌ذخیره نمی‌شود (حدود ۱٫۵ مگابایت)؛ بعد از اولین استفاده در کش می‌ماند و آفلاین هم کار می‌کند */
 ];
 /* [CHG-7] کتابخانه‌های PDF/اکسل بعد از اولین بارگذاری موفق، آفلاین هم کار می‌کنند */

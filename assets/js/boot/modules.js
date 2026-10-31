@@ -62,5 +62,6 @@ window.APP_MODULES=[
   {src:'assets/js/features/question-import-docx.js'},
   {src:'assets/js/features/question-import.js'},
   {src:'assets/js/features/exam-builder-core.js'},
-  {src:'assets/js/features/exam-builder.js'}
+  {src:'assets/js/features/exam-builder.js'},
+  {src:'assets/js/features/question-export.js'}
 ];

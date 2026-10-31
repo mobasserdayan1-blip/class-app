@@ -139,9 +139,9 @@ body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;direction:rtl;color:#1d1b2e;f
 @media print{body{background:#fff}.sheet{width:auto;max-width:none;margin:0;padding:0;box-shadow:none;border-radius:0}}`;
  const logo=m.logo?`<img src="${E(m.logo)}" alt="">`:'';
  const left=(m.school||m.teacher)?`<div class="hd-s">${E(m.school)}${m.teacher?`<small>آموزگار: ${E(m.teacher)}</small>`:''}</div>`:'<div></div>';
- const hd=`<header class="hd"><div class="hd-top">${left}<div class="hd-t"><h1>${E(m.title)}</h1>${m.sub?`<div class="hd-sub">${E(m.sub)}</div>`:''}${modeBadge(m)?`<span class="bdg">${modeBadge(m)}</span>`:''}</div><div class="hd-l">${logo}</div></div>
+ const hd=`<header class="hd"><div class="hd-top">${left}<div class="hd-t"><h1>${E(m.title)}</h1>${m.sub?`<div class="hd-sub">${E(m.sub)}</div>`:''}</div><div class="hd-l">${logo}</div></div>
 <div class="chips">${chipsOf(m).map(c=>`<span>${E(c)}</span>`).join('')}</div>${m.nameLine?'<div class="nm"><span>نام و نام‌خانوادگی:</span><span>پایه / کلاس:</span><span>تاریخ:</span></div>':''}</header>`;
- const body=m.groups.map(g=>`<section><h2 class="lh"><span>${E(g.title)}</span><small>${F(g.count)} سؤال${g.pg?' · صفحه‌ی '+g.pg:''}</small></h2>${g.items.map(it=>qHtml(it,m)).join('')}</section>`).join('');
+ const body=m.groups.map(g=>`<section><h2 class="lh"><span>${E(g.title)}</span></h2>${g.items.map(it=>qHtml(it,m)).join('')}</section>`).join('');
  return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(m.title)}</title><style>${css}</style></head><body><div class="sheet">${hd}${body}${m.key?keyHtml(m):''}<div class="ft">— پایان —</div></div></body></html>`;
 }
 
@@ -167,11 +167,10 @@ function docxBody(m){
   if(m.teacher)b.push(para(run('آموزگار: '+m.teacher,{sz:small+2,color:MUT}),{after:60}));
  b.push(para(run(m.title,{b:1,sz:sz+10,color:ACC.slice(1)}),{style:'Heading1',jc:'center',after:30}));
  if(m.sub)b.push(para(run(m.sub,{sz:sz,color:'5D5973'}),{jc:'center',after:30}));
- if(modeBadge(m))b.push(para(run(' '+modeBadge(m)+' ',{b:1,sz:small+2,color:'FFFFFF',fill:ACC.slice(1)}),{jc:'center',after:40}));
- b.push(para(chipsOf(m).map(c=>run(' '+c+' ',{sz:small+2,color:'3F2F98',fill:ACC_L.slice(1)})).join(run('  ',{sz:small})),{jc:'center',before:60,after:160,bdr:`<w:bottom w:val="single" w:sz="18" w:space="6" w:color="${ACC.slice(1)}"/>`}));
+  b.push(para(chipsOf(m).map(c=>run(' '+c+' ',{sz:small+2,color:'3F2F98',fill:ACC_L.slice(1)})).join(run('  ',{sz:small})),{jc:'center',before:60,after:160,bdr:`<w:bottom w:val="single" w:sz="18" w:space="6" w:color="${ACC.slice(1)}"/>`}));
  if(m.nameLine)b.push(para(run('نام و نام‌خانوادگی: ................................      پایه / کلاس: ................      تاریخ: ................',{sz:sz,color:'444444'}),{after:120}));
  m.groups.forEach(g=>{
-  b.push(para(run(g.title,{b:1,sz:sz+2,color:'2F2377'})+run('      '+F(g.count)+' سؤال'+(g.pg?' · صفحه‌ی '+g.pg:''),{sz:small,color:MUT}),{style:'Heading2',keepNext:1,fill:ACC_L.slice(1),before:240,after:100,bdr:`<w:bottom w:val="single" w:sz="8" w:space="2" w:color="${ACC.slice(1)}"/>`}));
+  b.push(para(run(g.title,{b:1,sz:sz+2,color:'2F2377'}),{style:'Heading2',keepNext:1,fill:ACC_L.slice(1),before:240,after:100,bdr:`<w:bottom w:val="single" w:sz="8" w:space="2" w:color="${ACC.slice(1)}"/>`}));
   g.items.forEach(it=>{
    const meta=m.meta?run('     ●',{font:'Segoe UI Symbol',sz:small-4,color:it.lvColor.slice(1)})+run(' '+it.lvName+' · '+it.tyName,{sz:small-2,color:MUT}):'';
    const last=!(it.ty==='mc'&&it.ops.length)&&!(m.showAns&&(it.ty!=='mc'||!it.has))&&it.ty!=='tf'&&!(m.lines&&(it.ty==='es'||it.ty==='sa')&&!m.showAns);

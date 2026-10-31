@@ -198,10 +198,15 @@ const ui=(t,c)=>{$('cst').textContent=t;$('cb').dataset.s=c||''};
 const ref=()=>db.collection('users').doc(user.uid);
 window.cloudWipe=async()=>{if(!user)return false;const sn=await ref().collection('parts').get();await Promise.all(sn.docs.map(d=>d.ref.delete()));await ref().delete();return true};
 const fmtT=t=>t?new Date(t).toLocaleString('fa-IR'):'—';
-async function applyCloud(d){try{if(d.v===2){const sn=await ref().collection('parts').get(),m={},ix=Object.assign({},d.idx,d.fx||{});sn.forEach(x=>{const q=x.data();(m[q.p]=m[q.p]||[])[q.i]=q.d});
+async function applyCloud(d){try{/* [FIX-reload-loop] جلوگیری از رفرش بی‌پایان: اگر در ۶۰ ثانیه ۳ بار دریافت ابری تکرار شد، متوقف می‌شود */
+ const _R=(JSON.parse(sessionStorage.getItem('cl_ar')||'[]')||[]).filter(x=>Date.now()-x<60000);
+ if(_R.length>=3){ui('⚠️ دریافت از ابر چند بار پشت‌سرهم تکرار شد و برای جلوگیری از رفرش بی‌پایان متوقف شد. چند دقیقه صبر کنید یا یک نسخه‌ی پشتیبان بگیرید و دوباره «همگام‌سازی الآن» را بزنید.','err');return}
+ _R.push(Date.now());sessionStorage.setItem('cl_ar',JSON.stringify(_R));
+ if(d.v===2){const sn=await ref().collection('parts').get(),m={},ix=Object.assign({},d.idx,d.fx||{});sn.forEach(x=>{const q=x.data();(m[q.p]=m[q.p]||[])[q.i]=q.d});
  const g=k=>{if(!ix[k])return undefined;const a=m[k];if(!a||a.length!==ix[k].n||a.some(x=>x==null))throw new Error('incomplete');return JSON.parse(a.join(''))};
  const ns=window.__stor.join(g,Object.keys(d.idx).filter(k=>k[0]==='c').map(k=>k.slice(1)));localStorage.setItem('cl1',JSON.stringify(ns))}else localStorage.setItem('cl1',d.data);
- localStorage.setItem('cl1_ts',d.ts);location.reload()}catch(e){ui('❌ دریافت کامل اطلاعات ابری ممکن نشد: '+(e.code||e.message),'err')}}
+ localStorage.setItem('cl1_ts',d.ts);/* [FIX-reload-loop] صبر برای نوشته‌شدن کامل در IndexedDB قبل از رفرش */
+ await Promise.resolve(window.__flushStore&&window.__flushStore()).catch(()=>{});setTimeout(()=>location.reload(),150)}catch(e){ui('❌ دریافت کامل اطلاعات ابری ممکن نشد: '+(e.code||e.message),'err')}}
 const hs=s=>{let h=5381;for(let i=0;i<s.length;i++)h=(h*33^s.charCodeAt(i))>>>0;return h},CHK=250000;let lastIdx=null,v2=true;
 const cut=s=>{const r=[];let i=0;do{let e=Math.min(s.length,i+CHK);if(e<s.length){const c=s.charCodeAt(e-1);if(c>=0xD800&&c<=0xDBFF)e++}r.push(s.slice(i,e));i=e}while(i<s.length);return r};
 const parts=o=>window.__stor.split(o);

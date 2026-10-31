@@ -176,12 +176,12 @@ function pgRange(items){let a=null,b=null;items.forEach(q=>{if(q.p1==null)return
  return a==null?'':(a===b?fa(a):fa(a)+' تا '+fa(b))}
 function tocHtml(all){const G=groupLs(all),sel=V.sel,n=V.pick.size;
  return `<div class="qd-toc"><div class="qd-toch">📑 فهرست درس‌ها <small>(${fa(G.length)} درس · ${fa(all.length)} سؤال)</small></div>
- <div class="qd-bulk">${sel?`<button type="button" data-qb="pkall">☑️ ${n===G.length?'برداشتن همه':'انتخاب همه'}</button><button type="button" class="dg" data-qb="pkdel"${n?'':' disabled'}>🗑 حذف ${n?fa(n)+' درس انتخاب‌شده':'انتخاب‌شده‌ها'}</button><button type="button" data-qb="pkoff">انصراف</button>`:`<button type="button" data-qb="pkon">☑️ انتخاب چند درس</button>`}</div>
+ <div class="qd-bulk">${sel?`<button type="button" data-qb="pkall">☑️ ${n===G.length?'برداشتن همه':'انتخاب همه'}</button><button type="button" class="dg" data-qb="pkdel"${n?'':' disabled'}>🗑 حذف ${n?fa(n)+' درس انتخاب‌شده':'انتخاب‌شده‌ها'}</button>${n?`<button type="button" data-qb="exp">📤 خروجی ${fa(n)} درس</button>`:''}<button type="button" data-qb="pkoff">انصراف</button>`:`<button type="button" data-qb="pkon">☑️ انتخاب چند درس</button>`}</div>
  ${G.map(g=>{const on=sel&&V.pick.has(g.name);
   return `<div class="qd-row${on?' pk':''}">${sel?`<input type="checkbox" class="qd-ck" data-qb="pk" data-v="${E(g.name)}"${on?' checked':''} aria-label="انتخاب ${E(g.name)}">`:''}<button type="button" class="qd-tr" data-qb="${sel?'pkrow':'ls'}" data-v="${E(g.name)}"><span class="qd-tt">${E(lsTitle(g))}<small>${fa(g.items.length)} سؤال</small></span><span class="qd-td"></span><span class="qd-tp">${pgRange(g.items)||'—'}</span></button>${sel?'':`<span class="qd-ra"><button type="button" data-qb="lsed" data-v="${E(g.name)}" title="ویرایش درس">✏️</button><button type="button" class="dg" data-qb="lsdel" data-v="${E(g.name)}" title="حذف درس">🗑</button></span>`}</div>`}).join('')}
  <button type="button" class="qd-toca" data-qb="all">📚 نمایش همه‌ی ${fa(all.length)} سؤال این کتاب</button></div>`}
 function bookHtml(){const b=books().find(x=>x.key===V.book);if(!b){V.book='';return dashHtml()}
- return `<div class="qd-crumb"><button class="qd-back" data-qb="back">→ همه‌ی کتاب‌ها</button><b style="font-size:15px">${E(b.bk)}</b>${b.gr?`<span class="qbk-ty">پایه ${E(b.gr)}</span>`:''}<button class="qd-btn p" data-qb="new" style="background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;margin-right:auto">➕ سؤال در این کتاب</button></div>
+ return `<div class="qd-crumb"><button class="qd-back" data-qb="back">→ همه‌ی کتاب‌ها</button><b style="font-size:15px">${E(b.bk)}</b>${b.gr?`<span class="qbk-ty">پایه ${E(b.gr)}</span>`:''}<button class="qd-btn p" data-qb="new" style="background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;margin-right:auto">➕ سؤال در این کتاب</button><button class="qd-btn" data-qb="exp" title="خروجی Word یا PDF، با پاسخ یا بدون پاسخ">📤 خروجی Word / PDF</button></div>
  <div class="qd-kpis">${[['کل',b.n,'var(--p)']].concat(LV.map(l=>[l[1],b[l[0]]||0,l[2]])).map(k=>`<div class="qd-k"><b style="color:${k[2]}">${fa(k[1])}</b><span>${k[0]}</span></div>`).join('')}</div>
  <div class="qd-tools"><input id="qbkSrchB" class="qd-sr" type="text" placeholder="🔎 جستجو در این کتاب…" autocomplete="off" value="${E(V.s)}"></div>
  <div id="qbkCtl"></div>
@@ -383,6 +383,7 @@ sec.addEventListener('click',e=>{const b=e.target.closest('[data-qb]');if(!b)ret
  else if(k==='pkall'){const G=groupLs(bookQs());if(V.pick.size===G.length)V.pick.clear();else G.forEach(g=>V.pick.add(g.name));bookRes()}
  else if(k==='pk'||k==='pkrow'){const n=b.dataset.v;if(V.pick.has(n))V.pick.delete(n);else V.pick.add(n);bookRes()}
  else if(k==='pkdel'){if(V.pick.size)delLessons([...V.pick])}
+ else if(k==='exp'){const bk=books().find(x=>x.key===V.book);if(!bk)return;if(!window.QEXP){say('⚠️ ماژول خروجی بارگذاری نشده؛ صفحه را یک بار تازه کنید.');return}QEXP.open({key:bk.key,gr:bk.gr,bk:bk.bk,ls:V.ls||'',pick:V.sel?[...V.pick]:[]})}
  else if(k==='imp'){if(typeof show==='function')show('qimp')}
  else if(k==='build'){if(typeof show==='function')show('exb')}});
 sec.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.qf==='ty'){V.ty=e.target.value;V.lim=PAGE;bookRes()}});

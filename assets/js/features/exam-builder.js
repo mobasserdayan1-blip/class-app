@@ -94,6 +94,7 @@ try{
   #exb .exb-fbr label:has(input:checked){color:var(--p);font-weight:700}
   #exb .exb-fbr input[type=checkbox]{width:18px;height:18px;flex:none;margin:6px 0 0}
   #exb .exb-fbr small{display:inline-block;margin-right:6px;color:var(--mut);font-size:11px;font-weight:400;background:rgba(99,102,241,.08);border-radius:999px;padding:0 8px;line-height:20px}
+  #exb .exb-fbga{display:flex;gap:6px;align-items:center;margin:8px 0}#exb .exb-fbga input{margin:0}#exb .exb-fbga button{width:auto;flex:none;margin:0}
   #exb .exb-fba{flex:none;display:flex;gap:4px}
   #exb .exb-fba button{width:auto;margin:0;padding:3px 9px}
   #exb details.exb-fbs{border:1px solid var(--line);border-radius:14px;background:var(--card,#fff);padding:0 12px;margin:8px 0}
@@ -434,7 +435,7 @@ try{
   <td class="c">${sl?`<div class="bism">${E(sl)}</div>`:''}${school?`<div class="sch" style="font-size:${sf}px">${E(school)}</div>`:''}<div class="tt">${E(opts.title)}</div>${meta?`<div class="scp">${E(meta)}</div>`:''}</td>
   <td class="l">${logo}</td></tr></table>
   <table class="qs"><thead><tr><th class="no">–</th><th>سؤالات</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="tl">${note}${fb}<div class="ft">*** با آرزوی موفقیت ***</div></div>
+  <div class="tl">${note}${fb}<div class="ft">*** با آرزوی موفقیت${teacher?` : ${E(teacher)}`:''} ***</div></div>
   <div class="ch"><span>نام و نام خانوادگی: ${nm?`<b>${E(nm)}</b>`:'.............................'}</span><span>${E(opts.title)} — ${E(ctx.scope.bk)}</span></div></div></div>${key}`;
  }
  /* پاسخ‌نامه‌ی آموزگار: فقط شماره و پاسخ */
@@ -518,12 +519,15 @@ try{
   ];
   const FB_GEN=['مفهوم‌های درس را درک کرده است.','پاسخ‌ها را کامل و مرتب می‌نویسد.','به صورت سؤال با دقت توجه می‌کند.','خوش‌خط و خوانا می‌نویسد.','زمان آزمون را درست مدیریت می‌کند.'];
   const fbCtx=()=>{const bk=($('exbBk')||{}).value||'',ty=($('exbType')||{}).value||'';return {bk,ty,key:C.norm(bk)+'|'+ty}};
+  /* پیشنهادهای عمومی قابل‌ویرایش: تا وقتی معلم دست نزده، همان پیش‌فرض است؛ با اولین تغییر در S.exb.fbGen ذخیره می‌شود */
+  const genList=()=>{const c=cfg();return Array.isArray(c.fbGen)?c.fbGen.filter(x=>x&&x.id&&x.t):FB_GEN.map(t=>({id:'s:'+C.norm(t),t}))};
+  const genMat=()=>{const c=cfg();if(!Array.isArray(c.fbGen))c.fbGen=genList();return c.fbGen};
   function fbList(){
    const {bk,ty}=fbCtx(),c=cfg(),nb=C.norm(bk);
    const own=(Array.isArray(c.fbLib)?c.fbLib:[]).filter(x=>x&&x.id&&x.t&&(!x.bk||(nb&&C.norm(x.bk)===nb))&&(!x.ty||x.ty===ty));
    const mine=new Set(own.map(x=>C.norm(x.t)));
    const sug=[];if(nb)FB_SUG.forEach(g=>{if(g.k.some(w=>nb.includes(w)))g.t.forEach(t=>{const k=C.norm(t);if(!mine.has(k)&&!sug.some(z=>z.t===t))sug.push({id:'s:'+k,t})})});
-   const gen=FB_GEN.filter(t=>!mine.has(C.norm(t))&&!sug.some(z=>z.t===t)).map(t=>({id:'s:'+C.norm(t),t}));
+   const gen=genList().filter(x=>!mine.has(C.norm(x.t))&&!sug.some(z=>z.t===x.t));
    return {own,sug,gen};
   }
   const fbSelSet=()=>new Set((cfg().fbSel||{})[fbCtx().key]||[]);
@@ -536,7 +540,7 @@ try{
    const seen=new Set();return out.filter(t=>{const k=C.norm(t);if(seen.has(k))return false;seen.add(k);return true});
   }
   const fbTag=x=>x.bk&&x.ty?'فقط این درس و این آزمون':x.bk?'فقط این درس':x.ty?'فقط این نوع آزمون':'همه‌ی درس‌ها';
-  const fbRow=(x,sel,own)=>`<div class="exb-fbr"><label><input type="checkbox" data-fbk="${E(x.id)}" ${sel.has(x.id)?'checked':''}><span>${E(x.t)}${own?`<small>${fbTag(x)}</small>`:''}</span></label>${own?`<span class="exb-fba"><button type="button" class="sm" data-fbe="${E(x.id)}" title="ویرایش">✏️</button><button type="button" class="sm" data-fbd="${E(x.id)}" title="حذف">🗑️</button></span>`:''}</div>`;
+  const fbRow=(x,sel,own)=>`<div class="exb-fbr"><label><input type="checkbox" data-fbk="${E(x.id)}" ${sel.has(x.id)?'checked':''}><span>${E(x.t)}${own===true?`<small>${fbTag(x)}</small>`:''}</span></label>${own?`<span class="exb-fba"><button type="button" class="sm" data-fbe="${E(x.id)}" title="ویرایش">✏️</button><button type="button" class="sm" data-fbd="${E(x.id)}" title="حذف">🗑️</button></span>`:''}</div>`;
   function fbCount(){const n=fbRowsAll().length,el=$('exbFbCnt');if(!el)return;el.textContent=n?`${F(n)} مورد در برگه چاپ می‌شود${n>8?' — بیش از ۸ مورد ممکن است برگه را شلوغ کند':''}`:'هنوز موردی انتخاب نشده (ردیف خالی چاپ می‌شود)'}
   function fbForm(force){
    const {bk,ty}=fbCtx(),sc=$('exbFbSc'),tyS=$('exbFbTy'),o1=force?'':sc.value,o2=force?'':tyS.value;
@@ -553,11 +557,12 @@ try{
    if(L.own.length)h+=`<div class="exb-fbg">⭐ فهرست من</div>`+L.own.map(x=>fbRow(x,sel,true)).join('');
    if(L.sug.length)h+=`<div class="exb-fbg">💡 پیشنهادی برای «${E(bk)}»</div>`+L.sug.map(x=>fbRow(x,sel,false)).join('');
    else if(!bk)h+=`<p class="exb-n">با انتخاب «کتاب / درس» در بخش ۱، پیشنهادهای مخصوص همان درس اینجا نمایش داده می‌شود.</p>`;
-   if(L.gen.length)h+=`<details class="exb-acc"${(!L.own.length&&!L.sug.length)?' open':''}><summary>پیشنهادهای عمومی (مناسب همه‌ی درس‌ها)</summary>${L.gen.map(x=>fbRow(x,sel,false)).join('')}</details>`;
+   if(force)fbGenOpen=null;
+   h+=`<details class="exb-acc"${(fbGenOpen!==null?fbGenOpen:(!L.own.length&&!L.sug.length))?' open':''}><summary>پیشنهادهای عمومی (مناسب همه‌ی درس‌ها)</summary>${L.gen.map(x=>fbRow(x,sel,'g')).join('')||'<p class="exb-n">فهرست خالی است؛ می‌توانید در پایین متن اضافه کنید.</p>'}<div class="exb-fbga"><input id="exbFbGenNew" maxlength="200" placeholder="متن عمومی تازه…" autocomplete="off"><button type="button" class="sm" id="exbFbGenAdd">➕ افزودن</button></div><div class="exb-mb"><button type="button" class="sm" id="exbFbGenReset">↺ بازگشت به پیشنهادهای اولیه</button></div></details>`;
    box.innerHTML=h;fbCount();
   }
-  let fbEdit=null;
-  function fbReset(){fbEdit=null;$('exbFbNew').value='';$('exbFbAdd').textContent='➕ افزودن';$('exbFbCan').hidden=true}
+  let fbEdit=null,fbEditGen=false,fbGenOpen=null;
+  function fbReset(){fbEdit=null;fbEditGen=false;$('exbFbNew').value='';$('exbFbAdd').textContent='➕ افزودن';$('exbFbCan').hidden=true}
   const fbMsg=t=>{$('exbFbMsg').textContent=t||''};
   function fbAdd(text){
    text=String(text||'').replace(/\s+/g,' ').trim();if(!text)return null;
@@ -571,6 +576,11 @@ try{
   }
   function fbDoAdd(){
    const t=$('exbFbNew').value;if(!String(t).trim()){fbMsg('اول متن را بنویسید.');$('exbFbNew').focus();return}
+   if(fbEdit&&fbEditGen){
+    const x=genMat().find(y=>y.id===fbEdit);
+    if(x){x.t=String(t).replace(/\s+/g,' ').trim();save();fbMsg('✔ ویرایش ذخیره شد.')}
+    fbReset();renderFb();return;
+   }
    if(fbEdit){
     const c=cfg(),x=(c.fbLib||[]).find(y=>y.id===fbEdit),{bk,ty}=fbCtx();
     if(x){x.t=String(t).replace(/\s+/g,' ').trim();x.bk=$('exbFbSc').value==='bk'&&bk?bk:'';x.ty=$('exbFbTy').value==='ty'&&ty?ty:'';save();fbMsg('✔ ویرایش ذخیره شد.')}
@@ -580,13 +590,13 @@ try{
    $('exbFbNew').value='';renderFb();$('exbFbNew').focus();
   }
   function fbStartEdit(id){
-   const x=(cfg().fbLib||[]).find(y=>y.id===id);if(!x)return;
-   fbEdit=id;fbForm();$('exbFbNew').value=x.t;$('exbFbSc').value=x.bk&&[...$('exbFbSc').options].some(o=>o.value==='bk')?'bk':'all';$('exbFbTy').value=x.ty&&[...$('exbFbTy').options].some(o=>o.value==='ty')?'ty':'all';
-   $('exbFbAdd').textContent='💾 ذخیره‌ی ویرایش';$('exbFbCan').hidden=false;$('exbFbD').open=true;fbMsg('');$('exbFbNew').focus();
+   const g=!(cfg().fbLib||[]).some(y=>y.id===id),x=g?genList().find(y=>y.id===id):(cfg().fbLib||[]).find(y=>y.id===id);if(!x)return;
+   fbEdit=id;fbEditGen=g;fbForm();$('exbFbNew').value=x.t;if(!g){$('exbFbSc').value=x.bk&&[...$('exbFbSc').options].some(o=>o.value==='bk')?'bk':'all';$('exbFbTy').value=x.ty&&[...$('exbFbTy').options].some(o=>o.value==='ty')?'ty':'all'}
+   $('exbFbAdd').textContent='💾 ذخیره‌ی ویرایش';$('exbFbCan').hidden=false;$('exbFbD').open=true;fbMsg(g?'در حال ویرایش یک پیشنهاد عمومی (برای همه‌ی درس‌ها).':'');$('exbFbNew').focus();
   }
   function fbDelete(id){
    if(!confirm('این متن از فهرست شما حذف شود؟'))return;
-   const c=cfg();c.fbLib=(c.fbLib||[]).filter(x=>x.id!==id);
+   const c=cfg();if((c.fbLib||[]).some(x=>x.id===id))c.fbLib=c.fbLib.filter(x=>x.id!==id);else{const g=genMat();c.fbGen=g.filter(x=>x.id!==id)}
    if(c.fbSel)Object.keys(c.fbSel).forEach(k=>{c.fbSel[k]=(c.fbSel[k]||[]).filter(i=>i!==id);if(!c.fbSel[k].length)delete c.fbSel[k]});
    if(fbEdit===id)fbReset();save();renderFb();
   }
@@ -604,14 +614,24 @@ try{
   });
   sec.addEventListener('input',e=>{if(e.target.id==='exbFbRows')fbCount()});
   sec.addEventListener('click',e=>{
+   const sm=e.target.closest&&e.target.closest('#exbFbL summary');if(sm)fbGenOpen=!sm.parentElement.open;
    const b=e.target.closest&&e.target.closest('button');if(!b)return;
    if(b.dataset.fbe)return fbStartEdit(b.dataset.fbe);
    if(b.dataset.fbd)return fbDelete(b.dataset.fbd);
    if(b.id==='exbFbAdd')return fbDoAdd();
+   if(b.id==='exbFbGenAdd')return fbGenAdd();
+   if(b.id==='exbFbGenReset'){if(!confirm('پیشنهادهای عمومی به حالت اولیه برگردد؟ (متن‌های خودتان در «فهرست من» دست نمی‌خورد)'))return;delete cfg().fbGen;save();renderFb();return}
    if(b.id==='exbFbCan'){fbReset();fbMsg('');return}
    if(b.id==='exbFbSaveMan')return fbSaveManual();
    if(b.id==='exbFbClr'){fbSelSave(new Set());renderFb()}
   });
+  function fbGenAdd(){
+   const i=$('exbFbGenNew'),t=String(i.value||'').replace(/\s+/g,' ').trim();if(!t){i.focus();return}
+   const g=genMat(),dup=g.find(x=>C.norm(x.t)===C.norm(t)),id=dup?dup.id:'g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+   if(!dup)g.push({id,t});
+   const sel=fbSelSet();sel.add(id);fbSelSave(sel);renderFb();const n=$('exbFbGenNew');if(n)n.focus();
+  }
+  sec.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='exbFbGenNew'){e.preventDefault();fbGenAdd()}});
   $('exbFbNew').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fbDoAdd()}});
 
  function persist(){

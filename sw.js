@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v130';
+const C='cl-v131';
 const A=[
   './',
   './index.html',
@@ -7,6 +7,8 @@ const A=[
   './assets/images/icons/icon-192.png',
   './assets/images/icons/icon-512.png',
   './assets/fonts/Vazirmatn-VF.woff2',
+  './assets/fonts/Vazirmatn-Regular.ttf',
+  './assets/fonts/Vazirmatn-Bold.ttf',
   './assets/css/fonts.css',
   './assets/css/01-base.css',
   './assets/css/02-components.css',

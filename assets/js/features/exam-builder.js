@@ -48,13 +48,38 @@ try{
  #exb .exb-seg button{border:2px solid var(--line);background:var(--card);color:var(--tx);border-radius:14px;padding:12px 6px;font:800 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin:0}
  #exb .exb-seg button.on{color:#fff;border-color:var(--p);background:linear-gradient(90deg,var(--p),var(--p2))}
  #exb .exb-mb{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:6px 0}#exb .exb-mb button{width:auto;flex:none;margin:0}#exb .exb-mb b{margin-right:auto;font-size:13px}
- #exb #exbMl{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:14px;padding:4px 8px;background:var(--card)}
- #exb .exb-mh{position:sticky;top:0;background:var(--bg2,#eef);font-weight:800;font-size:12.5px;padding:5px 8px;margin:6px -8px 2px;color:var(--p)}
  #exb .exb-mq{display:flex;gap:8px;align-items:flex-start;padding:7px 2px;border-bottom:1px dashed var(--line);font-size:13px;line-height:1.8;cursor:pointer}
  #exb .exb-mq input{margin-top:6px}#exb .exb-mq .lvb{flex:none;color:#fff;border-radius:999px;padding:0 9px;font-size:11.5px;font-weight:800;line-height:22px;margin-top:2px}
  #exb .exb-mq small{color:var(--mut);white-space:nowrap}
  #exb .exb-un{display:grid;grid-template-columns:1fr 70px 70px 70px;gap:6px;align-items:center;border-bottom:1px solid var(--line);padding:5px 0;font-size:13px}
  #exb .exb-un input{margin:0}
+ #exb .exb-pk{background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(236,72,153,.06));border:1px solid var(--line);border-radius:16px;padding:12px 12px 4px;margin:10px 0}
+ #exb .exb-pkh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+ #exb .exb-chip{display:inline-block;background:var(--card,#fff);border:1px solid var(--line);color:var(--p);border-radius:999px;padding:2px 12px;font-size:12px;font-weight:800}
+ #exb .exb-chip:empty{display:none}
+ #exb .exb-pk label{font-size:12.5px;font-weight:800;color:var(--mut)}
+ #exb .exb-pk select{border-radius:12px;padding:9px 10px;font-size:13px;background:var(--card,#fff)}
+ #exb .exb-pk select:disabled{opacity:.55}
+ #exb details.exb-acc{border:1px solid var(--line);border-radius:14px;background:var(--card,#fff);padding:0 12px;margin:8px 0}
+ #exb details.exb-acc>summary{cursor:pointer;font-weight:800;font-size:13px;padding:11px 0;list-style:none;display:flex;align-items:center;justify-content:space-between}
+ #exb details.exb-acc>summary::-webkit-details-marker{display:none}
+ #exb details.exb-acc>summary::after{content:'⌄';font-size:18px;color:var(--p);transition:transform .2s}
+ #exb details.exb-acc[open]>summary::after{transform:rotate(180deg)}
+ #exb .exb-ls label{background:var(--card,#fff);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;transition:all .15s}
+ #exb .exb-ls label:has(input:checked){background:linear-gradient(90deg,var(--p),var(--p2));color:#fff;border-color:transparent}
+ #exb .exb-ls label:has(input:checked) small{color:#fff!important}
+ #exb #exbMl{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+ #exb .exb-ag{border:1px solid var(--line);border-radius:16px;background:var(--card,#fff);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:box-shadow .2s,border-color .2s}
+ #exb .exb-ag.open{border-color:var(--p);box-shadow:0 4px 14px rgba(99,102,241,.14)}
+ #exb .exb-agh{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;user-select:none;font-weight:800;font-size:13.5px}
+ #exb .exb-agh .ttl{flex:1;min-width:0}
+ #exb .exb-agh .cnt{flex:none;background:rgba(99,102,241,.1);color:var(--p);border-radius:999px;padding:2px 11px;font-size:12px;font-weight:800;white-space:nowrap}
+ #exb .exb-ag.has .cnt{background:linear-gradient(90deg,var(--p),var(--p2));color:#fff}
+ #exb .exb-agh .chev{flex:none;font-size:18px;color:var(--p);transition:transform .25s}
+ #exb .exb-ag.open .chev{transform:rotate(180deg)}
+ #exb .exb-agh input{margin:0;width:18px;height:18px;flex:none}
+ #exb .exb-agb{border-top:1px solid var(--line);padding:2px 12px 6px;animation:exbDrop .22s ease}
+ @keyframes exbDrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
  #exbOv{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:none;flex-direction:column}
  #exbOv.on{display:flex}
  #exbOv .exb-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--card,#fff);padding:10px 12px}
@@ -79,8 +104,10 @@ try{
  sec.innerHTML=`<h2>📝 ساخت برگه‌ی امتحانی</h2>
  <div class="card"><b>۱. محدوده‌ی امتحان</b><p class="exb-n">فقط از سؤال‌های همین محدوده انتخاب می‌شود. هر فیلتری را که لازم ندارید خالی بگذارید.</p>
   <div class="exb-g"><div id="exbGw" hidden><label>پایه</label><select id="exbGr"></select></div><div><label>کتاب / درس</label><select id="exbBk"></select></div><div><label>مبحث (اختیاری)</label><select id="exbTp"></select></div></div>
-  <div class="exb-g"><div><label>از درس شماره‌ی</label><input id="exbLf" inputmode="numeric" placeholder="مثلاً ۱"></div><div><label>تا درس شماره‌ی</label><input id="exbLt" inputmode="numeric" placeholder="مثلاً ۳"></div><div><label>از صفحه‌ی</label><input id="exbPf" inputmode="numeric" placeholder="مثلاً ۱۰"></div><div><label>تا صفحه‌ی</label><input id="exbPt" inputmode="numeric" placeholder="مثلاً ۲۵"></div></div>
-  <details><summary>یا درس‌ها را دستی انتخاب کنم (مثلاً ۱ و ۳ و ۵ بدون درس‌های بین‌شان)</summary><p class="exb-n">اگر اینجا درسی تیک بخورد، «از/تا درس» نادیده گرفته می‌شود.</p><div class="exb-ls" id="exbLs"></div></details>
+  <div class="exb-pk"><div class="exb-pkh"><b>📚 درس و صفحه</b><span class="exb-chip" id="exbPkSum"></span></div>
+   <p class="exb-n" id="exbPkN" style="margin:0 0 6px"></p>
+   <div class="exb-g"><div><label>از درس</label><select id="exbLf"></select></div><div><label>تا درس</label><select id="exbLt"></select></div><div><label>از صفحه</label><select id="exbPf"></select></div><div><label>تا صفحه</label><select id="exbPt"></select></div></div></div>
+  <details class="exb-acc" id="exbLsD"><summary>✋ یا درس‌ها را جداگانه انتخاب می‌کنم (مثلاً ۱ و ۳ و ۵)</summary><p class="exb-n">اگر اینجا درسی انتخاب شود، «از/تا درس» نادیده گرفته می‌شود.</p><div class="exb-ls" id="exbLs" style="padding-bottom:10px"></div></details>
   <label style="display:flex;align-items:center;margin-top:8px"><input type="checkbox" id="exbUnk"> سؤال‌هایی که شماره‌ی درس یا صفحه‌شان ثبت نشده هم در نظر گرفته شوند (به مسئولیت خودم)</label>
   <div id="exbSum"></div><div id="exbUnList"></div></div>
  <div class="card"><b>۲. انتخاب سؤال‌ها</b>
@@ -88,7 +115,7 @@ try{
   <p class="exb-n" id="exbModeN"></p>
   <div id="exbManual" hidden>
    <input id="exbMs" placeholder="🔎 جستجو در سؤال‌های همین محدوده…" autocomplete="off">
-   <div class="exb-mb"><button class="sm" type="button" id="exbMall">✔ انتخاب همه‌ی نمایش‌داده‌شده‌ها</button><button class="sm" type="button" id="exbMnone">✖ لغو همه‌ی انتخاب‌ها</button><b id="exbMc"></b></div>
+   <div class="exb-mb"><button class="sm" type="button" id="exbMall">✔ انتخاب همه‌ی نمایش‌داده‌شده‌ها</button><button class="sm" type="button" id="exbMnone">✖ لغو همه‌ی انتخاب‌ها</button><button class="sm" type="button" id="exbMopen">⤢ باز کردن همه‌ی درس‌ها</button><button class="sm" type="button" id="exbMclose">⤡ بستن همه</button><b id="exbMc"></b></div>
    <div id="exbMl"></div>
    <label style="display:flex;align-items:center;margin-top:8px"><input type="checkbox" id="exbMfill"> اگر تعداد سؤال‌های انتخابی کمتر از «تعداد سؤال هر برگه» بود، بقیه به‌صورت تصادفی (متناسب با سطح هر دانش‌آموز) تکمیل شود</label>
   </div></div>
@@ -131,7 +158,29 @@ try{
   if(oldT&&!tps.includes(oldT))$('exbTp').value='';
   const checked=new Set(Array.from(sec.querySelectorAll('[data-ln]:checked')).map(x=>x.dataset.ln));
   const lns=uniq(inBk.map(q=>C.toNum(q.ln))).sort((a,b)=>a-b);
+  fillRange();
   $('exbLs').innerHTML=lns.length?lns.map(n=>`<label><input type="checkbox" data-ln="${n}" ${checked.has(String(n))?'checked':''}>درس ${F(n)} <small style="color:var(--mut);margin-right:4px">(${F(inBk.filter(q=>C.toNum(q.ln)===n).length)} سؤال)</small></label>`).join(''):'<span class="exb-n">برای این کتاب هنوز شماره‌ی درسی روی سؤال‌ها ثبت نشده است.</span>';
+ }
+ function fillRange(){
+  const bk=$('exbBk').value,tp=$('exbTp').value,lf=$('exbLf'),lt=$('exbLt'),pf=$('exbPf'),pt=$('exbPt');
+  const inBk=baseBank().filter(q=>q.bk===bk&&(!tp||q.tp===tp));
+  const lm=new Map();inBk.forEach(q=>{const n=C.toNum(q.ln);if(n==null)return;const o=lm.get(n)||{t:'',c:0};if(!o.t&&q.ls)o.t=q.ls;o.c++;lm.set(n,o)});
+  const lns=[...lm.keys()].sort((a,b)=>a-b),lbl=n=>{const o=lm.get(n);return 'درس '+F(n)+(o.t?' — '+o.t:'')+' ('+F(o.c)+' سؤال)'};
+  const ov0=[lf.value,lt.value,pf.value,pt.value].map(v=>v===''?null:+v);
+  let a=ov0[0],b=ov0[1];if(a!=null&&!lm.has(a))a=null;if(b!=null&&!lm.has(b))b=null;if(a!=null&&b!=null&&b<a)b=null;
+  lf.innerHTML=opt('',lns.length?'از اولین درس':(bk?'درسی ثبت نشده':'ابتدا کتاب را انتخاب کنید'),false)+lns.map(n=>opt(n,lbl(n),n===a)).join('');
+  lt.innerHTML=opt('',lns.length?'تا آخرین درس':(bk?'درسی ثبت نشده':'—'),false)+lns.filter(n=>a==null||n>=a).map(n=>opt(n,lbl(n),n===b)).join('');
+  lf.value=a==null?'':String(a);lt.value=b==null?'':String(b);
+  const man=!!sec.querySelector('[data-ln]:checked');
+  lf.disabled=lt.disabled=!lns.length||man;
+  const inL=inBk.filter(q=>{const n=C.toNum(q.ln);return n==null?(a==null&&b==null):(a==null||n>=a)&&(b==null||n<=b)});
+  const pgs=[...new Set(inL.flatMap(q=>[q.p1,q.p2]).map(x=>C.toNum(x)).filter(x=>x!=null&&x>0))].sort((x,y)=>x-y);
+  let c=ov0[2],d=ov0[3];if(c!=null&&!pgs.includes(c))c=null;if(d!=null&&!pgs.includes(d))d=null;if(c!=null&&d!=null&&d<c)d=null;
+  pf.innerHTML=opt('',pgs.length?'از اولین صفحه':(bk?'صفحه‌ای ثبت نشده':'—'),false)+pgs.map(n=>opt(n,'صفحه‌ی '+F(n),n===c)).join('');
+  pt.innerHTML=opt('',pgs.length?'تا آخرین صفحه':(bk?'صفحه‌ای ثبت نشده':'—'),false)+pgs.filter(n=>c==null||n>=c).map(n=>opt(n,'صفحه‌ی '+F(n),n===d)).join('');
+  pf.value=c==null?'':String(c);pt.value=d==null?'':String(d);
+  pf.disabled=pt.disabled=!pgs.length;
+  $('exbPkN').textContent=man?'درس‌ها را دستی انتخاب کرده‌اید؛ «از/تا درس» فعلاً غیرفعال است. صفحه‌ها همچنان محدودکننده‌اند.':'از فهرستی که خودکار از سؤال‌های ثبت‌شده ساخته می‌شود انتخاب کنید؛ خالی = همه. فهرست صفحه‌ها بر اساس درس‌های انتخابی به‌روز می‌شود.';
  }
  function students(){return Array.isArray(S.students)?S.students:[]}
  function fillStudents(){
@@ -198,25 +247,41 @@ try{
  function setMode(m){mode=m==='manual'?'manual':'auto';sec.querySelectorAll('#exbMode [data-mode]').forEach(b=>b.classList.toggle('on',b.dataset.mode===mode));$('exbManual').hidden=mode!=='manual';
   $('exbModeN').textContent=mode==='manual'?'سؤال‌های دلخواه را تیک بزنید؛ همان سؤال‌ها (به ترتیب درس و صفحه) روی برگه‌ی همه‌ی دانش‌آموزان انتخاب‌شده می‌آید. بدون تیک تکمیل خودکار، «تعداد سؤال هر برگه» نادیده گرفته می‌شود.':'برنامه از میان سؤال‌های محدوده، برای هر دانش‌آموز متناسب با سطح خودش به‌صورت تصادفی انتخاب می‌کند.';
   if(mode==='manual')renderManual()}
+ const openG=new Set();let gInit=false;
+ const gKey=q=>{const ln=C.toNum(q.ln);return ln!=null?'L'+ln:'U'+(q.ls||'')};
+ function updGroup(k){
+  const g=Array.from(sec.querySelectorAll('.exb-ag')).find(x=>x.dataset.g===k);if(!g)return;
+  const cb=Array.from(g.querySelectorAll('[data-mq]')),n=cb.filter(x=>x.checked).length,al=g.querySelector('[data-gall]');
+  g.querySelector('.cnt').textContent=n?F(n)+' از '+F(cb.length)+' انتخاب':F(cb.length)+' سؤال';
+  g.classList.toggle('has',n>0);if(al){al.checked=n>0&&n===cb.length;al.indeterminate=n>0&&n<cb.length}
+ }
  function renderManual(){
   const box=$('exbMl');if(!box||mode!=='manual')return;
   const pool=manualPool();
   if(!pool){box.innerHTML='<p class="exb-n">ابتدا در بخش ۱ کتاب / درس را انتخاب کنید.</p>';manualCount();return}
   const vis=visibleManual(pool);
   if(!vis.length){box.innerHTML='<p class="exb-n">سؤالی در این محدوده پیدا نشد.</p>';manualCount();return}
-  let html='',cur=null;
-  vis.forEach(q=>{const ln=C.toNum(q.ln),h=ln!=null?'درس '+F(ln)+(q.ls?' — '+q.ls:''):(q.ls||'بدون شماره‌ی درس');
-   if(h!==cur){cur=h;html+=`<div class="exb-mh">${E(h)}</div>`}
-   const pg=q.p1!=null?(q.p2!=null&&q.p2!==q.p1?'ص '+F(q.p1)+'–'+F(q.p2):'ص '+F(q.p1)):'';
-   html+=`<label class="exb-mq"><input type="checkbox" data-mq="${E(q.id)}" ${selSet.has(String(q.id))?'checked':''}><span class="lvb" style="background:${LVC[q.lv]||'#888'}">${LVN[q.lv]||'—'}</span><span style="flex:1">${E(String(q.q).slice(0,160))}</span><small>${pg}</small></label>`});
-  box.innerHTML=html;manualCount()}
- function renderSummary(){renderSummary0();renderManual()}
+  const gs=[],ix={};
+  vis.forEach(q=>{const k=gKey(q);if(!ix[k]){const ln=C.toNum(q.ln);ix[k]={k,h:ln!=null?'درس '+F(ln)+(q.ls?' — '+q.ls:''):(q.ls||'بدون شماره‌ی درس'),items:[]};gs.push(ix[k])}ix[k].items.push(q)});
+  const searching=!!(($('exbMs')||{}).value||'').trim();
+  if(!gInit&&gs.length){openG.add(gs[0].k);gInit=true}
+  box.innerHTML=gs.map(g=>{const op=searching||openG.has(g.k);
+   return `<div class="exb-ag${op?' open':''}" data-g="${E(g.k)}"><div class="exb-agh" data-gt="${E(g.k)}"><input type="checkbox" data-gall="${E(g.k)}" title="انتخاب همه‌ی سؤال‌های این درس"><span class="ttl">${E(g.h)}</span><span class="cnt"></span><span class="chev">⌄</span></div><div class="exb-agb"${op?'':' hidden'}>`+
+   g.items.map(q=>{const pg=q.p1!=null?(q.p2!=null&&q.p2!==q.p1?'ص '+F(q.p1)+'–'+F(q.p2):'ص '+F(q.p1)):'';
+    return `<label class="exb-mq"><input type="checkbox" data-mq="${E(q.id)}" ${selSet.has(String(q.id))?'checked':''}><span class="lvb" style="background:${LVC[q.lv]||'#888'}">${LVN[q.lv]||'—'}</span><span style="flex:1">${E(String(q.q).slice(0,160))}</span><small>${pg}</small></label>`}).join('')+`</div></div>`}).join('');
+  gs.forEach(g=>updGroup(g.k));manualCount()}
+ function renderSummary(){renderSummary0();renderManual();try{const r=readScope(),c=$('exbPkSum');if(c)c.textContent=r.scope?(scopeText(r.scope)||'همه‌ی درس‌ها و صفحه‌ها'):''}catch(x){}}
  sec.addEventListener('click',e=>{
   const mb=e.target.closest('#exbMode [data-mode]');if(mb){setMode(mb.dataset.mode);return}
   if(e.target.id==='exbMall'){const pool=manualPool()||[];visibleManual(pool).forEach(q=>selSet.add(String(q.id)));renderManual();return}
   if(e.target.id==='exbMnone'){selSet.clear();renderManual();return}
+  if(e.target.id==='exbMopen'){sec.querySelectorAll('.exb-ag').forEach(g=>openG.add(g.dataset.g));renderManual();return}
+  if(e.target.id==='exbMclose'){openG.clear();gInit=true;renderManual();return}
+  const gh=e.target.closest('[data-gt]');
+  if(gh&&!e.target.closest('input')){const k=gh.dataset.gt,g=gh.parentElement,o=!g.classList.contains('open');g.classList.toggle('open',o);g.querySelector('.exb-agb').hidden=!o;if(o)openG.add(k);else openG.delete(k);return}
  });
- sec.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.mq!=null){if(t.checked)selSet.add(t.dataset.mq);else selSet.delete(t.dataset.mq);manualCount()}});
+ sec.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.mq!=null){if(t.checked)selSet.add(t.dataset.mq);else selSet.delete(t.dataset.mq);const g=t.closest('.exb-ag');if(g)updGroup(g.dataset.g);manualCount();return}
+  if(t.dataset&&t.dataset.gall!=null){const g=t.closest('.exb-ag');g.querySelectorAll('[data-mq]').forEach(x=>{x.checked=t.checked;if(t.checked)selSet.add(x.dataset.mq);else selSet.delete(x.dataset.mq)});updGroup(g.dataset.g);manualCount()}});
  sec.addEventListener('input',e=>{if(e.target.id==='exbMs')renderManual()});
  sec.addEventListener('click',e=>{
   if(e.target.id!=='exbUnSave')return;
@@ -420,7 +485,9 @@ try{
   if(t.id==='exbGr'){$('exbBk').value='';$('exbTp').value=''}
   if(t.id==='exbBk')$('exbTp').value='';
   if(t.id==='exbGr'||t.id==='exbBk'){fillScope();fillStudents()}
-  if(['exbGr','exbBk','exbTp','exbUnk'].includes(t.id)||(t.dataset&&t.dataset.ln!=null))renderSummary();
+  if(['exbLf','exbLt','exbPf','exbPt','exbTp'].includes(t.id)||(t.dataset&&t.dataset.ln!=null))fillRange();
+  if(t.id==='exbBk'){openG.clear();gInit=false}
+  if(['exbGr','exbBk','exbTp','exbUnk','exbLf','exbLt','exbPf','exbPt'].includes(t.id)||(t.dataset&&t.dataset.ln!=null))renderSummary();
  });
  sec.addEventListener('input',e=>{if(['exbLf','exbLt','exbPf','exbPt'].includes(e.target.id))renderSummary()});
  function refresh(){hubCnt();fillScope();fillStudents();fillMix();restore();renderSummary()}

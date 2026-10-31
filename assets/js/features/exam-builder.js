@@ -105,8 +105,9 @@ try{
  <div class="card"><b>۱. محدوده‌ی امتحان</b><p class="exb-n">فقط از سؤال‌های همین محدوده انتخاب می‌شود. هر فیلتری را که لازم ندارید خالی بگذارید.</p>
   <div class="exb-g"><div id="exbGw" hidden><label>پایه</label><select id="exbGr"></select></div><div><label>کتاب / درس</label><select id="exbBk"></select></div><div><label>مبحث (اختیاری)</label><select id="exbTp"></select></div></div>
   <div class="exb-pk"><div class="exb-pkh"><b>📚 درس و صفحه</b><span class="exb-chip" id="exbPkSum"></span></div>
+   <div class="exb-seg" id="exbRm"><button type="button" data-rm="lesson" class="on">📖 بر اساس درس</button><button type="button" data-rm="page">📄 بر اساس صفحه</button></div>
    <p class="exb-n" id="exbPkN" style="margin:0 0 6px"></p>
-   <div class="exb-g"><div><label>از درس</label><select id="exbLf"></select></div><div><label>تا درس</label><select id="exbLt"></select></div><div><label>از صفحه</label><select id="exbPf"></select></div><div><label>تا صفحه</label><select id="exbPt"></select></div></div></div>
+   <div class="exb-g"><div id="exbWLf"><label>از درس</label><select id="exbLf"></select></div><div id="exbWLt"><label>تا درس</label><select id="exbLt"></select></div><div id="exbWPf" hidden><label>از صفحه</label><select id="exbPf"></select></div><div id="exbWPt" hidden><label>تا صفحه</label><select id="exbPt"></select></div></div></div>
   <details class="exb-acc" id="exbLsD"><summary>✋ یا درس‌ها را جداگانه انتخاب می‌کنم (مثلاً ۱ و ۳ و ۵)</summary><p class="exb-n">اگر اینجا درسی انتخاب شود، «از/تا درس» نادیده گرفته می‌شود.</p><div class="exb-ls" id="exbLs" style="padding-bottom:10px"></div></details>
   <label style="display:flex;align-items:center;margin-top:8px"><input type="checkbox" id="exbUnk"> سؤال‌هایی که شماره‌ی درس یا صفحه‌شان ثبت نشده هم در نظر گرفته شوند (به مسئولیت خودم)</label>
   <div id="exbSum"></div><div id="exbUnList"></div></div>
@@ -161,26 +162,46 @@ try{
   fillRange();
   $('exbLs').innerHTML=lns.length?lns.map(n=>`<label><input type="checkbox" data-ln="${n}" ${checked.has(String(n))?'checked':''}>درس ${F(n)} <small style="color:var(--mut);margin-right:4px">(${F(inBk.filter(q=>C.toNum(q.ln)===n).length)} سؤال)</small></label>`).join(''):'<span class="exb-n">برای این کتاب هنوز شماره‌ی درسی روی سؤال‌ها ثبت نشده است.</span>';
  }
+ let rmode='lesson';
  function fillRange(){
-  const bk=$('exbBk').value,tp=$('exbTp').value,lf=$('exbLf'),lt=$('exbLt'),pf=$('exbPf'),pt=$('exbPt');
+  const bk=$('exbBk').value,tp=$('exbTp').value,lf=$('exbLf'),lt=$('exbLt'),pf=$('exbPf'),pt=$('exbPt'),LM=rmode==='lesson';
   const inBk=baseBank().filter(q=>q.bk===bk&&(!tp||q.tp===tp));
   const lm=new Map();inBk.forEach(q=>{const n=C.toNum(q.ln);if(n==null)return;const o=lm.get(n)||{t:'',c:0};if(!o.t&&q.ls)o.t=q.ls;o.c++;lm.set(n,o)});
   const lns=[...lm.keys()].sort((a,b)=>a-b),lbl=n=>{const o=lm.get(n);return 'درس '+F(n)+(o.t?' — '+o.t:'')+' ('+F(o.c)+' سؤال)'};
-  const ov0=[lf.value,lt.value,pf.value,pt.value].map(v=>v===''?null:+v);
-  let a=ov0[0],b=ov0[1];if(a!=null&&!lm.has(a))a=null;if(b!=null&&!lm.has(b))b=null;if(a!=null&&b!=null&&b<a)b=null;
-  lf.innerHTML=opt('',lns.length?'از اولین درس':(bk?'درسی ثبت نشده':'ابتدا کتاب را انتخاب کنید'),false)+lns.map(n=>opt(n,lbl(n),n===a)).join('');
-  lt.innerHTML=opt('',lns.length?'تا آخرین درس':(bk?'درسی ثبت نشده':'—'),false)+lns.filter(n=>a==null||n>=a).map(n=>opt(n,lbl(n),n===b)).join('');
-  lf.value=a==null?'':String(a);lt.value=b==null?'':String(b);
   const man=!!sec.querySelector('[data-ln]:checked');
-  lf.disabled=lt.disabled=!lns.length||man;
-  const inL=inBk.filter(q=>{const n=C.toNum(q.ln);return n==null?(a==null&&b==null):(a==null||n>=a)&&(b==null||n<=b)});
-  const pgs=[...new Set(inL.flatMap(q=>[q.p1,q.p2]).map(x=>C.toNum(x)).filter(x=>x!=null&&x>0))].sort((x,y)=>x-y);
-  let c=ov0[2],d=ov0[3];if(c!=null&&!pgs.includes(c))c=null;if(d!=null&&!pgs.includes(d))d=null;if(c!=null&&d!=null&&d<c)d=null;
-  pf.innerHTML=opt('',pgs.length?'از اولین صفحه':(bk?'صفحه‌ای ثبت نشده':'—'),false)+pgs.map(n=>opt(n,'صفحه‌ی '+F(n),n===c)).join('');
-  pt.innerHTML=opt('',pgs.length?'تا آخرین صفحه':(bk?'صفحه‌ای ثبت نشده':'—'),false)+pgs.filter(n=>c==null||n>=c).map(n=>opt(n,'صفحه‌ی '+F(n),n===d)).join('');
-  pf.value=c==null?'':String(c);pt.value=d==null?'':String(d);
-  pf.disabled=pt.disabled=!pgs.length;
-  $('exbPkN').textContent=man?'درس‌ها را دستی انتخاب کرده‌اید؛ «از/تا درس» فعلاً غیرفعال است. صفحه‌ها همچنان محدودکننده‌اند.':'از فهرستی که خودکار از سؤال‌های ثبت‌شده ساخته می‌شود انتخاب کنید؛ خالی = همه. فهرست صفحه‌ها بر اساس درس‌های انتخابی به‌روز می‌شود.';
+  /* دکمه‌های نوع محدوده و نمایش فقط فیلدهای همان نوع */
+  sec.querySelectorAll('#exbRm [data-rm]').forEach(b=>b.classList.toggle('on',b.dataset.rm===rmode));
+  $('exbWLf').hidden=$('exbWLt').hidden=!LM;$('exbWPf').hidden=$('exbWPt').hidden=LM;$('exbLsD').hidden=!LM;
+  /* --- حالت درس --- */
+  let a=null,b=null,endSel=false;
+  if(LM){
+   a=lf.value===''?null:+lf.value;if(a!=null&&!lm.has(a))a=null;
+   if(lt.value==='end')endSel=a!=null;else if(lt.value!==''){b=+lt.value;if(!lm.has(b)||(a!=null&&b<=a))b=null}
+   lf.innerHTML=opt('',lns.length?'همه‌ی درس‌ها':(bk?'درسی ثبت نشده':'ابتدا کتاب را انتخاب کنید'),false)+lns.map(n=>opt(n,lbl(n),n===a)).join('');
+   lt.innerHTML=opt('',a!=null?'همان درس (فقط درس '+F(a)+')':(lns.length?'تا آخرین درس':(bk?'درسی ثبت نشده':'—')),false)+(a!=null?opt('end','تا آخر کتاب',endSel):'')+lns.filter(n=>a==null||n>a).map(n=>opt(n,lbl(n),n===b)).join('');
+   lf.value=a==null?'':String(a);lt.value=endSel?'end':(b==null?'':String(b));
+   lf.disabled=lt.disabled=!lns.length||man;
+   pf.innerHTML=pt.innerHTML=opt('','',false);
+  }else{
+   lf.innerHTML=lt.innerHTML=opt('','',false);
+  }
+  /* --- حالت صفحه (درس‌ها نادیده‌اند) --- */
+  if(!LM){
+   const ov=[pf.value,pt.value].map(v=>v===''?null:+v);
+   const pgs=[...new Set(inBk.flatMap(q=>[q.p1,q.p2]).map(x=>C.toNum(x)).filter(x=>x!=null&&x>0))].sort((x,y)=>x-y);
+   let c=ov[0],d=ov[1];if(c!=null&&!pgs.includes(c))c=null;if(d!=null&&!pgs.includes(d))d=null;if(c!=null&&d!=null&&d<c)d=null;
+   pf.innerHTML=opt('',pgs.length?'از اولین صفحه':(bk?'صفحه‌ای ثبت نشده':'ابتدا کتاب را انتخاب کنید'),false)+pgs.map(n=>opt(n,'صفحه‌ی '+F(n),n===c)).join('');
+   pt.innerHTML=opt('',pgs.length?'تا آخرین صفحه':(bk?'صفحه‌ای ثبت نشده':'—'),false)+pgs.filter(n=>c==null||n>=c).map(n=>opt(n,'صفحه‌ی '+F(n),n===d)).join('');
+   pf.value=c==null?'':String(c);pt.value=d==null?'':String(d);
+   pf.disabled=pt.disabled=!pgs.length;
+  }
+  $('exbPkN').textContent=LM?(man?'درس‌ها را دستی انتخاب کرده‌اید؛ «از/تا درس» فعلاً غیرفعال است.':'اگر فقط «از درس» را انتخاب کنید، همان یک درس امتحان می‌شود. برای چند درس، «تا درس» را هم انتخاب کنید.'):'امتحان بر اساس صفحه‌ی کتاب است؛ درس‌ها در این حالت نادیده گرفته می‌شوند. خالی = همه‌ی صفحه‌ها.';
+ }
+ function setRm(m){
+  rmode=m==='page'?'page':'lesson';
+  if(rmode==='page'){$('exbLf').value='';$('exbLt').value='';sec.querySelectorAll('[data-ln]:checked').forEach(x=>x.checked=false)}
+  else{$('exbPf').value='';$('exbPt').value=''}
+  fillRange();renderSummary();
  }
  function students(){return Array.isArray(S.students)?S.students:[]}
  function fillStudents(){
@@ -207,11 +228,18 @@ try{
   const g=curGrade(),bk=$('exbBk').value;
   if(!g)return{err:'پایه را انتخاب کنید.'};
   if(!bk)return{err:'کتاب / درس را انتخاب کنید.'};
-  const lf=numField('exbLf','از درس'),lt=numField('exbLt','تا درس'),pf=numField('exbPf','از صفحه'),pt=numField('exbPt','تا صفحه');
-  for(const r of [lf,lt,pf,pt])if(r.err)return{err:r.err};
+  let lf={v:null},lt={v:null},pf={v:null},pt={v:null};
+  if(rmode==='lesson'){
+   lf=numField('exbLf','از درس');if(lf.err)return{err:lf.err};
+   const raw=$('exbLt').value;
+   if(raw==='end')lt={v:null};else if(raw===''&&lf.v!=null)lt={v:lf.v};else{lt=numField('exbLt','تا درس');if(lt.err)return{err:lt.err}}
+  }else{
+   pf=numField('exbPf','از صفحه');pt=numField('exbPt','تا صفحه');
+   for(const r of [pf,pt])if(r.err)return{err:r.err};
+  }
   if(lf.v!=null&&lt.v!=null&&lt.v<lf.v)return{err:'«تا درس» نباید کوچک‌تر از «از درس» باشد.'};
   if(pf.v!=null&&pt.v!=null&&pt.v<pf.v)return{err:'«تا صفحه» نباید کوچک‌تر از «از صفحه» باشد.'};
-  const lessons=Array.from(sec.querySelectorAll('[data-ln]:checked')).map(x=>+x.dataset.ln);
+  const lessons=rmode==='lesson'?Array.from(sec.querySelectorAll('[data-ln]:checked')).map(x=>+x.dataset.ln):[];
   return{scope:{gr:g,bk,topic:$('exbTp').value||'',lessonFrom:lessons.length?null:lf.v,lessonTo:lessons.length?null:lt.v,lessons,pageFrom:pf.v,pageTo:pt.v}};
  }
  function scopeText(sc){
@@ -272,6 +300,7 @@ try{
   gs.forEach(g=>updGroup(g.k));manualCount()}
  function renderSummary(){renderSummary0();renderManual();try{const r=readScope(),c=$('exbPkSum');if(c)c.textContent=r.scope?(scopeText(r.scope)||'همه‌ی درس‌ها و صفحه‌ها'):''}catch(x){}}
  sec.addEventListener('click',e=>{
+  const rb=e.target.closest('#exbRm [data-rm]');if(rb){setRm(rb.dataset.rm);return}
   const mb=e.target.closest('#exbMode [data-mode]');if(mb){setMode(mb.dataset.mode);return}
   if(e.target.id==='exbMall'){const pool=manualPool()||[];visibleManual(pool).forEach(q=>selSet.add(String(q.id)));renderManual();return}
   if(e.target.id==='exbMnone'){selSet.clear();renderManual();return}
@@ -453,13 +482,15 @@ try{
   ov.classList.add('on');
  }
  function persist(){
-  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.mode=mode;c.mfill=$('exbMfill').checked;c.sel=Array.from(selSet);c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;
+  const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.mode=mode;c.mfill=$('exbMfill').checked;c.sel=Array.from(selSet);c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;c.rm=rmode;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
  }
+ let rmRestored=false;
  function restore(){
   const c=cfg();
   if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
   if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.same!=null)$('exbSame').checked=!!c.same;if(c.mfill!=null)$('exbMfill').checked=!!c.mfill;if(Array.isArray(c.sel)){selSet.clear();c.sel.forEach(i=>selSet.add(String(i)))}setMode(c.mode);
+  if(!rmRestored){rmRestored=true;if(c.rm==='page'||c.rm==='lesson'){rmode=c.rm;fillRange()}}
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;
  }
  function go(){

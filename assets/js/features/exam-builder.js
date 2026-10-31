@@ -86,7 +86,19 @@ try{
  #exbOv .exb-bar span{flex:1 1 240px;font-size:13px}
  #exbOv .exb-bar button{width:auto;flex:none;margin:0;padding:8px 16px;font-size:14px}
  #exbOv iframe{flex:1;border:0;background:#777;width:100%}
- @media print{#exh,#exb,#exbOv{display:none!important}}
+   #exb .exb-fbh{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0}
+  #exb .exb-fbh button{width:auto;margin:0}
+  #exb .exb-fbg{margin:10px 0 2px;font-size:13px;font-weight:800;color:var(--p)}
+  #exb .exb-fbr{display:flex;align-items:flex-start;gap:6px;padding:4px 2px;border-bottom:1px dashed var(--line);font-size:13.5px;line-height:1.9}
+  #exb .exb-fbr label{display:flex;gap:8px;align-items:flex-start;flex:1;cursor:pointer;margin:0;font-weight:400;font-size:13.5px;color:var(--tx)}
+  #exb .exb-fbr label:has(input:checked){color:var(--p);font-weight:700}
+  #exb .exb-fbr input[type=checkbox]{width:18px;height:18px;flex:none;margin:6px 0 0}
+  #exb .exb-fbr small{display:inline-block;margin-right:6px;color:var(--mut);font-size:11px;font-weight:400;background:rgba(99,102,241,.08);border-radius:999px;padding:0 8px;line-height:20px}
+  #exb .exb-fba{flex:none;display:flex;gap:4px}
+  #exb .exb-fba button{width:auto;margin:0;padding:3px 9px}
+  #exb details.exb-fbs{border:1px solid var(--line);border-radius:14px;background:var(--card,#fff);padding:0 12px;margin:8px 0}
+  #exb details.exb-fbs>summary{cursor:pointer;font-weight:800;font-size:13px;padding:10px 0;color:var(--p)}
+@media print{#exh,#exb,#exbOv{display:none!important}}
  `;document.head.appendChild(st);
 
  /* ---------- صفحه‌ی اصلی: دو اقدام واضح ---------- */
@@ -130,7 +142,19 @@ try{
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbMeta"> زیر عنوان، «محدوده‌ی امتحان و تاریخ» هم نوشته شود</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش دارد)</label>
   <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
-  <label>انتظارات جدول بازخورد (هر خط یک مورد؛ خالی = چند ردیف خالی برای نوشتن دستی)</label><textarea id="exbFbRows" rows="3"></textarea>
+  <div id="exbFbW" class="exb-fbw">
+   <label style="font-weight:800">📋 انتظارات جدول بازخورد <small style="font-weight:400;color:var(--mut)">(تیک بزنید؛ برای هر درس و هر نوع آزمون جدا ذخیره می‌شود)</small></label>
+   <div class="exb-fbh"><span class="exb-chip" id="exbFbCnt"></span><button class="sm" type="button" id="exbFbClr">✖ برداشتن همه‌ی تیک‌ها</button></div>
+   <div id="exbFbL"></div>
+   <details class="exb-acc" id="exbFbD"><summary>➕ افزودن متن جدید به فهرست من</summary>
+    <input id="exbFbNew" maxlength="200" placeholder="مثلاً: مسئله‌های کلامی را درست تحلیل می‌کند." autocomplete="off">
+    <div class="exb-g"><div><label>ذخیره برای کدام درس؟</label><select id="exbFbSc"></select></div><div><label>ذخیره برای کدام آزمون؟</label><select id="exbFbTy"></select></div></div>
+    <div class="exb-mb"><button class="sm" type="button" id="exbFbAdd">➕ افزودن</button><button class="sm" type="button" id="exbFbCan" hidden>انصراف</button></div>
+    <p class="exb-n" id="exbFbMsg" style="margin:0 0 8px"></p></details>
+   <label>✍️ متن دلخواه فقط برای همین برگه (هر خط یک مورد)</label><textarea id="exbFbRows" rows="3" placeholder="هر خط یک مورد؛ مثلاً: زمان جمله‌ها را کاملاً مسلط است."></textarea>
+   <div class="exb-mb"><button class="sm" type="button" id="exbFbSaveMan">💾 ذخیره‌ی خطوط بالا در فهرست من</button></div>
+   <p class="exb-n">اگر هیچ موردی تیک نخورد و چیزی هم نوشته نشود، سه ردیف خالی برای نوشتن دستی چاپ می‌شود.</p>
+  </div>
   <details><summary>ترکیب سطح سؤال‌ها برای ۱۰ سؤال (قابل تنظیم)</summary><p class="exb-n">برای تعداد دیگر، نسبت‌ها خودکار مقیاس می‌شوند.</p><table class="exb-mx" id="exbMix"></table><button class="sm" type="button" id="exbMixReset" style="margin-top:6px">بازگشت به پیش‌فرض</button></details></div>
  <button class="big" type="button" id="exbGo" style="margin:6px 0 12px">👁️ ساخت برگه و پیش‌نمایش</button>
  <div id="exbRep"></div>`;
@@ -471,7 +495,7 @@ try{
  .pn{position:absolute;left:0;right:0;bottom:1px;text-align:center;font-size:10px;color:#555;line-height:1.6}
  @media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:auto;height:auto;padding:0}.sheet:last-child{break-after:auto;page-break-after:auto}}`;
  function docHtml(b){
-  const o={pts:false,meta:$('exbMeta').checked,fb:$('exbFb').checked,fbRows:($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean),title:fullTitle(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
+  const o={pts:false,meta:$('exbMeta').checked,fb:$('exbFb').checked,fbRows:fbRowsAll(),title:fullTitle(),date:($('exbDate').value||'').trim(),ans:($('exbAns').value||'none')};
   return `<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>${E(o.title)}</title><link rel="stylesheet" href="assets/css/fonts.css"><style>${CSS}</style></head><body>${b.sheets.map(s=>sheetHtml(s,b.ctx,o)).join('')}<script>addEventListener('load',function(){var g=${paginate.toString()};if(document.fonts&&document.fonts.ready)document.fonts.ready.then(g);else g()})<\/script></body></html>`;
  }
  function missingAns(b){return $('exbAns').value==='none'?0:b.sheets.reduce((n,sh)=>n+sh.result.questions.filter(q=>!ansText(q)).length,0)}
@@ -481,6 +505,115 @@ try{
   $('exbOvT').textContent=`پیش‌نمایش: ${F(b.sheets.length)} برگه${$('exbAns').value==='sep'?' + '+F(b.sheets.length)+' صفحه‌ی پاسخ‌نامه':''} — در پنجره‌ی چاپ مقصد «ذخیره به‌صورت PDF» را بزنید.${missingAns(b)?' ⚠️ برای '+F(missingAns(b))+' سؤال پاسخ ثبت نشده است.':''}`;
   ov.classList.add('on');
  }
+/* ---------- انتظارات جدول بازخورد: فهرست آماده + تیک (برای هر درس و هر نوع آزمون) ----------
+   داده‌ها: S.exb.fbLib = فهرست متن‌های معلم [{id,t,bk,ty}] (bk/ty خالی = همه)
+            S.exb.fbSel = تیک‌های هر ترکیب «درس|نوع آزمون» */
+  const FB_SUG=[
+   {k:['فارسی','املا','نگارش','انشا'],t:['به سؤالات درک مطلب پاسخ می‌دهد.','متن را روان و با لحن مناسب می‌خواند.','املای درست کلمات را می‌نویسد.','معنی واژه‌های درس را می‌داند.','جمله‌ها را کامل و با رعایت نشانه‌گذاری می‌نویسد.','نکته‌های دستوری درس را درست به‌کار می‌برد.','مفهوم شعر و متن را به زبان خود بیان می‌کند.']},
+   {k:['ریاضی'],t:['مفهوم‌های درس را درک کرده است.','چهار عمل اصلی را درست انجام می‌دهد.','مسئله‌ها را درست تحلیل و حل می‌کند.','مراحل حل را مرتب و کامل می‌نویسد.','با دقت و سرعت مناسب محاسبه می‌کند.','از شکل و نمودار برای حل مسئله استفاده می‌کند.','راه حل خود را توضیح می‌دهد.']},
+   {k:['علوم'],t:['مفهوم‌های علمی را درک می‌کند و با زبان خود بیان می‌کند.','به پرسش‌های «چرا» و «چگونه» پاسخ می‌دهد.','شکل‌ها و نمودارها را درست تحلیل می‌کند.','از فعالیت‌های آزمایشی نتیجه‌گیری می‌کند.','اصطلاحات علمی را درست به‌کار می‌برد.']},
+   {k:['اجتماعی'],t:['مفهوم‌های درس را توضیح می‌دهد.','نقشه و جهت‌های جغرافیایی را درست می‌خواند.','اطلاعات درس را به یکدیگر ربط می‌دهد.','از زندگی روزمره برای درس مثال می‌آورد.']},
+   {k:['قرآن'],t:['آیه‌ها را روان و با رعایت قواعد روخوانی می‌خواند.','مفهوم آیه‌های درس را می‌داند.','آیه‌های حفظی را درست و روان می‌خواند.']},
+   {k:['هدیه','آسمان','دینی'],t:['مفهوم‌های درس را می‌داند.','نمونه‌هایی از رفتار مناسب درس را بیان می‌کند.','متن‌های حفظی را درست می‌خواند.']}
+  ];
+  const FB_GEN=['مفهوم‌های درس را درک کرده است.','پاسخ‌ها را کامل و مرتب می‌نویسد.','به صورت سؤال با دقت توجه می‌کند.','خوش‌خط و خوانا می‌نویسد.','زمان آزمون را درست مدیریت می‌کند.'];
+  const fbCtx=()=>{const bk=($('exbBk')||{}).value||'',ty=($('exbType')||{}).value||'';return {bk,ty,key:C.norm(bk)+'|'+ty}};
+  function fbList(){
+   const {bk,ty}=fbCtx(),c=cfg(),nb=C.norm(bk);
+   const own=(Array.isArray(c.fbLib)?c.fbLib:[]).filter(x=>x&&x.id&&x.t&&(!x.bk||(nb&&C.norm(x.bk)===nb))&&(!x.ty||x.ty===ty));
+   const mine=new Set(own.map(x=>C.norm(x.t)));
+   const sug=[];if(nb)FB_SUG.forEach(g=>{if(g.k.some(w=>nb.includes(w)))g.t.forEach(t=>{const k=C.norm(t);if(!mine.has(k)&&!sug.some(z=>z.t===t))sug.push({id:'s:'+k,t})})});
+   const gen=FB_GEN.filter(t=>!mine.has(C.norm(t))&&!sug.some(z=>z.t===t)).map(t=>({id:'s:'+C.norm(t),t}));
+   return {own,sug,gen};
+  }
+  const fbSelSet=()=>new Set((cfg().fbSel||{})[fbCtx().key]||[]);
+  function fbSelSave(set){const c=cfg(),k=fbCtx().key;c.fbSel=c.fbSel&&typeof c.fbSel==='object'?c.fbSel:{};if(set.size)c.fbSel[k]=Array.from(set);else delete c.fbSel[k];save()}
+  const fbManual=()=>($('exbFbRows').value||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  function fbRowsAll(){
+   const L=fbList(),sel=fbSelSet(),out=[];
+   [...L.own,...L.sug,...L.gen].forEach(x=>{if(sel.has(x.id))out.push(x.t)});
+   fbManual().forEach(t=>out.push(t));
+   const seen=new Set();return out.filter(t=>{const k=C.norm(t);if(seen.has(k))return false;seen.add(k);return true});
+  }
+  const fbTag=x=>x.bk&&x.ty?'فقط این درس و این آزمون':x.bk?'فقط این درس':x.ty?'فقط این نوع آزمون':'همه‌ی درس‌ها';
+  const fbRow=(x,sel,own)=>`<div class="exb-fbr"><label><input type="checkbox" data-fbk="${E(x.id)}" ${sel.has(x.id)?'checked':''}><span>${E(x.t)}${own?`<small>${fbTag(x)}</small>`:''}</span></label>${own?`<span class="exb-fba"><button type="button" class="sm" data-fbe="${E(x.id)}" title="ویرایش">✏️</button><button type="button" class="sm" data-fbd="${E(x.id)}" title="حذف">🗑️</button></span>`:''}</div>`;
+  function fbCount(){const n=fbRowsAll().length,el=$('exbFbCnt');if(!el)return;el.textContent=n?`${F(n)} مورد در برگه چاپ می‌شود${n>8?' — بیش از ۸ مورد ممکن است برگه را شلوغ کند':''}`:'هنوز موردی انتخاب نشده (ردیف خالی چاپ می‌شود)'}
+  function fbForm(force){
+   const {bk,ty}=fbCtx(),sc=$('exbFbSc'),tyS=$('exbFbTy'),o1=force?'':sc.value,o2=force?'':tyS.value;
+   sc.innerHTML=(bk?`<option value="bk">فقط «${E(bk)}»</option>`:'')+'<option value="all">همه‌ی درس‌ها</option>';
+   tyS.innerHTML='<option value="all">همه‌ی آزمون‌ها</option>'+(ty?`<option value="ty">فقط «${E(ty)}»</option>`:'');
+   sc.value=[...sc.options].some(o=>o.value===o1)?o1:(bk?'bk':'all');
+   tyS.value=[...tyS.options].some(o=>o.value===o2)?o2:'all';
+  }
+  function renderFb(force){
+   const box=$('exbFbL');if(!box)return;
+   $('exbFbW').hidden=!$('exbFb').checked;
+   const {bk}=fbCtx(),L=fbList(),sel=fbSelSet();fbForm(force);
+   let h='';
+   if(L.own.length)h+=`<div class="exb-fbg">⭐ فهرست من</div>`+L.own.map(x=>fbRow(x,sel,true)).join('');
+   if(L.sug.length)h+=`<div class="exb-fbg">💡 پیشنهادی برای «${E(bk)}»</div>`+L.sug.map(x=>fbRow(x,sel,false)).join('');
+   else if(!bk)h+=`<p class="exb-n">با انتخاب «کتاب / درس» در بخش ۱، پیشنهادهای مخصوص همان درس اینجا نمایش داده می‌شود.</p>`;
+   if(L.gen.length)h+=`<details class="exb-acc"${(!L.own.length&&!L.sug.length)?' open':''}><summary>پیشنهادهای عمومی (مناسب همه‌ی درس‌ها)</summary>${L.gen.map(x=>fbRow(x,sel,false)).join('')}</details>`;
+   box.innerHTML=h;fbCount();
+  }
+  let fbEdit=null;
+  function fbReset(){fbEdit=null;$('exbFbNew').value='';$('exbFbAdd').textContent='➕ افزودن';$('exbFbCan').hidden=true}
+  const fbMsg=t=>{$('exbFbMsg').textContent=t||''};
+  function fbAdd(text){
+   text=String(text||'').replace(/\s+/g,' ').trim();if(!text)return null;
+   const c=cfg(),{bk,ty}=fbCtx();c.fbLib=Array.isArray(c.fbLib)?c.fbLib:[];
+   const sb=$('exbFbSc').value==='bk'&&bk?bk:'',st=$('exbFbTy').value==='ty'&&ty?ty:'';
+   const dup=c.fbLib.find(x=>C.norm(x.t)===C.norm(text)&&C.norm(x.bk||'')===C.norm(sb)&&(x.ty||'')===st);
+   const id=dup?dup.id:'u'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+   if(!dup)c.fbLib.push({id,t:text,bk:sb,ty:st});
+   const sel=fbSelSet();sel.add(id);fbSelSave(sel);
+   return dup?'dup':'new';
+  }
+  function fbDoAdd(){
+   const t=$('exbFbNew').value;if(!String(t).trim()){fbMsg('اول متن را بنویسید.');$('exbFbNew').focus();return}
+   if(fbEdit){
+    const c=cfg(),x=(c.fbLib||[]).find(y=>y.id===fbEdit),{bk,ty}=fbCtx();
+    if(x){x.t=String(t).replace(/\s+/g,' ').trim();x.bk=$('exbFbSc').value==='bk'&&bk?bk:'';x.ty=$('exbFbTy').value==='ty'&&ty?ty:'';save();fbMsg('✔ ویرایش ذخیره شد.')}
+    fbReset();renderFb();return;
+   }
+   const r=fbAdd(t);fbMsg(r==='dup'?'این متن قبلاً در فهرست بود؛ فقط تیک خورد.':'✔ به فهرست اضافه شد و تیک خورد.');
+   $('exbFbNew').value='';renderFb();$('exbFbNew').focus();
+  }
+  function fbStartEdit(id){
+   const x=(cfg().fbLib||[]).find(y=>y.id===id);if(!x)return;
+   fbEdit=id;fbForm();$('exbFbNew').value=x.t;$('exbFbSc').value=x.bk&&[...$('exbFbSc').options].some(o=>o.value==='bk')?'bk':'all';$('exbFbTy').value=x.ty&&[...$('exbFbTy').options].some(o=>o.value==='ty')?'ty':'all';
+   $('exbFbAdd').textContent='💾 ذخیره‌ی ویرایش';$('exbFbCan').hidden=false;$('exbFbD').open=true;fbMsg('');$('exbFbNew').focus();
+  }
+  function fbDelete(id){
+   if(!confirm('این متن از فهرست شما حذف شود؟'))return;
+   const c=cfg();c.fbLib=(c.fbLib||[]).filter(x=>x.id!==id);
+   if(c.fbSel)Object.keys(c.fbSel).forEach(k=>{c.fbSel[k]=(c.fbSel[k]||[]).filter(i=>i!==id);if(!c.fbSel[k].length)delete c.fbSel[k]});
+   if(fbEdit===id)fbReset();save();renderFb();
+  }
+  function fbSaveManual(){
+   const lines=fbManual();if(!lines.length){fbMsg('اول در کادر «متن دلخواه» چیزی بنویسید.');$('exbFbD').open=true;return}
+   const {bk}=fbCtx();let n=0;lines.forEach(t=>{if(fbAdd(t)==='new')n++});
+   $('exbFbRows').value='';persist();renderFb();
+   fbMsg(`✔ ${F(lines.length)} متن در فهرست ذخیره و تیک خورد (${$('exbFbSc').value==='bk'&&bk?'برای «'+bk+'»':'برای همه‌ی درس‌ها'}).`);$('exbFbD').open=true;
+  }
+  sec.addEventListener('change',e=>{
+   const t=e.target;if(!t)return;
+   if(t.dataset&&t.dataset.fbk!=null){const sel=fbSelSet();if(t.checked)sel.add(t.dataset.fbk);else sel.delete(t.dataset.fbk);fbSelSave(sel);fbCount();return}
+   if(t.id==='exbBk'||t.id==='exbType'||t.id==='exbGr'){fbReset();fbMsg('');renderFb(true)}
+   if(t.id==='exbFb')renderFb();
+  });
+  sec.addEventListener('input',e=>{if(e.target.id==='exbFbRows')fbCount()});
+  sec.addEventListener('click',e=>{
+   const b=e.target.closest&&e.target.closest('button');if(!b)return;
+   if(b.dataset.fbe)return fbStartEdit(b.dataset.fbe);
+   if(b.dataset.fbd)return fbDelete(b.dataset.fbd);
+   if(b.id==='exbFbAdd')return fbDoAdd();
+   if(b.id==='exbFbCan'){fbReset();fbMsg('');return}
+   if(b.id==='exbFbSaveMan')return fbSaveManual();
+   if(b.id==='exbFbClr'){fbSelSave(new Set());renderFb()}
+  });
+  $('exbFbNew').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();fbDoAdd()}});
+
  function persist(){
   const c=cfg();c.type=$('exbType').value;c.title=$('exbTitle').value;c.count=$('exbCount').value;c.meta=$('exbMeta').checked;c.same=$('exbSame').checked;c.mode=mode;c.mfill=$('exbMfill').checked;c.sel=Array.from(selSet);c.fb=$('exbFb').checked;c.fbRows=$('exbFbRows').value;c.ans=$('exbAns').value;c.bk=$('exbBk').value;c.rm=rmode;
   const rm=readMix();if(rm.mix)c.mix=rm.mix;save();
@@ -521,7 +654,7 @@ try{
   if(['exbGr','exbBk','exbTp','exbUnk','exbLf','exbLt','exbPf','exbPt'].includes(t.id)||(t.dataset&&t.dataset.ln!=null))renderSummary();
  });
  sec.addEventListener('input',e=>{if(['exbLf','exbLt','exbPf','exbPt'].includes(e.target.id))renderSummary()});
- function refresh(){hubCnt();fillScope();fillStudents();fillMix();restore();renderSummary()}
+ function refresh(){hubCnt();fillScope();fillStudents();fillMix();restore();renderSummary();fbReset();fbMsg('');renderFb(true)}
  const _show=window.show;
  window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='exh')hubCnt();if(id==='exb')refresh()}catch(e){console.error('exam-builder',e)}return r};
  window.ExamBuilder=Object.freeze({build,sheetHtml,docHtml:()=>last?docHtml(last):''});

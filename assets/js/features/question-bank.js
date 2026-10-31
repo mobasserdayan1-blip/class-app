@@ -383,7 +383,7 @@ sec.addEventListener('click',e=>{const b=e.target.closest('[data-qb]');if(!b)ret
  else if(k==='pkall'){const G=groupLs(bookQs());if(V.pick.size===G.length)V.pick.clear();else G.forEach(g=>V.pick.add(g.name));bookRes()}
  else if(k==='pk'||k==='pkrow'){const n=b.dataset.v;if(V.pick.has(n))V.pick.delete(n);else V.pick.add(n);bookRes()}
  else if(k==='pkdel'){if(V.pick.size)delLessons([...V.pick])}
- else if(k==='exp'){const bk=books().find(x=>x.key===V.book);if(!bk)return;if(!window.QEXP){say('⚠️ ماژول خروجی بارگذاری نشده؛ صفحه را یک بار تازه کنید.');return}QEXP.open({key:bk.key,gr:bk.gr,bk:bk.bk,ls:V.ls||'',pick:V.sel?[...V.pick]:[]})}
+ else if(k==='exp'){const bk=books().find(x=>x.key===V.book);if(!bk)return;const go=()=>QEXP.open({key:bk.key,gr:bk.gr,bk:bk.bk,ls:V.ls||'',pick:V.sel?[...V.pick]:[]});if(window.QEXP){go();return}/* اگر ماژول از فهرست بارگذاری جا افتاده یا کش قدیمی است، مستقیم و یک‌بار بارگذاری می‌شود */const sc=document.createElement('script');sc.src='assets/js/features/question-export.js?v='+Date.now();sc.onload=()=>{if(window.QEXP)go();else say('⚠️ ماژول خروجی بارگذاری نشد؛ صفحه را یک بار تازه کنید.')};sc.onerror=()=>say('⚠️ فایل assets/js/features/question-export.js روی سایت پیدا نشد؛ آن را در گیت‌هاب آپلود کنید.');document.body.appendChild(sc)}
  else if(k==='imp'){if(typeof show==='function')show('qimp')}
  else if(k==='build'){if(typeof show==='function')show('exb')}});
 sec.addEventListener('change',e=>{if(e.target.dataset&&e.target.dataset.qf==='ty'){V.ty=e.target.value;V.lim=PAGE;bookRes()}});

@@ -26,7 +26,7 @@ const absent=(k,sid)=>((S.att||{})[k]||{})[sid]==='a';
 const late=(k,sid)=>((S.att||{})[k]||{})[sid]==='l';
 
 /* سطح‌های ارزشیابی توصیفی */
-const LV=[{v:4,s:'خخ',t:'خیلی خوب',c:'#1a8f55'},{v:3,s:'خ',t:'خوب',c:'#3f8f2a'},{v:2,s:'قق',t:'قابل قبول',c:'#b26a00'},{v:1,s:'نت',t:'نیاز به تلاش',c:'#c0262c'}];
+const LV=[{v:4,s:'خیلی خوب',t:'خیلی خوب',c:'#1a8f55'},{v:3,s:'خوب',t:'خوب',c:'#3f8f2a'},{v:2,s:'قابل قبول',t:'قابل قبول',c:'#b26a00'},{v:1,s:'نیاز به تلاش بیشتر',t:'نیاز به تلاش بیشتر',c:'#c0262c'}];
 /* فعالیت‌های پیش‌فرض هر درس (قابل ویرایش و جایگزینی توسط معلم)؛ نوع: g = چهار سطحی ، d = انجام شد/نشد ، سومین مقدار = تکلیف */
 const DEF=[
 ['قرآن',[['روان‌خوانی قرآن','g'],['روخوانی آیات','g'],['صحیح‌خوانی و رعایت قواعد','g'],['حفظ سوره یا آیات','g'],['مشارکت در فعالیت قرآنی','g']]],
@@ -80,7 +80,7 @@ function setMarks(k,b,id,sids,val,toggle){
  if(s.st==='skip')delete s.st;
  syncHw(k,b,id,s);save();return true}
 
-let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false};
+let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null};
 const dshort=k=>fmtP(k,{weekday:'short',day:'numeric',month:'long'});
 function viewSes(k,b){const s=getSes(k,b);if(s)return s;const bl=bells(k).find(x=>x.i===String(b));return bl?{c:bl.cids[0],tp:'',nt:''}:null}
 function flash(msg){let t=$('djFl');if(t)t.remove();t=document.createElement('div');t.id='djFl';t.className='dj-fl';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.remove()},2300)}
@@ -109,7 +109,7 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 #dj .dj-nm{flex:1;min-width:110px;font-weight:700;font-size:14px}
 #dj .dj-nm small{color:#888;font-weight:600;margin-right:4px}
 #dj .dj-bt{display:flex;gap:4px}
-#dj .dj-b{min-width:42px;min-height:40px;padding:0 8px;border-radius:11px;border:1.5px solid var(--line,#ddd);background:var(--card,#fff);color:var(--tx,#222);font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#dj .dj-b{min-width:0;min-height:40px;padding:6px 9px;white-space:normal;line-height:1.45;border-radius:11px;border:1.5px solid var(--line,#ddd);background:var(--card,#fff);color:var(--tx,#222);font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #dj .dj-b[disabled]{cursor:default}
 #dj .dj-b.on{color:#fff;border-color:transparent}
 #dj .dj-nt{width:100%;display:flex;gap:6px}
@@ -120,6 +120,15 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 #dj .dj-warn{background:#fff4d6;color:#8a5a00;border-radius:12px;padding:9px 12px;margin:8px 0;font-size:13px}
 #dj .dj-ted{border:1px dashed var(--line,#ccc);border-radius:12px;padding:8px;margin:8px 0}
 #dj .dj-ted .r{display:flex;gap:6px;align-items:center;margin:5px 0;flex-wrap:wrap}
+.dj-day{border:0;background:transparent;color:var(--p);font:800 15px Vazirmatn,Tahoma,sans-serif;cursor:pointer;text-decoration:underline;text-underline-offset:4px;padding:6px}
+.dj-cal{position:fixed;inset:0;z-index:10000;background:#16132988;display:grid;place-items:center;padding:16px}
+.dj-calbox{width:min(360px,100%);background:var(--card);color:var(--tx);border-radius:20px;padding:14px;box-shadow:0 18px 60px #0004}
+.dj-calhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.dj-calhead button,.dj-calgrid button{border:0;border-radius:10px;padding:9px;background:var(--bg2);color:var(--tx);font:700 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.dj-calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
+.dj-calgrid span{font-size:12px;color:var(--mut);padding:5px}
+.dj-calgrid i{min-height:36px}
+.dj-calgrid button.on{background:var(--p);color:#fff}
 .dj-fl{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222c;color:#fff;padding:10px 16px;border-radius:12px;z-index:99999;font:700 13px Vazirmatn,Tahoma,sans-serif}
 #djHome .dj-hb{padding:8px 12px;border-radius:12px;border:0;background:var(--p,#5b3fd6);color:#fff;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin:3px}`;
 const cs=document.createElement('style');cs.textContent=CSS;document.head.appendChild(cs);
@@ -132,15 +141,29 @@ try{if(!pages.some(p=>p[0]==='dj')){const i=pages.findIndex(p=>p[0]==='wsc');pag
  const b=document.createElement('button');b.textContent='📓 دفتر روزانه معلم';b.dataset.p='dj';b.onclick=()=>show('dj');
  const ref=nav.querySelector('[data-p="wsc"]')||nav.querySelector('[data-p="att"]');ref?ref.after(b):nav.appendChild(b)}}catch(e){console.warn('dj nav',e)}
 
+
+/* تقویم شمسیِ انتخاب روز دفتر */
+const JMN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+function jparts(k){const p=jp(new Date(k+'T12:00:00Z'));return{y:p.y,m:p.m,d:p.d}}
+function calHtml(){
+ if(!st.cal)return'';
+ const {y,m}=st.cal,first=fromJ(y,m,1),days=monthDays(first).length,off=(first.getUTCDay()+1)%7;
+ let h=`<div class="dj-cal"><div class="dj-calbox"><div class="dj-calhead"><button data-dj="calprev">›</button><b>${JMN[m-1]} ${fa(y)}</b><button data-dj="calnext">‹</button><button data-dj="calclose">✕</button></div><div class="dj-calgrid">${['ش','ی','د','س','چ','پ','ج'].map(x=>`<span>${x}</span>`).join('')}`;
+ h+='<i></i>'.repeat(off);
+ for(let d=1;d<=days;d++){const k=iso(fromJ(y,m,d));h+=`<button class="${k===st.k?'on':''}" data-dj="calday:${k}">${fa(d)}</button>`}
+ return h+'</div></div></div>';
+}
+
 /* رندر */
 function render(){const s=$('dj');if(!s)return;
  const k=st.k,t=todayK();pickDefault();
  const L=dayBells(k),ses=st.b!=null?viewSes(k,st.b):null,pend=pending(7);
  let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان در هر زنگ؛ همه‌ی اطلاعات به پرونده‌ی دانش‌آموز می‌رود.</p>`;
- h+=`<div class="card"><div class="dj-hd"><button class="dj-sm" data-dj="nav:-1">‹ روز قبل</button><div class="dj-day">${esc(dlab(k))}${k===t?' <small>(امروز)</small>':''}</div><button class="dj-sm" data-dj="nav:1">روز بعد ›</button>${k!==t?`<button class="dj-sm" data-dj="today">امروز</button>`:''}</div>`;
+ h+=`<div class="card"><div class="dj-hd"><button class="dj-sm" data-dj="nav:-1">‹ روز قبل</button><button type="button" class="dj-day" data-dj="calendar" aria-label="انتخاب تاریخ">${esc(dlab(k))}${k===t?' <small>(امروز)</small>':''}</button><button class="dj-sm" data-dj="nav:1">روز بعد ›</button>${k!==t?`<button class="dj-sm" data-dj="today">امروز</button>`:''}</div>`;
  if(isOff(k))h+=`<div class="dj-warn">این روز تعطیل است. اگر زنگی برگزار شده، با «＋ زنگ دستی» ثبت کنید.</div>`;
  else if(!L.length)h+=`<div class="dj-warn">برای این روز در برنامه‌ی هفتگی زنگ درسی چیده نشده است. در بخش «برنامه هفتگی» درس‌ها را بچینید یا از «＋ زنگ دستی» استفاده کنید.</div>`;
  h+=`<div class="dj-bl">${L.map(x=>`<button class="dj-ch${x.b===st.b?' on':''}" data-dj="bell:${esc(x.b)}">${SI[stat(k,x.b)]} ${esc(bellName(k,x))}${x.s?` <small>${fa(x.s)}</small>`:''}</button>`).join('')}<button class="dj-ch" data-dj="manual">＋ زنگ دستی</button></div></div>`;
+ h+=calHtml();
  if(ses)h+=sessionCard(k,st.b,ses);
  h+=pendCard(pend);
  s.innerHTML=h}
@@ -187,7 +210,11 @@ function pendCard(p){
 
 /* رویدادها */
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
- if(c==='nav'){st.k=addD(k,+x);st.b=null;st.item=null;st.note=null;st.pick=new Set()}
+ if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
+ else if(c==='calclose')st.cal=null;
+ else if(c==='calprev'||c==='calnext'){if(st.cal){let m=st.cal.m+(c==='calnext'?1:-1),y=st.cal.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.cal={y,m}}}
+ else if(c==='calday'){st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
+ else if(c==='nav'){st.cal=null;st.k=addD(k,+x);st.b=null;st.item=null;st.note=null;st.pick=new Set()}
  else if(c==='today'){st.k=todayK();st.b=null;st.item=null}
  else if(c==='bell'){st.b=x;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}
  else if(c==='go'){st.k=x;st.b=y;st.item=null;st.note=null;st.pick=new Set()}
@@ -230,7 +257,7 @@ function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;con
  const row=r=>`<tr><td style="padding:4px 6px;font-weight:700">${esc(cname(r.c))}</td>${[4,3,2,1].map(v=>`<td style="text-align:center;color:${LV.find(l=>l.v===v).c};font-weight:800">${fa(r.g[v])}</td>`).join('')}<td style="text-align:center">${r.ok||r.no?fa(r.ok)+' / '+fa(r.no):'—'}</td></tr>`;
  const notes=R.flatMap(r=>r.last.map(n=>({...n,c:r.c}))).sort((a,b)=>b.k.localeCompare(a.k)).slice(0,5);
  sb.insertAdjacentHTML('beforeend',`<div class="card" id="djSf" style="grid-column:1/-1"><b>📓 دفتر روزانه (عملکرد در زنگ‌ها)</b>
- <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px"><tr style="color:#888;font-size:12px"><td>درس</td><td style="text-align:center">خیلی خوب</td><td style="text-align:center">خوب</td><td style="text-align:center">قابل قبول</td><td style="text-align:center">نیاز به تلاش</td><td style="text-align:center">انجام/نشد</td></tr>${R.map(row).join('')}</table></div>
+ <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:6px"><tr style="color:#888;font-size:12px"><td>درس</td><td style="text-align:center">خیلی خوب</td><td style="text-align:center">خوب</td><td style="text-align:center">قابل قبول</td><td style="text-align:center">نیاز به تلاش بیشتر</td><td style="text-align:center">انجام/نشد</td></tr>${R.map(row).join('')}</table></div>
  ${notes.length?`<div style="margin-top:8px;font-size:12px"><b>یادداشت‌های اخیر:</b>${notes.map(n=>`<div>• ${esc(dshort(n.k))} · ${esc(cname(n.c))} · ${esc(n.a)}: ${esc(n.t)}</div>`).join('')}</div>`:''}</div>`)}
 try{const sfb=$('sfb');if(sfb)new MutationObserver(()=>{if(!$('djSf'))setTimeout(()=>{try{sfCard()}catch(e){}},30)}).observe(sfb,{childList:true})}catch(e){}
 

@@ -65,7 +65,25 @@ function foldHome(){const h=$('home');if(!h||$('homeMore'))return;
 function moreBtn(){const box=$('tdash2'),h=$('home');if(!box||!h||$('dmoreBtn'))return;
  const b=document.createElement('button');b.id='dmoreBtn';b.type='button';b.textContent='📊 نمودارها و جزئیات بیشتر ▾';
  box.after(b);b.onclick=()=>{const on=h.classList.toggle('dmore');b.textContent=on?'🔼 جمع کردن جزئیات':'📊 نمودارها و جزئیات بیشتر ▾'}}
-function homeInit(){try{qa();foldHome();moreBtn()}catch(e){console.warn('dash-home',e)}}
+function homeInit(){try{qa();foldHome();moreBtn();arrangeHome()}catch(e){console.warn('dash-home',e)}}
+
+
+/* چیدمان نهایی صفحه‌ی خانه: میانبرها بعد از یادآور آزمون و خوش‌آمدگویی بالای برنامه‌ی امروز */
+function arrangeHome(){
+ const h=$('home');if(!h)return;
+ const ex=$('exRem'),qaBox=$('qa'),ws=$('wsToday');
+ if(ex&&ws&&ex.nextElementSibling!==ws)ex.after(ws);
+ if(ws&&qaBox&&ws.nextElementSibling!==qaBox)ws.after(qaBox);
+ if(ws){
+  let g=ws.querySelector('.ws-greeting');
+  if(!g){g=document.createElement('div');g.className='ws-greeting';ws.prepend(g)}
+  const greeting=isT()?'سلام، معلم 👋':'سلام، مدیر 👋';if(g.textContent!==greeting)g.textContent=greeting;
+  const head=ws.querySelector('h4');if(head&&g.nextElementSibling!==head)head.before(g);
+ }
+}
+const homeStyle=document.createElement('style');
+homeStyle.textContent='.ws-greeting{font-size:18px;font-weight:900;color:var(--p);margin:0 0 8px;text-align:right}.ws-today{scroll-margin-top:12px}#qa{margin-top:12px}';
+document.head.appendChild(homeStyle);
 
 /* ---------- داشبورد مدیر: شاخص‌ها ← هشدارها ← جدول مقایسه ← میانبرها ---------- */
 function tidyDm(){
@@ -122,7 +140,7 @@ if(typeof window.renderDm==='function'){const rd=window.renderDm;window.renderDm
 /* ---------- معلم هرگز صفحه‌ی پشتیبان را نمی‌بیند ---------- */
 const o=window.show;
 window.show=function(id){if(isT()&&id==='bk')id='set';const r=o.call(this,id);try{if(id==='home')homeInit()}catch(e){}return r};
-{const h=$('home');if(h)new MutationObserver(()=>{try{foldHome();moreBtn()}catch(e){}}).observe(h,{childList:true})}
+{const h=$('home');if(h)new MutationObserver(()=>{try{foldHome();moreBtn();arrangeHome()}catch(e){}}).observe(h,{childList:true})}
 homeInit();
 setInterval(()=>{try{const h=$('home');if(h&&h.classList.contains('on')&&!document.hidden)qa()}catch(e){}},30000);
 try{const c=document.querySelector('main section.on');if(c&&c.id==='dm'&&typeof window.renderDm==='function')window.renderDm()}catch(e){}

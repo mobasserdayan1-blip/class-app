@@ -366,7 +366,7 @@ function openDay(pi){const old=$('wsDay');if(old)old.remove();
   const c=e.target.closest('[data-cid]');if(c){cid=+c.dataset.cid;draw();return}
   const q=e.target.closest('[data-q]');if(q){o.remove();goQ(q.dataset.q,cid)}};
  document.body.appendChild(o)}
-function mountBox(box){const hm=$('home');if(!hm)return;const r=$('exRem'),a1=$('tdash2'),a2=$('stats');if(r)r.before(box);else if(a1)a1.before(box);else if(a2)a2.before(box);else hm.prepend(box)}
+function mountBox(box){const hm=$('home');if(!hm)return;const r=$('exRem'),a1=$('tdash2'),a2=$('stats');if(r)r.after(box);else if(a1)a1.before(box);else if(a2)a2.before(box);else hm.prepend(box)}
 function homeCard(){
   const hm=$('home');if(!hm||typeof S==='undefined'||!S||!S.courses)return;const o=$('wsToday');if(o)o.remove();
   if(!hasAny()){const bx=document.createElement('div');bx.id='wsToday';bx.className='ws-today';const ti=todayIdx(),dn=DAYS[ti]||(ti===5?'پنجشنبه':'جمعه');
@@ -396,7 +396,7 @@ ${tom}`;
    const c=e.target.closest('[data-pi]');if(c){openDay(+c.dataset.pi);return}
    if(e.target.closest('h4'))window.show('wsc')};
   const r=$('exRem'),a1=$('tdash2'),a2=$('stats');
-  if(r)r.before(box);else if(a1)a1.before(box);else if(a2)a2.before(box);else hm.prepend(box);
+  if(r)r.after(box);else if(a1)a1.before(box);else if(a2)a2.before(box);else hm.prepend(box);
  }
  setInterval(()=>{try{const h=$('home');if(h&&h.classList.contains('on'))homeCard();const s=$('wsc');if(s&&s.classList.contains('on')&&!$('wsSheetBg')?.classList.contains('on')&&document.activeElement&&!/INPUT|SELECT/.test(document.activeElement.tagName))renderW()}catch(e){}},60000);
 

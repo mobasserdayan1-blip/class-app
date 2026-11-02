@@ -11,7 +11,7 @@ try{
  const F=n=>typeof fa==='function'?fa(n):String(n);
  const LVN={e:'آسان',m:'متوسط',h:'سخت'};
  const TYPES=['ارزشیابی آغازین','آزمون ماهانه','آزمون مستمر','آزمون نیم‌سال اول','آزمون نیم‌سال دوم','آزمون پایان فصل','آزمون پایان سال','آزمونک',''];
- const FBL=['خیلی خوب','خوب','قابل قبول','نیاز به تلاش دارد'];
+ const FBL=['خیلی خوب','خوب','قابل قبول','نیاز به تلاش بیشتر دارد'];
  const fullTitle=()=>[($('exbType')||{}).value||'',(($('exbTitle')||{}).value||'').trim()].filter(Boolean).join(' ')||'ارزشیابی';
  const prof=()=>S.prof||{};
  const grade=()=>String(prof().grade||'');
@@ -141,7 +141,7 @@ try{
   <div class="exb-g"><div><label>نوع آزمون</label><select id="exbType">${TYPES.map(t=>`<option value="${E(t)}">${E(t||'فقط عنوان دلخواه (بدون نوع)')}</option>`).join('')}</select></div><div><label>توضیح تکمیلی (اختیاری)</label><input id="exbTitle" placeholder="مثلاً ورودی سوم به چهارم"></div><div><label>تعداد سؤال هر برگه</label><input id="exbCount" inputmode="numeric" value="10"></div><div><label>تاریخ (اختیاری)</label><input id="exbDate" placeholder="خالی = جای نوشتن"></div></div>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbSame"> سؤال‌های همه‌ی دانش‌آموزان انتخاب‌شده یکسان باشد (مثل ارزشیابی آغازین؛ سطح سؤال‌ها از «سطح برگه‌ی عمومی» در بخش ۲ تعیین می‌شود و فقط نام دانش‌آموز فرق می‌کند)</label>
   <label style="display:flex;align-items:center"><input type="checkbox" id="exbMeta"> زیر عنوان، «محدوده‌ی امتحان و تاریخ» هم نوشته شود</label>
-  <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش دارد)</label>
+  <label style="display:flex;align-items:center"><input type="checkbox" id="exbFb" checked> کادر «بازخورد آموزگار» و جدول انتظارات (خیلی خوب / خوب / قابل قبول / نیاز به تلاش بیشتر دارد)</label>
   <label>پاسخ سؤال‌ها در چاپ</label><select id="exbAns"><option value="none">بدون پاسخ (برگه‌ی دانش‌آموز)</option><option value="sep">پاسخ‌نامه در صفحه‌ی جدا، بعد از هر برگه (برای آموزگار)</option><option value="inline">پاسخ زیر هر سؤال (نسخه‌ی آموزگار)</option></select>
   <div id="exbFbW" class="exb-fbw">
    <label style="font-weight:800">📋 انتظارات جدول بازخورد <small style="font-weight:400;color:var(--mut)">(تیک بزنید؛ برای هر درس و هر نوع آزمون جدا ذخیره می‌شود)</small></label>

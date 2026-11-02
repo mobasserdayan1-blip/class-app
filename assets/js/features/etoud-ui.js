@@ -104,7 +104,7 @@ sh.addEventListener('click',e=>{
 sh.addEventListener('input',e=>{const t=e.target;if(t.dataset&&t.dataset.xn!=null){const T=tdI(),X=S.attx=S.attx||{};(X[T]=X[T]||{})[t.dataset.xn]=t.value;saveSoon()}});
 
 /* — ثبت نمره‌ی سریع (توصیفی) — */
-const LV=[[4,'خیلی خوب','#1a8f55'],[3,'خوب','#14b8a6'],[2,'قابل قبول','#d98600'],[1,'نیاز به تلاش','#e5484d']];
+const LV=[[4,'خیلی خوب','#1a8f55'],[3,'خوب','#14b8a6'],[2,'قابل قبول','#d98600'],[1,'نیاز به تلاش بیشتر','#e5484d']];
 let scEx=null,scD={},scMk={};
 const toLv=(e,id)=>{const v=e.scores[id];return v==null?null:Math.min(4,Math.max(1,Math.round(v/e.max*4)))};
 const isAbs=(e,id)=>((S.att[e.date]||{})[id])==='a';
@@ -218,7 +218,7 @@ function answer(raw){
  if(/نیاز|ضعیف|افت|خطر|توجه|مشکل/.test(q)&&!/تکلیف/.test(q)){return m.risk.length?`<b>${fa(m.risk.length)}</b> دانش‌آموز نیازمند توجه‌اند:`+m.risk.slice(0,6).map(r=>pl('🚨 '+E(r.s.name),E(r.w.join(' · ')))).join(''):'عالیه! دانش‌آموزی در وضعیت هشدار نیست 🌟'}
  if(/تکلیف/.test(q)){const n=Object.keys(m.hn).map(id=>({s:m.st.find(s=>String(s.id)===id),c:m.hn[id]})).filter(x=>x.s).sort((a,b)=>b.c-a.c).slice(0,5);return m.hw==null?'هنوز تکلیفی ثبت نشده است.':`درصد انجام تکالیف کلاس: <b>${fa(m.hw)}٪</b>`+(n.length?'<br>بیشترین «انجام‌نشده»:'+n.map(x=>pl(E(x.s.name),fa(x.c)+' مورد')).join(''):'')}
  if(/آخرین/.test(q)){const e=m.ex[m.ex.length-1];if(!e)return'هنوز ارزیابی‌ای ثبت نشده است.';const v=m.st.map(s=>({s,v:nrm(e,s.id)})).filter(x=>x.v!=null),low=v.filter(x=>x.v<2.5);
-  return`<b>${E(cnm(e.course))} · ${E(e.title||e.type||'ارزیابی')}</b> — ${fmt(new Date(e.date+'T12:00:00Z'))}<div class="kp"><div><b>${fa(v.length)}</b><span>شرکت‌کننده</span></div><div><b>${f1(v.length?mean(v.map(x=>x.v)):null)}</b><span>میانگین</span></div><div><b>${fa(low.length)}</b><span>نیاز به تلاش</span></div></div>`+(low.length?low.slice(0,5).map(x=>pl('⚠️ '+E(x.s.name),f1(x.v))).join(''):'')}
+  return`<b>${E(cnm(e.course))} · ${E(e.title||e.type||'ارزیابی')}</b> — ${fmt(new Date(e.date+'T12:00:00Z'))}<div class="kp"><div><b>${fa(v.length)}</b><span>شرکت‌کننده</span></div><div><b>${f1(v.length?mean(v.map(x=>x.v)):null)}</b><span>میانگین</span></div><div><b>${fa(low.length)}</b><span>نیاز به تلاش بیشتر</span></div></div>`+(low.length?low.slice(0,5).map(x=>pl('⚠️ '+E(x.s.name),f1(x.v))).join(''):'')}
  if(/جبران/.test(q)){const r=[];m.ex.forEach(e=>m.st.forEach(s=>{if((S.att[e.date]||{})[s.id]==='a'&&e.scores[s.id]==null&&!(e.mk&&e.mk[s.id]))r.push([s,e])}));
   return r.length?`<b>${fa(r.length)}</b> مورد جبرانی باقی مانده:`+r.slice(0,8).map(x=>pl('🔄 '+E(x[0].name),E(cnm(x[1].course))+' · '+fmt(new Date(x[1].date+'T12:00:00Z')))).join('')+'<small style="color:var(--mut)">غایب‌ها فقط با شرکت در آزمون جبرانی ارزیابی می‌شوند.</small>':'جبرانی باقی‌مانده‌ای نیست ✅'}
  if(/پیش.?رو|آینده|امتحان|یادآور|فردا/.test(q))return examAns();

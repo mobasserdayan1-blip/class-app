@@ -9,7 +9,7 @@
  const kinds=m=>kindsAll().filter(k=>k[2].includes(m));
  const iconOf=k=>{const R=(S.actKinds||{}).ren||{},f=KB.map(b=>R[b[0]]?[R[b[0]].n||b[0],R[b[0]].i||b[1]]:b).concat(KB).concat(((S.actKinds||{}).add||[]).map(a=>[a[0],a[1]])).find(x=>x[0]===k);return f?f[1]:'✏️'};
  const TY={positive:{t:'فعالیت مثبت',i:'🌟',c:'#1a8f55',bg:'#d8f3e3',p:5},effort:{t:'نیاز به تلاش بیشتر',i:'💪',c:'#b26a00',bg:'#fff1cf',p:3}};
- const RL=(k,t)=>(isAcad(k)?{positive:'✅ مسلط',effort:'🔄 نیاز به تمرین'}:{positive:'🌟 مثبت',effort:'💪 نیاز به تلاش'})[t]||TY[t].t;
+ const RL=(k,t)=>(isAcad(k)?{positive:'✅ مسلط',effort:'🔄 نیاز به تمرین'}:{positive:'🌟 مثبت',effort:'💪 نیاز به تلاش بیشتر'})[t]||TY[t].t;
  const typesOf=k=>isAcad(k)?['positive','effort']:['positive','effort'];
  const cfg=()=>{const c=S.actCfg=S.actCfg||{};if(!c.tgt)c.tgt=3;if(c.wAcad==null)c.wAcad=30;if(!c.perDay)c.perDay=6;if(!c.subs)c.subs={};return c};
  const modeOf=()=>cfg().mode==='g'?'g':'i';
@@ -125,7 +125,7 @@
   if(!A.length&&!B.length)return '';
   return `<div class="card"><b>📊 جمع‌بندی به تفکیک نوع فعالیت${grpMode?' (هر ثبت گروهی یک بار)':''}</b>
   ${A.length?`<div class="act-h">🎓 فعالیت‌های درسی</div>${tbl(A,[['✅ مسلط','positive'],['🔄 نیاز به تمرین','effort']])}`:''}
-  ${B.length?`<div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری</div>${tbl(B,[['🌟 مثبت','positive'],['💪 نیاز به تلاش','effort']])}`:''}</div>`}
+  ${B.length?`<div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری</div>${tbl(B,[['🌟 مثبت','positive'],['💪 نیاز به تلاش بیشتر','effort']])}`:''}</div>`}
  const recRow=x=>{const w=where(x),op=noteOpen.has(String(x.id));return `<div class="act-nt"><div class="act-pr" style="margin-top:6px"><span class="act-dn">${x.grp?'👥 ':''}${esc2(kl(x))} · ${esc2(RL(x.kind||'سایر',x.type))}${x.vol?' · ✋':''}</span><button class="act-x" data-undo="${x.id}" aria-label="لغو">↩</button><button class="act-x${x.note?' on':''}" data-ntt="${x.id}" aria-label="توضیح" title="توضیح">📝</button></div>${op?`<input class="fs" data-nt="${x.id}" value="${q(x.note||'')}" placeholder="📝 توضیح (اختیاری)">${w?`<small>📚 ${esc2(w)}</small>`:''}`:''}</div>`};
  function render(){
   const root=$('actBody');if(!root)return;autoCx();const st=S.students,T=today(),c=cfg(),mode=modeOf(),kind=curKind(mode),w0=wkStart(T);
@@ -137,7 +137,7 @@
    <label>هدف نوبت هفتگی هر دانش‌آموز ${sl('tgt',[[3,'۳ نوبت'],[4,'۴ نوبت'],[5,'۵ نوبت']],c.tgt)}</label>
    <label>تعداد نوبت پیشنهادی در هر روز ${sl('perDay',[4,5,6,7,8,9,10].map(v=>[v,fa(v)]),c.perDay)}</label>
    <label>سهم پرسش‌های شفاهی درسی در نمره‌ی تحصیلی ${sl('wAcad',[0,10,20,30,40,50].map(v=>[v,v?fa(v)+'٪':'صفر (فقط آزمون)']),c.wAcad)}</label>
-   <p class="sub" style="line-height:1.9;margin:6px 0 0">فعالیت‌های درسی (پاسخ به سؤال، حل مسئله روی تخته، ارائه): «مسلط» = ۴ و «نیاز به تمرین» = ۲ در ارزشیابی مستمر. حداقل ۳ مورد لازم است تا وارد نمره‌ی تحصیلی شود. فعالیت‌های مشارکتی و رفتاری («مثبت» و «نیاز به تلاش») فقط روی مشارکت و رفتار اثر دارند. فعالیت گروهی برای هر عضو حاضر تیم جداگانه ثبت می‌شود. امتیاز مشارکت بر پایه‌ی هدف هفتگی است، پس کسی با نوبت بیشتر امتیاز بیشتری نمی‌گیرد. دانش‌آموز غایبِ همان روز در فعالیت کلاسی شرکت داده نمی‌شود هر دانش‌آموز در یک روز می‌تواند هر تعداد فعالیت داشته باشد (برای ثبت اشتباهی، دکمه‌ی لغو کنار هر ثبت را بزنید).</p></details>`;
+   <p class="sub" style="line-height:1.9;margin:6px 0 0">فعالیت‌های درسی (پاسخ به سؤال، حل مسئله روی تخته، ارائه): «مسلط» = ۴ و «نیاز به تمرین» = ۲ در ارزشیابی مستمر. حداقل ۳ مورد لازم است تا وارد نمره‌ی تحصیلی شود. فعالیت‌های مشارکتی و رفتاری («مثبت» و «نیاز به تلاش بیشتر») فقط روی مشارکت و رفتار اثر دارند. فعالیت گروهی برای هر عضو حاضر تیم جداگانه ثبت می‌شود. امتیاز مشارکت بر پایه‌ی هدف هفتگی است، پس کسی با نوبت بیشتر امتیاز بیشتری نمی‌گیرد. دانش‌آموز غایبِ همان روز در فعالیت کلاسی شرکت داده نمی‌شود هر دانش‌آموز در یک روز می‌تواند هر تعداد فعالیت داشته باشد (برای ثبت اشتباهی، دکمه‌ی لغو کنار هر ثبت را بزنید).</p></details>`;
   if(mode==='g'){
    const nt=typeof NT==='number'?NT:3,teams=Array.from({length:nt},(_,i)=>i+1).map(t=>({t,m:st.filter(s=>s.team===t)})).filter(x=>x.m.length);
    const GR=S.activities.filter(x=>x.grp),GA=uniq(GR.filter(x=>isAcad(x.kind)).sort(byTs)),GB=uniq(GR.filter(x=>!isAcad(x.kind)).sort(byTs));
@@ -150,7 +150,7 @@
    ${rows||'<p class="sub">تیمی با عضو وجود ندارد. از بخش «تیم‌ها» دانش‌آموزان را در تیم قرار دهید.</p>'}</div>
    <div class="card"><b>🕘 آخرین فعالیت‌های گروهی ثبت‌شده</b>
    <div class="act-h">🎓 فعالیت‌های درسی (مسلط / نیاز به تمرین)</div>${GA.length?GA.slice(0,8).map(gi).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}
-   <div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری (مثبت / نیاز به تلاش)</div>${GB.length?GB.slice(0,8).map(gi).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}</div>
+   <div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری (مثبت / نیاز به تلاش بیشتر)</div>${GB.length?GB.slice(0,8).map(gi).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}</div>
    ${summary(GR,true)}${settings}`;return}
   if(!c.pick||c.pick.date!==T||c.pick.n!==c.perDay)pickNow();
   const pk=c.pick.ids.map(id=>st.find(s=>s.id===id)).filter(Boolean).filter(s=>!absentToday(s.id)),TAI=TA.filter(x=>!x.grp);
@@ -165,10 +165,10 @@
   ${bulkCard(st,kind,TA)}
   <div class="card"><b>📊 مشارکت این هفته</b><p class="sub" style="margin:4px 0 0">از ${dl(w0)} · هدف: ${fa(c.tgt)} نوبت برای هر دانش‌آموز${zero?` · <span style="color:#c97a00">${fa(zero)} نفر هنوز نوبت نگرفته‌اند</span>`:''}${low?` · ${fa(low)} نفر کمتر از هدف`:''}</p>
   <div class="act-wk">${W.map(({s,n})=>{const col=n>=c.tgt?'#2a9d6a':'#6693c9',lab=n===0?'هنوز ثبت نشده':n>=c.tgt?fa(n)+' نوبت ✓':fa(n)+' نوبت';return `<div><div style="display:flex;justify-content:space-between;gap:6px;font-size:13px"><b>${esc2(s.name)}</b><span style="color:${n===0?'#c97a00':col};white-space:nowrap">${lab}</span></div><div class="act-bar"><i style="width:${Math.min(100,n/c.tgt*100)}%;background:${col}"></i></div></div>`}).join('')}</div></div>
-  <details class="card" id="actGridD" ${gridOpen?'open':''}><summary><b>👆 ثبت دستی برای هر دانش‌آموز</b></summary><p class="sub" style="margin:6px 0 10px">روی نام دانش‌آموز بزنید. در هر کارت: ✅ مسلط · 🔄 نیاز به تمرین (درسی)، 🌟 مثبت · 💪 نیاز به تلاش (مشارکتی)، 👥 ثبت‌های تیمی. همه‌ی ثبت‌ها (نوبت امروز، دسته‌جمعی، تیمی و دستی) اینجا جمع می‌شوند دانش‌آموز غایبِ امروز قابل ثبت نیست؛ برای هر دانش‌آموز در یک روز می‌توانید هر تعداد فعالیت ثبت کنید («ثبت و مورد بعدی ➕»).</p><div class="act-grid">${st.map(s=>{const t=cnt(s.id,T),a=cnt(s.id);return `<button class="act-st" data-sid="${s.id}"${absentToday(s.id)?' style="opacity:.55"':''}>${window.AV(s)}${esc2(s.name)}${absentToday(s.id)?'<small style="color:#e5484d">❌ غایب امروز</small>':''}<small>امروز: ✅${fa(t.m)} 🔄${fa(t.e)} · 🌟${fa(t.p)} 💪${fa(t.f)}${t.g?` · 👥${fa(t.g)}`:''}</small><small>کل: ✅${fa(a.m)} 🔄${fa(a.e)} · 🌟${fa(a.p)} 💪${fa(a.f)}</small></button>`}).join('')}</div></details>
+  <details class="card" id="actGridD" ${gridOpen?'open':''}><summary><b>👆 ثبت دستی برای هر دانش‌آموز</b></summary><p class="sub" style="margin:6px 0 10px">روی نام دانش‌آموز بزنید. در هر کارت: ✅ مسلط · 🔄 نیاز به تمرین (درسی)، 🌟 مثبت · 💪 نیاز به تلاش بیشتر (مشارکتی)، 👥 ثبت‌های تیمی. همه‌ی ثبت‌ها (نوبت امروز، دسته‌جمعی، تیمی و دستی) اینجا جمع می‌شوند دانش‌آموز غایبِ امروز قابل ثبت نیست؛ برای هر دانش‌آموز در یک روز می‌توانید هر تعداد فعالیت ثبت کنید («ثبت و مورد بعدی ➕»).</p><div class="act-grid">${st.map(s=>{const t=cnt(s.id,T),a=cnt(s.id);return `<button class="act-st" data-sid="${s.id}"${absentToday(s.id)?' style="opacity:.55"':''}>${window.AV(s)}${esc2(s.name)}${absentToday(s.id)?'<small style="color:#e5484d">❌ غایب امروز</small>':''}<small>امروز: ✅${fa(t.m)} 🔄${fa(t.e)} · 🌟${fa(t.p)} 💪${fa(t.f)}${t.g?` · 👥${fa(t.g)}`:''}</small><small>کل: ✅${fa(a.m)} 🔄${fa(a.e)} · 🌟${fa(a.p)} 💪${fa(a.f)}</small></button>`}).join('')}</div></details>
   <div class="card"><b>🕘 آخرین فعالیت‌های انفرادی ثبت‌شده</b>
   <div class="act-h">🎓 فعالیت‌های درسی (مسلط / نیاز به تمرین)</div>${IA.length?IA.slice(0,10).map(ii).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}
-  <div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری (مثبت / نیاز به تلاش)</div>${IB.length?IB.slice(0,10).map(ii).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}</div>
+  <div class="act-h">🌟 فعالیت‌های مشارکتی و رفتاری (مثبت / نیاز به تلاش بیشتر)</div>${IB.length?IB.slice(0,10).map(ii).join(''):'<p class="sub">موردی ثبت نشده است.</p>'}</div>
   ${summary(IR,false)}${settings}`}
 function bulkCard(st,kind,TA){const at=(S.att||{})[today()]||{},L=st.filter(s=>at[s.id]!=='a');
   return `<div class="card"><b>👥 ثبت دسته‌جمعی</b><p class="sub" style="margin:4px 0 8px">یک سؤال را از چند نفر پرسیدید؟ دانش‌آموزان را انتخاب کنید و با یک لمس عملکرد همه را ثبت کنید.</p>

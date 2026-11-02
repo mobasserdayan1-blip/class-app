@@ -2,7 +2,7 @@
 (function(){
  const X=window.SCX,{avg,vals,prog,attSt,attKeys,mon,hw,acts,effN}=X;S.ai=S.ai||{};
  const cs=id=>S.courses.find(c=>c.id===id),CH=id=>{const c=cs(id);return c?(c.ch=c.ch||[]):[]},clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),r0=v=>v==null?'—':fa(Math.round(v)),dl=k=>fmt(new Date(k+'T12:00:00Z'));
- const LV={4:'خیلی خوب',3:'خوب',2:'قابل قبول',1:'نیاز به تلاش'},lv=v=>LV[clamp(Math.round(v),1,4)];
+ const LV={4:'خیلی خوب',3:'خوب',2:'قابل قبول',1:'نیاز به تلاش بیشتر'},lv=v=>LV[clamp(Math.round(v),1,4)];
  const tpName=(cid,tid)=>{for(const h of CH(cid))for(const t of h.tp)if(t.id===tid)return[h.name,t.name];return null};
  const topicOpts=cid=>CH(cid).map(h=>`<optgroup label="${esc2(h.name)}">${h.tp.map(t=>`<option value="${h.id}:${t.id}">${esc2(t.name)}</option>`).join('')}</optgroup>`).join('');
  const setTp=(x,v)=>{const[h,p]=v.split(':').map(Number);x.ch=h;x.tp=p;if(!x.title){const q=tpName(x.course,p);if(q)x.title=q[0]+' – '+q[1]}};

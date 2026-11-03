@@ -1,0 +1,8 @@
+{
+  "name": "برنامه جامع مدیریت کلاس و دفتر روزانه معلم",
+  "description": "سامانه جامع مدیریت دانش‌آموزان، دفتر روزانه معلم، عملکرد تحصیلی، حضور و غیاب و ارزشیابی توصیفی",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

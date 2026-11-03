@@ -96,7 +96,7 @@ function setMarks(k,b,id,sids,val,toggle){
  if(s.st==='skip')delete s.st;
  syncHw(k,b,id,s);save();return true}
 
-let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null,reportPeriod:'week'};
+let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null,reportPeriod:'week',mx:{m:'week',k:null,c:'all'},pendAll:false};
 const dshort=k=>{try{const p=jparts(k);if(p&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]}catch(e){}return fmtP(k,{weekday:'short',day:'numeric',month:'long'})};
 function viewSes(k,b){const s=getSes(k,b);if(s)return s;const bl=bells(k).find(x=>x.i===String(b));return bl?{c:bl.cids[0],tp:'',nt:''}:null}
 function flash(msg){let t=$('djFl');if(t)t.remove();t=document.createElement('div');t.id='djFl';t.className='dj-fl';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.remove()},2300)}
@@ -111,7 +111,7 @@ function pickDefault(){const k=st.k,L=dayBells(k);if(!L.length){st.b=null;return
 /* زنگ‌های ثبت‌نشده / ناقص در ۷ روز اخیر */
 function pending(days){const out=[],t=todayK(),n=nowM();
  for(let i=0;i<(days||7);i++){const k=addD(t,-i);if(isOff(k))continue;
-  bells(k).forEach(x=>{if(k===t&&x.s&&tmin(x.s)>n)return;const q=stat(k,x.i);if(q==='none'||q==='part')out.push({k,b:x.i,q,cids:x.cids})})}
+  bells(k).forEach(x=>{if(k===t&&x.s&&tmin(x.s)>n)return;const q=stat(k,x.i);if(q==='none'||q==='part')out.push({k,b:x.i,q,cids:x.cids,s:x.s})})}
  return out}
 
 const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -124,7 +124,7 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 #dj .dj-row.ab{opacity:.45}
 #dj .dj-row.stripe{background:#f1f3f6;border-radius:9px}
 #dj .dj-row:not(.ab):hover{background:#e8edf4}
-#dj .dj-nm{flex:1;min-width:110px;font-weight:700;font-size:14px}
+#dj .dj-nm{flex:1;min-width:110px;font-weight:900;font-size:15px;letter-spacing:.1px}
 #dj .dj-nm small{color:#888;font-weight:600;margin-right:4px}
 #dj .dj-bt{display:flex;gap:4px}
 #dj .dj-b{min-width:0;min-height:40px;padding:6px 9px;white-space:normal;line-height:1.45;border-radius:11px;border:1.5px solid var(--line,#ddd);background:var(--card,#fff);color:var(--tx,#222);font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
@@ -173,7 +173,60 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 .dj-calft small{font-size:11px;color:var(--mut)}
 .dj-fl{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222c;color:#fff;padding:10px 16px;border-radius:12px;z-index:99999;font:700 13px Vazirmatn,Tahoma,sans-serif}
 #djHome .dj-hb{padding:8px 12px;border-radius:12px;border:0;background:var(--p,#5b3fd6);color:#fff;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin:3px}`;
-const cs=document.createElement('style');cs.textContent=CSS;document.head.appendChild(cs);
+const PENDCSS=`
+#dj .dj-pend{padding:14px}
+#dj .dj-pend.ok{background:#1a8f5512;border:1px solid #1a8f5544}
+#dj .dj-ph{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+#dj .dj-ph small{color:var(--mut,#888);font-weight:700}
+#dj .dj-pc{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+#dj .dj-pc span{padding:3px 11px;border-radius:99px;font:800 12px Vazirmatn,Tahoma,sans-serif}
+#dj .dj-pc .n{background:#8a94a62a;color:#4a5568}
+#dj .dj-pc .p{background:#d986002a;color:#8a5a00}
+#dj .dj-pc .t{background:#c0262c1f;color:#a8101a}
+#dj .dj-pd{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--line,#e6e9f2)}
+#dj .dj-pdl{flex:0 0 96px;display:flex;flex-direction:column;gap:1px;font-size:13px;line-height:1.5}
+#dj .dj-pdl small{color:var(--p,#5b3fd6);font-weight:800;font-size:11px}
+#dj .dj-pbs{display:flex;gap:6px;flex-wrap:wrap;flex:1;min-width:0}
+#dj .dj-pb{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:12px;border:1px solid var(--line,#ddd);background:var(--card,#fff);color:var(--tx,#222);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;min-height:40px;text-align:right}
+#dj .dj-pb.part{border-color:#d9860088;background:#d986001a}
+#dj .dj-pb .tx{display:flex;flex-direction:column;line-height:1.45}
+#dj .dj-pb .tx small{color:var(--mut,#888);font-weight:600;font-size:11px}
+#dj .dj-pf{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-top:1px solid var(--line,#e6e9f2);padding-top:9px;margin-top:2px}
+#dj .dj-pf .lg{font-size:11px;color:var(--mut,#888)}
+@media(max-width:520px){#dj .dj-pd{flex-direction:column;gap:5px}#dj .dj-pdl{flex:none;flex-direction:row;gap:8px;align-items:baseline}}
+#dj .dj-mxbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#dj .dj-seg{display:inline-flex;border:1px solid var(--line,#ddd);border-radius:11px;overflow:hidden}
+#dj .dj-seg button{border:0;background:var(--card,#fff);color:var(--tx,#222);padding:8px 14px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+#dj .dj-seg button.on{background:var(--p,#5b3fd6);color:#fff}
+#dj .dj-mxt{flex:1;min-width:150px;text-align:center;font-weight:800;font-size:14px}
+#dj .dj-live{display:inline-flex;align-items:center;gap:5px;font:800 11px Vazirmatn,Tahoma,sans-serif;color:#1a8f55;background:#1a8f5518;border-radius:99px;padding:2px 9px;margin-right:6px}
+#dj .dj-live::before{content:'';width:7px;height:7px;border-radius:50%;background:#1a8f55}
+#dj .dj-mxlg{font-size:11px;color:var(--mut,#777);line-height:2;margin-top:8px}
+#dj .dj-mxlg i{font-style:normal;display:inline-block;min-width:24px;text-align:center;border-radius:5px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}
+#dj .dj-mxem{padding:18px;text-align:center;color:var(--mut,#888);font-size:13px}`;
+const MXCSS=`
+.dj-mx .dj-mxw{overflow:auto;border-radius:14px;border:1px solid var(--line,#dfe3ee)}
+.dj-mx table{border-collapse:separate;border-spacing:0;font:700 12px Vazirmatn,Tahoma,sans-serif;width:max-content;min-width:100%;color:var(--tx,#222)}
+.dj-mx th,.dj-mx td{padding:0;text-align:center;border-bottom:1px solid var(--line,#e6e9f2);border-left:1px solid var(--line,#e6e9f2)}
+.dj-mx thead th{background:#2b4a9b;color:#fff;font-weight:800;position:sticky;top:0;z-index:2}
+.dj-mx thead th.d1{background:#3d63bd}
+.dj-mx th.nm,.dj-mx td.nm{position:sticky;right:0;z-index:3;text-align:right;padding:6px 10px;min-width:125px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:900;font-size:13px;background:var(--card,#fff);color:var(--tx,#222);border-left:2px solid #c9d2ea}
+.dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:4;text-align:center}
+.dj-mx tbody tr:nth-child(even) td.nm{background:var(--bg2,#f4f6fb)}
+.dj-mx th.h{width:28px;min-width:28px;vertical-align:bottom;padding:7px 0}
+.dj-mx th.h span{display:block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;max-height:190px;overflow:hidden;margin:0 auto;font-size:11px;line-height:1.55}
+.dj-mx th.h b{font-weight:900;color:#ffe08a}
+.dj-mx th.sm{background:#1d3470;min-width:34px;width:34px}
+.dj-mx td.c{width:28px;min-width:28px;height:30px;font-size:12px;font-weight:900;color:#fff}
+.dj-mx td.l4{background:#1a8f55}.dj-mx td.l3{background:#55b043}.dj-mx td.l2{background:#e2a300}.dj-mx td.l1{background:#d9363e}
+.dj-mx td.ok{background:#1a8f55}.dj-mx td.no{background:#d9363e}
+.dj-mx td.ab{background:#fde7e8;color:#c0262c}
+.dj-mx td.em{background:transparent}
+.dj-mx td.sm{min-width:34px;width:34px;font-size:12px;font-weight:900;background:var(--bg2,#f4f6fb)}
+.dj-mx td.sm.z{color:#a7afc0;font-weight:600}
+.dj-mx td.sm.s4{color:#1a8f55}.dj-mx td.sm.s3{color:#3f8f2a}.dj-mx td.sm.s2{color:#b26a00}.dj-mx td.sm.s1{color:#c0262c}
+.dj-mx tbody tr:hover td.nm{background:#e8edf9}`;
+const cs=document.createElement('style');cs.textContent=CSS+PENDCSS+MXCSS;document.head.appendChild(cs);
 
 /* ساخت صفحه و منو */
 const sec=document.createElement('section');sec.id='dj';
@@ -225,8 +278,10 @@ function render(){const s=$('dj');if(!s)return;
  h+=`<div class="dj-bl">${L.map(x=>`<button class="dj-ch${x.b===st.b?' on':''}" data-dj="bell:${esc(x.b)}">${SI[stat(k,x.b)]} ${esc(bellName(k,x))}${x.s?` <small>${fa(x.s)}</small>`:''}</button>`).join('')}<button class="dj-ch" data-dj="manual">＋ زنگ دستی</button></div></div>`;
  h+=calHtml();
  if(ses)h+=sessionCard(k,st.b,ses);
- h+=pendCard(pend);
- s.innerHTML=h}
+ h+=pendCard(pend);h+=mxCard();
+ const w0=s.querySelector('.dj-mxw'),sl=w0?w0.scrollLeft:null;
+ s.innerHTML=h;
+ if(sl!=null){const w1=s.querySelector('.dj-mxw');if(w1)w1.scrollLeft=sl}}
 
 function sessionCard(k,b,s){
  const items=itemsOf(s),pn=presN(k),sk=s.st==='skip';
@@ -264,9 +319,70 @@ function tplEditor(cid){const t=tplOf(cid);
  <div class="r"><input class="dj-in" id="djNewN" placeholder="فعالیت جدید…"><select class="dj-in" style="max-width:130px" id="djNewT"><option value="g">۴ سطحی</option><option value="d">انجام شد/نشد</option></select><button class="dj-sm" data-dj="tpladd">＋ افزودن</button></div></div>`}
 
 function pendCard(p){
- if(!p.length)return`<div class="card"><b>✅ زنگ ثبت‌نشده‌ای در ۷ روز اخیر نیست</b></div>`;
- return`<div class="card"><b>⏳ زنگ‌های ثبت‌نشده یا ناقص (۷ روز اخیر): ${fa(p.length)}</b><div class="dj-bl">${p.map(x=>`<button class="dj-ch" data-dj="go:${x.k}:${esc(x.b)}">${SI[x.q]} ${esc(dshort(x.k))} · ${esc(x.cids.map(cname).join('+'))}</button>`).join('')}</div>
- <button class="dj-sm" data-dj="skipall">➖ همه‌ی این‌ها را «بدون ثبت» علامت بزن</button></div>`}
+ if(!p.length)return`<div class="card dj-pend ok"><b>✅ زنگ ثبت‌نشده‌ای در ۷ روز اخیر نیست</b></div>`;
+ const none=p.filter(x=>x.q==='none').length,part=p.length-none,t=todayK();
+ const days=[];p.forEach(x=>{let g=days.find(y=>y.k===x.k);if(!g){g={k:x.k,L:[]};days.push(g)}g.L.push(x)});
+ const shown=st.pendAll?days:days.slice(0,3);
+ const rel=k=>k===t?'امروز':k===addD(t,-1)?'دیروز':'';
+ let h=`<div class="card dj-pend"><div class="dj-ph"><b>⏳ زنگ‌های ثبت‌نشده یا ناقص</b><small>۷ روز اخیر</small></div>
+ <div class="dj-pc"><span class="n">⚪ ${fa(none)} ثبت‌نشده</span><span class="p">🟡 ${fa(part)} ناقص</span><span class="t">مجموع ${fa(p.length)} زنگ</span></div>`;
+ h+=shown.map(g=>`<div class="dj-pd"><div class="dj-pdl"><b>${esc(dshort(g.k))}</b>${rel(g.k)?`<small>${rel(g.k)}</small>`:''}</div><div class="dj-pbs">${g.L.map(x=>`<button type="button" class="dj-pb ${x.q}" data-dj="go:${x.k}:${esc(x.b)}"><span class="ic">${SI[x.q]}</span><span class="tx"><b>${esc(x.cids.map(cname).join(' + '))}</b><small>زنگ ${ORD[+x.b]||''}${x.s?' · '+fa(x.s):''}</small></span></button>`).join('')}</div></div>`).join('');
+ if(days.length>3)h+=`<div style="text-align:center;padding:4px 0 8px"><button type="button" class="dj-sm" data-dj="pendall">${st.pendAll?'▲ نمایش کمتر':'▼ نمایش همه‌ی روزها ('+fa(days.length)+' روز)'}</button></div>`;
+ return h+`<div class="dj-pf"><span class="lg">🟡 ناقص · ⚪ ثبت‌نشده — با لمس هر مورد به همان زنگ می‌روید</span><button type="button" class="dj-sm" data-dj="skipall">➖ همه‌ی ${fa(p.length)} زنگ را «بدون ثبت» علامت بزن</button></div></div>`}
+
+/* ───── جدول عملکرد هفتگی / ماهانه (پیش‌نمایش زنده، بر پایه‌ی همان داده‌ی دفتر) ───── */
+function mxAnchor(){return st.mx.k||st.k||todayK()}
+function mxRange(){const a=mxAnchor();
+ if(st.mx.m==='month'){const p=jparts(a),from=jiso(p.y,p.m,1),to=jiso(p.y,p.m,jlen(p.y,p.m));return{from,to,title:'ماه '+JMN[p.m-1]+' '+fa(p.y),kind:'ماهانه'}}
+ const from=addD(a,-dow(a)),to=addD(from,6);return{from,to,title:dshort(from)+' تا '+dshort(to),kind:'هفتگی'}}
+function mxBuild(){const R=mxRange(),d=D(),cf=st.mx.c,cols=[];
+ Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(!R.from||k<R.from||k>R.to)return;
+  const ses=d.ses[k+'|'+p[1]],it=ses&&(ses.it||{})[p[2]],mk=d.m[key];if(!it||!mk||!Object.keys(mk).length)return;
+  if(cf!=='all'&&String(ses.c)!==String(cf))return;
+  cols.push({key,k,b:p[1],id:p[2],c:ses.c,t:it.t==='d'?'d':'g',n:it.n,mk})});
+ const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
+ cols.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
+ return{R,cols}}
+const MXS={4:['۴','l4'],3:['۳','l3'],2:['۲','l2'],1:['۱','l1']};
+function mxTable(B){const cols=B.cols;if(!cols.length)return'';
+ let alt=0,prev=null;
+ const head=cols.map(c=>{if(c.k!==prev){alt^=1;prev=c.k}c.alt=alt;const jp=jparts(c.k),dt=fa(jp.d)+' '+JMN[jp.m-1],tx=cname(c.c)+' · '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
+  return`<th class="h${alt?' d1':''}" title="${esc(tt)}"><span><b>${esc(dt)}</b> | ${esc(tx.length>34?tx.slice(0,33)+'…':tx)}</span></th>`}).join('');
+ const sumH=[['خیلی خوب','#1a8f55'],['خوب','#3f8f2a'],['قابل قبول','#b26a00'],['نیاز به تلاش','#c0262c'],['انجام شد','#1a8f55'],['انجام نشد','#c0262c']].map(x=>`<th class="h sm"><span style="color:#fff">${x[0]}</span></th>`).join('');
+ const body=sts().map(s=>{const sum={4:0,3:0,2:0,1:0,ok:0,no:0};
+  const tds=cols.map(c=>{const v=c.mk[s.id];
+   if(v==null)return absent(c.k,s.id)?`<td class="c ab" title="غایب">غ</td>`:`<td class="c em"></td>`;
+   if(c.t==='d'){if(v===1){sum.ok++;return`<td class="c ok">✓</td>`}sum.no++;return`<td class="c no">✗</td>`}
+   const m=MXS[v];if(!m)return`<td class="c em"></td>`;sum[v]++;return`<td class="c ${m[1]}">${m[0]}</td>`}).join('');
+  const sm=[[4,'s4'],[3,'s3'],[2,'s2'],[1,'s1'],['ok','s4'],['no','s1']].map(x=>`<td class="sm ${sum[x[0]]?x[1]:'z'}">${fa(sum[x[0]])}</td>`).join('');
+  return`<tr><td class="nm">${esc(s.name)}</td>${tds}${sm}</tr>`}).join('');
+ return`<table><thead><tr><th class="nm">نام دانش‌آموز</th>${head}${sumH}</tr></thead><tbody>${body}</tbody></table>`}
+function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
+function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">۴</i>خیلی خوب <i style="background:#55b043">۳</i>خوب <i style="background:#e2a300">۲</i>قابل قبول <i style="background:#d9363e">۱</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#fde7e8;color:#c0262c">غ</i>غایب (بدون ثبت) · خانه‌ی خالی = ثبت نشده</div>`}
+function mxCard(){const B=mxBuild(),tb=mxTable(B),own=st.mx.k!=null;
+ const opt=`<option value="all"${st.mx.c==='all'?' selected':''}>همه‌ی درس‌ها</option>`+courses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.mx.c)?' selected':''}>${esc(c.name)}</option>`).join('');
+ return`<div class="card dj-mx" id="djMx"><div class="dj-ph"><b>📊 جدول عملکرد دانش‌آموزان <span class="dj-live">پیش‌نمایش زنده</span></b><small>${fa(B.cols.length)} ستون ثبت‌شده</small></div>
+ <div class="dj-mxbar"><div class="dj-seg"><button type="button" class="${st.mx.m==='week'?'on':''}" data-dj="mxmode:week">هفتگی</button><button type="button" class="${st.mx.m==='month'?'on':''}" data-dj="mxmode:month">ماهانه</button></div>
+ <button type="button" class="dj-sm" data-dj="mxprev" aria-label="قبلی">‹ قبلی</button><div class="dj-mxt">${esc(B.R.title)}</div><button type="button" class="dj-sm" data-dj="mxnext" aria-label="بعدی">بعدی ›</button>${own?`<button type="button" class="dj-sm" data-dj="mxnow">↻ هم‌گام با روز دفتر</button>`:''}</div>
+ <div class="dj-mxbar"><select class="dj-in" data-mxc aria-label="فیلتر درس" style="max-width:220px">${opt}</select><button type="button" class="dj-sm" data-dj="mxprint">🖨️ چاپ / PDF این جدول</button></div>
+ ${tb?`<div class="dj-mxw">${tb}</div>`:`<div class="dj-mxem">در این بازه هنوز عملکردی ثبت نشده است. با ثبت در بالای صفحه، جدول همین‌جا به‌روز می‌شود.</div>`}${mxLegend()}</div>`}
+function mxShift(dir){const a=mxAnchor();
+ if(st.mx.m==='month'){const p=jparts(a);let m=p.m+dir,y=p.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.mx.k=jiso(y,m,1)||a}
+ else st.mx.k=addD(a,7*dir)}
+function printMatrix(){const B=mxBuild();if(!B.cols.length){flash('در این بازه عملکردی برای چاپ ثبت نشده است');return}
+ const win=window.open('','_blank');if(!win){flash('پنجره‌ی گزارش مسدود شد؛ اجازه‌ی بازشدن پنجره را فعال کنید');return}
+ const u=f=>{try{return new URL('assets/fonts/'+f,location.href).href}catch(e){return'assets/fonts/'+f}};
+ const cn=st.mx.c==='all'?'همه‌ی درس‌ها':cname(st.mx.c);
+ win.document.open();win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>جدول عملکرد ${B.R.kind}</title><style>
+ @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
+ @page{size:A4 landscape;margin:8mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#202a36;margin:0;font-size:11px}
+ h1{font-size:17px;margin:0 0 3px;color:#17365d}.meta{display:flex;justify-content:space-between;gap:10px;color:#526477;border-bottom:2px solid #486581;padding-bottom:6px;margin-bottom:8px;font-size:11px}
+ .dj-mx .dj-mxw{overflow:visible;border:0}.dj-mx table{width:100%;min-width:0}.dj-mx th.nm,.dj-mx td.nm{position:static;min-width:110px;font-size:11px;padding:3px 6px}.dj-mx thead th{position:static}.dj-mx td.c{height:22px;font-size:10px}.dj-mx tr{break-inside:avoid}
+ .dj-mx i{font-style:normal;display:inline-block;min-width:22px;text-align:center;border-radius:4px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}.sign{display:flex;justify-content:space-around;margin-top:16px}.sign span{border-top:1px solid #7b8794;padding:5px 30px 0}.noprint{text-align:center;margin:12px}@media print{.noprint{display:none}}
+ ${MXCSS}</style></head><body><h1>جدول عملکرد دانش‌آموزان — گزارش ${B.R.kind}</h1><div class="meta"><span>بازه: ${esc(B.R.title)}</span><span>درس: ${esc(cn)}</span><span>تاریخ تهیه: ${esc(dshort(todayK()))}</span></div>
+ <div class="dj-mx"><div class="dj-mxw">${mxTable(B)}</div>${mxLegend().replace('class="dj-mxlg"','style="font-size:10px;line-height:2.1;margin-top:6px"')}</div>
+ <div class="sign"><span>نام و امضای آموزگار</span><span>مهر و تأیید مدیریت</span></div><div class="noprint"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
+ win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700)}
 
 /* گزارش رسمی دفتر روزانه؛ داده‌ها از Snapshot ثبت‌شده خوانده می‌شوند */
 function printDailyReport(period){
@@ -313,6 +429,11 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='manual'){const d=D();let n=1;while(d.ses[sesKey(k,'m'+n)])n++;const b='m'+n;d.ses[sesKey(k,b)]={c:(courses()[0]||{}).id,tp:'',nt:''};save();st.b=b;st.item=null}
  else if(c==='skip'){const s=ensureSes(k,st.b);if(s.st==='skip')delete s.st;else s.st='skip';save()}
  else if(c==='skipall'){pending(7).forEach(p=>{const s=ensureSes(p.k,p.b);s.st='skip'});save()}
+ else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
+ else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
+ else if(c==='mxnow')st.mx.k=null;
+ else if(c==='mxprint'){printMatrix();return}
+ else if(c==='pendall')st.pendAll=!st.pendAll;
  else if(c==='tpl')st.tpl=!st.tpl;
  else if(c==='selmode'){st.sel=!st.sel;st.pick=new Set()}
  else if(c==='pickall'){const it=st.item,m=D().m[k+'|'+st.b+'|'+it]||{};st.pick=new Set(sts().filter(s=>!absent(k,s.id)&&m[s.id]==null).map(s=>s.id))}
@@ -327,6 +448,7 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
 sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.disabled)return;if(t.dataset.dj==='calbg'&&e.target!==t)return;if(t.type==='checkbox'){const id=+t.dataset.dj.split(':')[1];st.pick.has(id)?st.pick.delete(id):st.pick.add(id);return}
  try{act(t.dataset.dj)}catch(er){console.error('dj',er)}});
 sec.addEventListener('change',e=>{const t=e.target,k=st.k;try{
+ if(t.hasAttribute('data-mxc')){st.mx.c=t.value;render();return}
  if(t.hasAttribute('data-report-period')){st.reportPeriod=t.value;return}
  if(t.dataset.calm!==undefined||t.dataset.caly!==undefined){if(st.cal){const m=t.dataset.calm!==undefined?+t.value:st.cal.m,y=t.dataset.caly!==undefined?+t.value:st.cal.y;if(jiso(y,m,1))st.cal={y,m};render()}return}
  if(t.dataset.f){if(!offGuard(k)){render();return}const s=ensureSes(k,st.b);

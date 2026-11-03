@@ -93,9 +93,10 @@ const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard inp
 function patchHero(){
  if(!isM())return;
  const b=document.querySelector('#home .thero>div>b');if(!b)return;
- const n=mgrName(),want='سلام'+(n?'، '+n:'')+' 👋';
+ const n=mgrName(),want='سلام، مدیر 👋';
  if(b.textContent!==want)b.textContent=want;
  const sp=b.nextElementSibling,P=(SS()&&SS().prof)||{};
+ if(sp&&n&&sp.textContent.indexOf('مدیر: ')<0)sp.textContent+=' · مدیر: '+n;
  if(sp&&P.teacher&&sp.textContent.indexOf('معلم کلاس')<0)sp.textContent+=' · معلم کلاس: '+P.teacher;
 }
 

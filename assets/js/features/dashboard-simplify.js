@@ -68,21 +68,19 @@ function moreBtn(){const box=$('tdash2'),h=$('home');if(!box||!h||$('dmoreBtn'))
 function homeInit(){try{qa();foldHome();moreBtn();arrangeHome()}catch(e){console.warn('dash-home',e)}}
 
 
-/* چیدمان نهایی صفحه‌ی خانه: میانبرها بعد از یادآور آزمون و خوش‌آمدگویی بالای برنامه‌ی امروز */
+/* چیدمان نهایی صفحه‌ی خانه (ترتیب واقعی باکس‌ها، بدون ساخت نسخه‌ی تکراری):
+   ۱) خوش‌آمدگویی (#tdHero) ۲) برنامه‌ی امروز (#wsToday) ۳) یادآور آزمون‌ها (#exRem) ۴) پنج کارت (#qa) ۵) دفتر روزانه (#djHome)
+   هر باکس را ماژول خودش می‌سازد؛ این تابع فقط جای آن‌ها را زیر سرتیتر صفحه مرتب می‌کند. */
+const HOME_ORDER=['tdHero','wsToday','exRem','qa','djHome'];
 function arrangeHome(){
  const h=$('home');if(!h)return;
- const ex=$('exRem'),qaBox=$('qa'),ws=$('wsToday');
- if(ex&&ws&&ex.nextElementSibling!==ws)ex.after(ws);
- if(ws&&qaBox&&ws.nextElementSibling!==qaBox)ws.after(qaBox);
- if(ws){
-  let g=ws.querySelector('.ws-greeting');
-  if(!g){g=document.createElement('div');g.className='ws-greeting';ws.prepend(g)}
-  const greeting=isT()?'سلام، معلم 👋':'سلام، مدیر 👋';if(g.textContent!==greeting)g.textContent=greeting;
-  const head=ws.querySelector('h4');if(head&&g.nextElementSibling!==head)head.before(g);
- }
+ let prev=$('hsub');if(!prev||prev.parentNode!==h)prev=h.querySelector(':scope>h1');
+ HOME_ORDER.forEach(id=>{const el=$(id);if(!el||el.parentNode!==h)return;
+  if(prev){if(prev.nextElementSibling!==el)prev.after(el)}else if(h.firstElementChild!==el)h.prepend(el);
+  prev=el});
 }
 const homeStyle=document.createElement('style');
-homeStyle.textContent='.ws-greeting{font-size:18px;font-weight:900;color:var(--p);margin:0 0 8px;text-align:right}.ws-today{scroll-margin-top:12px}#qa{margin-top:12px}';
+homeStyle.textContent='#home>#tdHero,#home>#wsToday,#home>#exRem,#home>#qa,#home>#djHome{margin:0 0 12px}.ws-today{scroll-margin-top:12px}';
 document.head.appendChild(homeStyle);
 
 /* ---------- داشبورد مدیر: شاخص‌ها ← هشدارها ← جدول مقایسه ← میانبرها ---------- */

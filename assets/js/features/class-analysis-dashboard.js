@@ -76,7 +76,7 @@ const line=vals=>{if(vals.length<2)return '<p class="tem">برای رسم رون
 return `<svg class="tch" viewBox="0 0 ${W} ${H}" role="img" aria-label="روند میانگین">${[0,2,4].map(g=>`<line x1="${p}" x2="${W-p}" y1="${y(g)}" y2="${y(g)}" stroke="var(--line)"/><text x="${p-6}" y="${y(g)+4}" font-size="10" text-anchor="end" fill="var(--mut)">${fa(g)}</text>`).join('')}<path d="${d} L${pts[pts.length-1][0]} ${H-p} L${pts[0][0]} ${H-p} Z" fill="var(--p)" opacity=".12"/><path d="${d}" fill="none" stroke="var(--p)" stroke-width="2.5" stroke-linejoin="round"/>${pts.map((q,i)=>`<circle cx="${q[0]}" cy="${q[1]}" r="3.5" fill="var(--p)"><title>${f1(vals[i])}</title></circle>`).join('')}<text x="${pts[0][0]}" y="${pts[0][1]-8}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--tx)">${f1(vals[0])}</text><text x="${pts[pts.length-1][0]}" y="${pts[pts.length-1][1]-8}" font-size="11" font-weight="700" text-anchor="middle" fill="var(--tx)">${f1(vals[vals.length-1])}</text></svg>`};
 function tdash(){try{
  const home=document.getElementById('home');if(!home)return;let box=document.getElementById('tdash2');
- const st=S.students;if(!st.length){if(box)box.innerHTML='';home.classList.remove('tdon');return}
+ const st=S.students;if(!st.length){if(box)box.innerHTML='';const h0=document.getElementById('tdHero');if(h0)h0.remove();home.classList.remove('tdon');return}
  if(!box){box=document.createElement('div');box.id='tdash2';box.className='tdg';home.insertBefore(box,document.getElementById('stats'))}
  home.classList.add('tdon');
  const T=iso(tdy()),c=calc(),TA=S.att[T]||{},rec=Object.keys(TA).length>0,hl=hol(tdy());
@@ -110,8 +110,10 @@ function tdash(){try{
   const kp=(i,v,n,sub,col,k)=>`<div style="--c:${col};cursor:pointer" data-k="${k||''}"><i>${i}</i><b>${v}</b><span>${n}</span><em>${sub}</em></div>`;
  const gtx=c.gr==null?'—':(c.gr>=.3?'رشد ':c.gr<=-.3?'افت ':'ثابت ')+fa((c.gr>0?'+':'')+c.gr.toFixed(1).replace('.','٫'));
  const lt=st.filter(s=>TA[s.id]==='l').length;
+ let hero=document.getElementById('tdHero');
+ if(!hero){hero=document.createElement('div');hero.id='tdHero';hero.className='thero';home.insertBefore(hero,box)}
+ hero.innerHTML=`<div><b>سلام، ${window.isTeacherRole&&window.isTeacherRole()?'معلم':'مدیر'} 👋</b><span>${wd} ${fmt(tdy())}${sy?' · سال تحصیلی '+sy:''}${P.school?' · '+esc2(schoolFull(P)):''}${P.teacher?' · معلم کلاس: '+esc2(P.teacher):''}</span></div><div class="tc">${Lv[0]==='—'?'وضعیت کلی: داده‌ی کافی نیست':'وضعیت کلی کلاس: '+Lv[0]}</div>`;
  box.innerHTML=`
- <div class="thero"><div><b>سلام${P.teacher?'، '+esc2(P.teacher):''} 👋</b><span>${wd} ${fmt(tdy())}${sy?' · سال تحصیلی '+sy:''}${P.school?' · '+esc2(schoolFull(P)):''}</span></div><div class="tc">${Lv[0]==='—'?'وضعیت کلی: داده‌ی کافی نیست':'وضعیت کلی کلاس: '+Lv[0]}</div></div>
  <div class="tk">
   ${kp('👥',fa(c.n),'دانش‌آموز',(rec?fa(pc)+' حاضر · '+fa(ac)+' غایب امروز':hl?'امروز تعطیل است':'حضور امروز ثبت نشده'),'#3b6fd8','all')}
   ${kp('✅',fa(pc),'حاضر امروز',rec?(lt?fa(lt)+' مورد تأخیر':'بدون تأخیر'):'ثبت نشده','#2eaf6b','p')}

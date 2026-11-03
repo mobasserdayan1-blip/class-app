@@ -52,6 +52,43 @@ window.dayType=k=>{try{const u=new Date(k+'T12:00:00Z'),w=u.getUTCDay(),o=hs();
 window.holidayInfo=k=>{try{const u=new Date(k+'T12:00:00Z'),p=pp(PF,u),dt=window.dayType(k),cv=OH.coverage(p.y),o=hs(),jk=p.y+'-'+p.m+'-'+p.d;
   return{kind:dt.kind,label:dt.label||'',src:dt.src||null,official:dt.kind==='official'&&dt.src==='official',custom:!!dt.custom,reason:dt.reason||'',emergency:!!dt.emergency,coverage:cv,
    removed:o.skip.includes(jk)&&!!offT(p),lunarUnknown:cv!=='full'}}catch(e){return{kind:'work',label:'',src:null,official:false,coverage:'none',removed:false,lunarUnknown:true}}};
+/* ───── وضعیت یکپارچه‌ی هر تاریخ: window.dayStatus(k) — فقط‌خواندنی، بدون قفل (cl-v146) ─────
+   ورودی: ISO میلادی 'YYYY-MM-DD'. خروجی همیشه یکی از این وضعیت‌هاست:
+   active | weekly_off | official_holiday | school_holiday | emergency_closure | unknown
+   اولویت: تعطیل هفتگی ← تعطیلی اضطراری ← تعطیلی اختصاصی مدرسه (افزوده‌ی دستی) ← تعطیل رسمی ← «بستن روز» (S.closed) ← فعال/نامشخص.
+   فعال/نامشخص: اگر S.wk تنظیم شده و روز در آن است ← active. اگر تنظیم نشده: فقط با شاهد واقعی (حضور/نمره‌ی ثبت‌شده یا خانه‌ی برنامه‌ی هفتگی) active؛
+   در غیر این صورت unknown — نه فعال و نه تعطیل فرض می‌شود (off=null). dayType قدیمی دست‌نخورده است. */
+const DS_LABEL={active:'روز فعال مدرسه',weekly_off:'تعطیل هفتگی',official_holiday:'تعطیل رسمی',school_holiday:'تعطیلی اختصاصی مدرسه',emergency_closure:'تعطیلی اضطراری',unknown:'وضعیت نامشخص'};
+const dsValid=k=>{if(typeof k!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(k))return false;const u=new Date(k+'T12:00:00Z');return !isNaN(u)&&u.toISOString().slice(0,10)===k};
+const dsRecords=k=>{try{if(!hasS())return false;const a=S.att&&S.att[k];if(a&&Object.keys(a).length)return true;const m=(S.dj&&S.dj.m)||{};return Object.keys(m).some(x=>x.indexOf(k+'|')===0)}catch(e){return false}};
+const dsTimetable=k=>{try{const w=hasS()&&S.wsc;if(!w||!w.cell)return false;const di=wkIdx(k);if(di>4)return false;const n=Math.max(1,Math.min(10,w.n||(w.per||[]).length||4));for(let i=0;i<n;i++){const v=w.cell[di+'_'+i];if(v!=null&&v!=='')return true}return false}catch(e){return false}};
+window.dayStatus=k=>{
+ const R={k:k,status:'unknown',statusLabel:DS_LABEL.unknown,off:null,certain:false,basis:'none',unknownWhy:null,label:'',reason:'',also:[],caveats:[],coverage:'none',selectable:true,countsAsIncomplete:false};
+ if(!dsValid(k)){R.unknownWhy='invalid-date';return R}
+ try{
+  const u=new Date(k+'T12:00:00Z'),wi=(u.getUTCDay()+1)%7,wd=wkGet(),p=pp(PF,u),jk=p.y+'-'+p.m+'-'+p.d,o=hs(),sk=o.skip.includes(jk);
+  const ad=o.add.find(x=>x.k===jk),ot=offT(p),closed=!!(hasS()&&S.closed&&S.closed[k]);
+  const F={weekly:!!wd&&!wd.includes(wi),custom:!!ad&&!sk,emergency:!!ad&&!sk&&!!ad.em,official:!!ot&&!sk,closedDay:closed};
+  R.coverage=OH.coverage(p.y);
+  const set=(s,o2)=>{R.status=s;R.statusLabel=DS_LABEL[s];Object.assign(R,o2||{})};
+  if(F.weekly)set('weekly_off',{off:true,certain:true,basis:'workdays-setting',label:WKN[wi]});
+  else if(F.emergency)set('emergency_closure',{off:true,certain:true,basis:'custom-holiday',label:ad.t||'',reason:ad.r||''});
+  else if(F.custom)set('school_holiday',{off:true,certain:true,basis:'custom-holiday',label:ad.t||'',reason:ad.r||''});
+  else if(F.official)set('official_holiday',{off:true,certain:true,basis:'official-list',label:ot});
+  else if(F.closedDay)set('school_holiday',{off:true,certain:true,basis:'closed-day',label:'تعطیلی مدرسه'});
+  else if(wd)set('active',{off:false,certain:true,basis:'workdays-setting'});
+  else if(dsRecords(k))set('active',{off:false,certain:true,basis:'records'});
+  else if(dsTimetable(k))set('active',{off:false,certain:false,basis:'timetable'});
+  else set('unknown',{off:null,certain:false,basis:'none',unknownWhy:'workdays-not-set'});
+  if(R.status!=='weekly_off'&&F.weekly)R.also.push('weekly_off');
+  if(R.status!=='emergency_closure'&&F.emergency)R.also.push('emergency_closure');
+  if(R.status!=='school_holiday'&&(F.custom&&!F.emergency||F.closedDay))R.also.push('school_holiday');
+  if(R.status!=='official_holiday'&&F.official)R.also.push('official_holiday');
+  if((R.status==='active'||R.status==='unknown')&&R.coverage!=='full')R.caveats.push('lunar-unverified');
+  R.countsAsIncomplete=R.status==='active';
+ }catch(e){R.status='unknown';R.statusLabel=DS_LABEL.unknown;R.off=null;R.unknownWhy='error';R.countsAsIncomplete=false}
+ return R};
+window.dayStatusLabels=DS_LABEL;
 let ED=null,WKD=null,PRE=null;
 {const cs=document.createElement('style');cs.textContent='.hl-b{display:inline-block;margin:0 6px;padding:1px 8px;border-radius:9px;background:#d986001f;color:#8a5a00;font-size:11px;font-weight:800}.hl-b.hl-e{background:#c0262c1f;color:#a8101a}#hlCard .crow{flex-wrap:wrap;gap:6px}#hlCard .crow>div:first-child{min-width:0;flex:1 1 150px}#hlCard .crow>div+div{flex:none}#hlCard .crow [data-hl]{white-space:nowrap}#hlCard .crow small{display:block}';document.head.appendChild(cs)}
 /* کارت «روزهای کاری مدرسه» در تنظیمات */

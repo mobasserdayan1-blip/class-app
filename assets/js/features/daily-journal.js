@@ -22,7 +22,11 @@ function jlen(y,m){try{if(window.JDate)return JDate.monthLen(y,m)}catch(e){}retu
 const dlab=k=>{try{const p=jparts(k);if(p&&p.y&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]+' '+fa(p.y)}catch(e){}return fmtP(k,{weekday:'long',day:'numeric',month:'long',year:'numeric'})};
 const nowM=()=>{const n=new Date();return n.getHours()*60+n.getMinutes()};
 const tmin=s=>{const a=String(s||'0:0').split(':').map(Number);return(a[0]||0)*60+(a[1]||0)};
-const isOff=k=>{if(dow(k)>4)return true;if(S.closed&&S.closed[k])return true;try{if(typeof hol==='function'&&hol(new Date(k+'T12:00:00Z')))return true}catch(e){}try{if(typeof window.dayType==='function'&&window.dayType(k).kind!=='work')return true}catch(e){}return false};
+/* تعطیل هفتگی فقط طبق «روزهای کاری مدرسه» (S.wk)؛ تنظیم‌نشده = هیچ روزی تعطیل فرض نمی‌شود */
+const wkApi=()=>window.schoolDays||null;
+const wkOff=k=>{try{const w=wkApi();return !!w&&w.isSchoolDay(k)===false}catch(e){return false}};
+const wkSet=()=>{try{const w=wkApi();return !!w&&w.configured()}catch(e){return false}};
+const isOff=k=>{if(wkOff(k))return true;if(S.closed&&S.closed[k])return true;try{if(typeof window.dayType==='function'&&window.dayType(k).kind!=='work')return true}catch(e){}return false};
 const D=()=>{S.dj=S.dj||{};const o=S.dj;o.tpl=o.tpl||{};o.ses=o.ses||{};o.m=o.m||{};o.n=o.n||{};return o};
 const courses=()=>S.courses||[];
 const courseBy=id=>courses().find(c=>c.id===id);
@@ -133,6 +137,7 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 .dj-calhead button,.dj-calgrid button{border:0;border-radius:10px;padding:9px;background:var(--bg2);color:var(--tx);font:700 14px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 .dj-calgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;text-align:center}
 .dj-calgrid span{font-size:12px;color:var(--mut);padding:5px}
+.dj-calgrid span.wk{color:#c0262c}
 .dj-calgrid i{min-height:36px}
 .dj-calgrid button.on{background:var(--p);color:#fff}
 .dj-calgrid button.td{box-shadow:inset 0 0 0 2px var(--p)}
@@ -165,7 +170,7 @@ try{if(!pages.some(p=>p[0]==='dj')){const i=pages.findIndex(p=>p[0]==='wsc');pag
 function recDays(){const o=new Set(),d=D();Object.keys(d.m||{}).forEach(x=>o.add(x.split('|')[0]));Object.keys(d.ses||{}).forEach(x=>o.add(x.split('|')[0]));return o}
 function dayKind(k){/* فقط برای نمایش در تقویم */
  try{if(typeof window.dayType==='function'){const t=window.dayType(k);if(t&&t.kind&&t.kind!=='work')return{c:t.kind==='weekend'?'wk':'ho',t:t.label||''}}}catch(e){}
- if(dow(k)>4)return{c:'wk',t:dow(k)===5?'پنجشنبه':'جمعه'};
+ if(wkOff(k))return{c:'wk',t:WDN[dow(k)]};
  if(S.closed&&S.closed[k])return{c:'ho',t:'تعطیلی مدرسه'};
  return null}
 function calHtml(){
@@ -176,12 +181,12 @@ function calHtml(){
  const y0=Math.min(tp.y-12,y),y1=Math.max(tp.y+1,y);
  let ys='';for(let i=y1;i>=y0;i--)ys+=`<option value="${i}"${i===y?' selected':''}>${fa(i)}</option>`;
  const ms=JMN.map((n,i)=>`<option value="${i+1}"${i+1===m?' selected':''}>${n}</option>`).join('');
- let h=`<div class="dj-cal" data-dj="calbg" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ"><div class="dj-calbox"><div class="dj-calhead"><button type="button" data-dj="calprev" aria-label="ماه قبل">›</button><div class="dj-calsel"><select data-calm aria-label="ماه">${ms}</select><select data-caly aria-label="سال">${ys}</select></div><button type="button" data-dj="calnext" aria-label="ماه بعد">‹</button></div><div class="dj-calgrid">${WDN.map(x=>`<span>${x.slice(0,1)}</span>`).join('')}`;
+ let h=`<div class="dj-cal" data-dj="calbg" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ"><div class="dj-calbox"><div class="dj-calhead"><button type="button" data-dj="calprev" aria-label="ماه قبل">›</button><div class="dj-calsel"><select data-calm aria-label="ماه">${ms}</select><select data-caly aria-label="سال">${ys}</select></div><button type="button" data-dj="calnext" aria-label="ماه بعد">‹</button></div><div class="dj-calgrid">${WDN.map((x,i)=>`<span${wkSet()&&(wkApi().days()||[]).indexOf(i)<0?' class="wk"':''}>${x.slice(0,1)}</span>`).join('')}`;
  h+='<i></i>'.repeat(off);
  for(let d=1;d<=days;d++){const k=jiso(y,m,d);if(!k){h+='<i></i>';continue}
   const dk=dayKind(k),c=[k===st.k?'on':'',k===t?'td':'',dk?dk.c:'',k>t?'fu':'',rec.has(k)?'hd':''].filter(Boolean).join(' ');
   h+=`<button type="button" class="${c}" data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?' — '+dk.t:'')+(rec.has(k)?' — دارای ثبت':''))}">${fa(d)}</button>`}
- return h+`</div><div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · قرمز: تعطیل</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
+ return h+`</div><div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · قرمز: تعطیل${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
 }
 
 /* رندر */
@@ -190,6 +195,7 @@ function render(){const s=$('dj');if(!s)return;
  const L=dayBells(k),ses=st.b!=null?viewSes(k,st.b):null,pend=pending(7);
  let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان در هر زنگ؛ همه‌ی اطلاعات به پرونده‌ی دانش‌آموز می‌رود.</p>`;
  h+=`<div class="card"><div class="dj-hd"><button class="dj-sm" data-dj="nav:-1">‹ روز قبل</button><button type="button" class="dj-day" data-dj="calendar" aria-label="انتخاب تاریخ">${esc(dlab(k))}${k===t?' <small>(امروز)</small>':''}</button><button class="dj-sm" data-dj="nav:1">روز بعد ›</button>${k!==t?`<button class="dj-sm" data-dj="today">امروز</button>`:''}</div>`;
+ if(!wkSet()&&dow(k)>4)h+=`<div class="dj-warn">روزهای کاری مدرسه هنوز تنظیم نشده و این روز تعطیل فرض نشده است. اگر مدرسه‌ی شما این روز تعطیل است، <button type="button" class="dj-sm" data-dj="setwk">⚙️ روزهای کاری را تنظیم کنید</button></div>`;
  if(isOff(k))h+=`<div class="dj-warn">این روز تعطیل است. اگر زنگی برگزار شده، با «＋ زنگ دستی» ثبت کنید.</div>`;
  else if(!L.length)h+=`<div class="dj-warn">برای این روز در برنامه‌ی هفتگی زنگ درسی چیده نشده است. در بخش «برنامه هفتگی» درس‌ها را بچینید یا از «＋ زنگ دستی» استفاده کنید.</div>`;
  h+=`<div class="dj-bl">${L.map(x=>`<button class="dj-ch${x.b===st.b?' on':''}" data-dj="bell:${esc(x.b)}">${SI[stat(k,x.b)]} ${esc(bellName(k,x))}${x.s?` <small>${fa(x.s)}</small>`:''}</button>`).join('')}<button class="dj-ch" data-dj="manual">＋ زنگ دستی</button></div></div>`;
@@ -241,6 +247,7 @@ function pendCard(p){
 /* رویدادها */
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
  if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
+ else if(c==='setwk'){st.cal=null;try{show('set')}catch(e){}return}
  else if(c==='calclose'||c==='calbg')st.cal=null;
  else if(c==='caltoday'){st.k=todayK();st.cal=null;st.b=null;st.item=null;st.note=null;st.pick=new Set()}
  else if(c==='calprev'||c==='calnext'){if(st.cal){let m=st.cal.m+(c==='calnext'?1:-1),y=st.cal.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.cal={y,m}}}

@@ -22,10 +22,21 @@ window.nextHol=()=>{try{const L=list(3),n=new Date();const A=L.filter(x=>x.at>n|
  const sameDay=h.at.toDateString()===n.toDateString();const at=sameDay?new Date(n.getTime()+864e5*0):h.at;
  const ds=h.u.toLocaleDateString('fa-IR-u-ca-persian',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'});
  return{at:sameDay?new Date(n.getTime()+1000):h.at,title:sameDay?'امروز تعطیل است: '+h.t:'تعطیلی بعدی: '+h.t,when:ds,next:A[1]?A[1].t:''}}catch(e){return null}};
+/* روزهای کاری مدرسه — S.wk={d:[…]}: شمارهٔ روزهای آموزشی، شنبه=۰ … جمعه=۶ (همان شمارهٔ JDate.weekday).
+   نبودنِ S.wk یعنی «تنظیم‌نشده»: هیچ روزِ هفته تعطیل فرض نمی‌شود (پنجشنبه/جمعه هم نه).
+   روزی که در d نباشد «تعطیل هفتگی» است. فقط اطلاع‌رسانی؛ منطق حضور و غیاب هنوز به این تنظیم وصل نیست. */
+const WKN=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+const wkGet=()=>{try{const w=hasS()&&S.wk;if(!w||!Array.isArray(w.d))return null;const d=[...new Set(w.d.map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort((a,b)=>a-b);return d.length?d:null}catch(e){return null}};
+const wkIdx=k=>(new Date(k+'T12:00:00Z').getUTCDay()+1)%7;
+window.schoolDays={names:WKN,days:wkGet,configured:()=>!!wkGet(),
+ /* true/false؛ null = تنظیم‌نشده */
+ isSchoolDay:k=>{const d=wkGet();return d?d.includes(wkIdx(k)):null},
+ set:a=>{if(!hasS()||!Array.isArray(a))return false;const d=[...new Set(a.map(Number).filter(n=>Number.isInteger(n)&&n>=0&&n<=6))].sort((x,y)=>x-y);if(!d.length)return false;S.wk={d,t:Date.now()};if(typeof save==='function')save();return true},
+ reset:()=>{if(!hasS())return false;delete S.wk;if(typeof save==='function')save();return true}};
 /* نوع روز: work | weekend | official | closed — فقط اطلاع‌رسانی؛ هیچ قفلی ایجاد نمی‌کند.
    منطق عنوان دقیقاً مثل list() است (add ← ثابت ← مصوب/قمری ← تعطیلی مدرسه؛ skip حذف می‌کند). */
 window.dayType=k=>{try{const u=new Date(k+'T12:00:00Z'),w=u.getUTCDay(),o=hs();
- if(w===4||w===5)return{kind:'weekend',label:w===4?'پنجشنبه':'جمعه'};
+ {const wd=wkGet(),wi=(w+1)%7;if(wd&&!wd.includes(wi))return{kind:'weekend',label:WKN[wi]}}
  const p=pp(PF,u),q=pp(IF,u),jk=p.y+'-'+p.m+'-'+p.d,pk=p.m+'/'+p.d,qk=q.m+'/'+q.d;
  const ad=o.add.find(x=>x.k===jk);
  let ti=ad?ad.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||null;
@@ -34,7 +45,28 @@ window.dayType=k=>{try{const u=new Date(k+'T12:00:00Z'),w=u.getUTCDay(),o=hs();
  if(closed&&!ti)return{kind:'closed',label:'تعطیلی مدرسه'};
  if(ti&&!o.skip.includes(jk))return{kind:closed?'closed':'official',label:ti};
  return{kind:closed?'closed':'work',label:closed?'تعطیلی مدرسه':''}}catch(e){return{kind:'work',label:''}}};
-let ED=null;
+let ED=null,WKD=null;
+/* کارت «روزهای کاری مدرسه» در تنظیمات */
+const wkSel=()=>WKD||(wkGet()||[0,1,2,3,4]).slice();
+const wkList=a=>a.length?a.map(i=>WKN[i]).join('، '):'—';
+function wkHtml(msg){const cur=wkGet(),sel=wkSel(),off=[0,1,2,3,4,5,6].filter(i=>!sel.includes(i)),dirty=!!WKD&&(!cur||JSON.stringify(cur)!==JSON.stringify(WKD));
+ const st=cur?'<div style="margin:6px 0">✅ ذخیره‌شده — روزهای آموزشی: <b>'+wkList(cur)+'</b> · تعطیل هفتگی: <b>'+wkList([0,1,2,3,4,5,6].filter(i=>!cur.includes(i)))+'</b></div>':'<div style="margin:6px 0;color:#8a5a00">⚠️ هنوز تنظیم نشده؛ تا ذخیره نکنید هیچ روزی از هفته تعطیل فرض نمی‌شود. (تیک‌ها فقط پیشنهاد اولیه‌اند.)</div>';
+ return '<div class="card" id="wkCard"><b>📆 روزهای کاری مدرسه</b><p class="sub" style="text-align:right;margin:6px 0">روزهایی را که مدرسه‌ی شما آموزشی است تیک بزنید؛ بقیه «تعطیل هفتگی» حساب می‌شوند. هر زمان می‌توانید تغییرش دهید. تغییر فقط روی نمایش روزهای تعطیل در دفتر روزانه اثر دارد و ثبت‌های قبلی را حذف یا جابه‌جا نمی‌کند؛ تعطیلات رسمی و «تعطیل کردن روز» جدا هستند.</p>'+st
+ +'<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0">'+WKN.map((n,i)=>'<label style="display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:var(--bg2)"><input type="checkbox" data-wk="t:'+i+'"'+(sel.includes(i)?' checked':'')+' style="width:20px;height:20px"> <span>'+n+'<small style="display:block;font-size:11px;opacity:.7">'+(sel.includes(i)?'روز آموزشی':'تعطیل هفتگی')+'</small></span></label>').join('')+'</div>'
+ +'<div style="font-size:13px">روزهای آموزشی: <b>'+wkList(sel)+'</b><br>تعطیل هفتگی: <b>'+wkList(off)+'</b></div>'
+ +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"><button class="sm" data-wk="p:a">شنبه تا چهارشنبه</button><button class="sm" data-wk="p:b">شنبه تا پنجشنبه</button><button class="sm" data-wk="p:c">یکشنبه تا پنجشنبه</button></div>'
+ +'<button class="big" data-wk="save" style="font-size:15px;padding:12px;margin-top:8px">'+(dirty?'💾 ذخیره‌ی تغییرات':'💾 ذخیره‌ی روزهای کاری')+'</button>'+(cur?'<button class="sm" data-wk="reset" style="margin-top:6px">↩️ حذف تنظیم (برگشت به «تنظیم‌نشده»)</button>':'')
+ +'<p class="sub" id="wk_x" style="margin-top:6px">'+(msg||(dirty?'تغییرات هنوز ذخیره نشده است.':''))+'</p></div>'}
+function wkCard(){const b=$('setBody');if(!b||$('wkCard'))return;b.insertAdjacentHTML('beforeend',wkHtml())}
+function wkAct(e){const t=e.target.closest&&e.target.closest('[data-wk]');if(!t)return;const isCb=t.type==='checkbox';if((e.type==='click')===isCb)return;
+ const a=t.dataset.wk;let msg='';
+ if(a.indexOf('t:')===0){const i=+a.slice(2),s=wkSel(),j=s.indexOf(i);if(j>=0)s.splice(j,1);else s.push(i);s.sort((x,y)=>x-y);WKD=s}
+ else if(a.indexOf('p:')===0){WKD={a:[0,1,2,3,4],b:[0,1,2,3,4,5],c:[1,2,3,4,5]}[a.slice(2)].slice()}
+ else if(a==='save'){const s=wkSel();if(!s.length)msg='حداقل یک روز آموزشی را تیک بزنید؛ چیزی ذخیره نشد.';else if(window.schoolDays.set(s)){WKD=null;msg='✅ ذخیره شد. دفتر روزانه از همین حالا از این روزها استفاده می‌کند.'}else msg='ذخیره نشد.'}
+ else if(a==='reset'){window.schoolDays.reset();WKD=null;msg='تنظیم حذف شد؛ هیچ روزی تعطیل هفتگی فرض نمی‌شود.'}
+ const c=$('wkCard');if(c)c.outerHTML=wkHtml(msg)}
+document.addEventListener('click',wkAct);document.addEventListener('change',wkAct);
+{const b=$('setBody');if(b){new MutationObserver(wkCard).observe(b,{childList:true});wkCard()}}
 const WD=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
 function holCard(){const b=$('setBody');if(!b||$('hlCard'))return;const o=hs(),L=list(999,true),G={};
  L.forEach(x=>{const key=x.p.y+'-'+x.p.m;(G[key]=G[key]||{y:x.p.y,m:x.p.m,a:[]}).a.push(x)});

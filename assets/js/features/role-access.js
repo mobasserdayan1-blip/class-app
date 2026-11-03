@@ -81,10 +81,10 @@ function applyUI(){
  if(sc){const sp=$('sg_p'),blk=sp&&sp.closest('div[style*="margin-top:12px"]');if(blk)blk.classList.toggle('ra-hide',t);
   const h=sc.querySelector('b');if(h){if(!h.dataset.o)h.dataset.o=h.textContent;h.textContent=t?'✍️ امضای من':h.dataset.o}}
  const dc=$('dcCard');if(dc)dc.classList.toggle('ra-hide',t);
- const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent.trim():'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('نیمسال تحصیلی')>=0||x.indexOf('گزارش تعطیلات')>=0||x.indexOf('➕ افزودن کلاس')>=0||x.indexOf('🔒 قفل و ورود')>=0||x.indexOf('🔐 حساب و ورود')>=0||x.indexOf('📊 فضای ذخیره')>=0};
+ const hd=c=>{const h=c.querySelector(':scope>b'),x=h?h.textContent.trim():'';return x.indexOf('♻️')===0||x.indexOf('🗑️')===0||x.indexOf('🧹')===0||x.indexOf('نیمسال تحصیلی')>=0||x.indexOf('گزارش تعطیلات')>=0||x.indexOf('روزهای کاری مدرسه')>=0||x.indexOf('➕ افزودن کلاس')>=0||x.indexOf('🔒 قفل و ورود')>=0||x.indexOf('🔐 حساب و ورود')>=0||x.indexOf('📊 فضای ذخیره')>=0};
  document.querySelectorAll('#bkb .card,#setBody .card,#rsCard,#hlCard').forEach(c=>c.classList.toggle('ra-hide',t&&(c.id==='rsCard'||c.id==='hlCard'||hd(c))));
 }
-const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,[data-st="sem"],[data-st="semr"],[data-st="chg"],[data-st="on"],[data-st="off"],[data-st="now"],#st_lk,#sx_up,#sx_ld,[data-hl]';
+const MGR_ONLY='#cl_a,[data-cd],#bk_reset,#dc_x,#bk_f,#rsCard button,#rsCard input,#hlCard button,#hlCard input,#wkCard button,#wkCard input,[data-st="sem"],[data-st="semr"],[data-st="chg"],[data-st="on"],[data-st="off"],[data-st="now"],#st_lk,#sx_up,#sx_ld,[data-hl]';
 ['click','change'].forEach(ev=>document.addEventListener(ev,e=>{
  if(!isT()||!e.target||!e.target.closest)return;
  if(e.target.closest(MGR_ONLY)){e.stopImmediatePropagation();e.preventDefault();window.__raToast&&window.__raToast('این بخش فقط برای مدیر مدرسه است.')}

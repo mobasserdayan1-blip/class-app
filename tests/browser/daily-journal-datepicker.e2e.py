@@ -75,6 +75,8 @@ with sync_playwright() as p:
     ok('7b next month from Esfand goes to Farvardin of next year',ev("document.querySelector('.dj-calbox select[data-calm]').value")=='1' and ev("document.querySelector('.dj-calbox select[data-caly]').value")=='1403')
     # ۸) تعطیل: پنجشنبه/جمعه قرمز و تعطیل رسمی علامت‌دار (۱ فروردین ۱۴۰۵)
     pg.select_option('.dj-calbox select[data-caly]','1405');pg.select_option('.dj-calbox select[data-calm]','1');pg.wait_for_timeout(150)
+    ev("schoolDays.set([0,1,2,3,4])")  # پنجشنبه/جمعه فقط با تنظیم صریح تعطیل می‌شوند
+    pg.select_option('.dj-calbox select[data-calm]','2');pg.select_option('.dj-calbox select[data-calm]','1');pg.wait_for_timeout(150)
     ok('8a 1 Farvardin 1405 flagged as holiday (red)',pg.locator('.dj-calgrid button[data-dj="calday:2026-03-21"].ho,.dj-calgrid button[data-dj="calday:2026-03-21"].wk').count()==1)
     ok('8b Thursday/Friday cells flagged',pg.locator('.dj-calgrid button.wk').count()>=8)
     # ۹) بستن: Esc، دکمه، پس‌زمینه

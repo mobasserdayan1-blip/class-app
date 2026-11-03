@@ -30,7 +30,20 @@ const dstat=k=>{try{return typeof window.dayStatus==='function'?window.dayStatus
 const isOff=k=>{{const ds=dstat(k);if(ds)return ds.off===true}if(wkOff(k))return true;if(S.closed&&S.closed[k])return true;try{if(typeof window.dayType==='function'&&window.dayType(k).kind!=='work')return true}catch(e){}return false};
 const D=()=>{S.dj=S.dj||{};const o=S.dj;o.tpl=o.tpl||{};o.ses=o.ses||{};o.m=o.m||{};o.n=o.n||{};return o};
 const courses=()=>S.courses||[];
-const courseBy=id=>courses().find(c=>c.id===id);
+const SPECIAL_COURSES=[
+  {id:'sp_emla',name:'املا'},
+  {id:'sp_ensha',name:'انشا و نگارش'}
+];
+function allCourses(){
+  const list=[...courses()];
+  SPECIAL_COURSES.forEach(sc=>{
+    if(!list.some(c=>String(c.id)===String(sc.id)||c.name===sc.name||(sc.name==='املا'&&c.name.includes('املا'))||(sc.name==='انشا و نگارش'&&(c.name.includes('انشا')||c.name.includes('نگارش'))))){
+      list.push(sc);
+    }
+  });
+  return list;
+}
+const courseBy=id=>courses().find(c=>String(c.id)===String(id))||SPECIAL_COURSES.find(c=>String(c.id)===String(id))||null;
 const cname=id=>{const c=courseBy(id);return c?c.name:'—'};
 const sts=()=>S.students||[];
 const absent=(k,sid)=>((S.att||{})[k]||{})[sid]==='a';
@@ -43,6 +56,9 @@ const DEF=[
 ['قرآن',[['روان‌خوانی قرآن','g'],['روخوانی آیات','g'],['صحیح‌خوانی و رعایت قواعد','g'],['حفظ سوره یا آیات','g'],['مشارکت در فعالیت قرآنی','g']]],
 ['ریاضی',[['حل تمرین کتاب','d',1],['حل مسئله','g'],['فعالیت روی تخته','g'],['انجام تمرین در دفتر','d',1],['درک مفاهیم','g'],['مشارکت در فعالیت گروهی','g']]],
 ['فارسی',[['روخوانی فارسی','g'],['روان‌خوانی','g'],['املا','g'],['جمله‌سازی','g'],['درک مطلب','g'],['نگارش','g'],['حفظ شعر','g']]],
+['املا',[['املا تقریری','g'],['املا تخته‌ای','g'],['تصحیح همسالان','g'],['املا آموزشی و خلاق','g'],['واژه‌آموزی و املا','g']]],
+['انشا',[['بندنویسی موضوعی','g'],['خاطره‌نویسی و توصیف','g'],['نگارش خلاق','g'],['بازنویسی حکایت و ضرب‌المثل','g'],['تصویرخوانی و نگارش','g']]],
+['نگارش',[['آموزش مهارت نگارش','g'],['فعالیت کتاب نگارش','d',1],['رعایت علائم نگارشی','g'],['درست‌نویسی و خوش‌نویسی','g']]],
 ['علوم',[['فعالیت عملی','g'],['آزمایش','g'],['پاسخ به پرسش‌ها','g'],['مشارکت در بحث','g'],['انجام فعالیت کتاب','d'],['درک مفاهیم درس','g']]],
 ['اجتماع',[['پرسش شفاهی','g'],['پاسخ به سؤالات کتاب','g'],['فعالیت گروهی','g'],['خلاصه‌نویسی','g'],['ارزشیابی از محتوای درس','g']]],
 ['هدیه',[['مشارکت در گفت‌وگو','g'],['حفظ آیه یا ذکر','g'],['انجام فعالیت کتاب','d'],['رعایت آداب','g']]],
@@ -109,11 +125,62 @@ function pickDefault(){const k=st.k,L=dayBells(k);if(!L.length){st.b=null;return
  if(b==null){const f=L.find(x=>stat(k,x.b)!=='full'&&stat(k,x.b)!=='skip');b=(f||L[0]).b}
  st.b=b;st.item=null;st.note=null;st.pick=new Set()}
 
-/* زنگ‌های ثبت‌نشده / ناقص در ۷ روز اخیر */
-function pending(days){const out=[],t=todayK(),n=nowM();
- for(let i=0;i<(days||7);i++){const k=addD(t,-i);if(isOff(k))continue;{const ds=dstat(k);if(ds&&ds.status==='unknown')continue}
-  bells(k).forEach(x=>{if(k===t&&x.s&&tmin(x.s)>n)return;const q=stat(k,x.i);if(q==='none'||q==='part')out.push({k,b:x.i,q,cids:x.cids,s:x.s})})}
- return out}
+/* ───── تشخیص واقعی وضعیت دفتر روزانه (مستقل از برنامه‌ی هفتگی) ─────
+   وضعیت‌های ۵ گانه:
+   - 'off': تعطیل (رسمی، اختصاصی، هفتگی؛ هرگز ناقص محسوب نمی‌شود)
+   - 'unknown': نامشخص (بدون بررسی قطعی فعال یا تعطیل نمی‌شود)
+   - 'none': ثبت‌نشده (روز فعال مدرسه بدون هیچ فعالیت ثبت‌شده در پایگاه داده واقعی)
+   - 'part': ناقص (روز دارای فعالیت ولی فاقد شرایط تکمیل یا ارزیابی ناقص)
+   - 'full': تکمیل‌شده (روز دارای فعالیت‌های کامل ثبت‌شده)
+*/
+function dayJournalStatus(k){
+  if(isOff(k)) return {status:'off', label:'تعطیل', color:'#a8101a', badge:'🔴 تعطیل', actCount:0, evalCount:0};
+  const ds=dstat(k);
+  if(ds&&ds.status==='unknown') return {status:'unknown', label:'نامشخص', color:'#8a94a6', badge:'⚪ نامشخص', actCount:0, evalCount:0};
+
+  const d=D();
+  const datePrefix=k+'|';
+  const mKeys=Object.keys(d.m||{}).filter(x=>x.indexOf(datePrefix)===0);
+  const sesKeys=Object.keys(d.ses||{}).filter(x=>x.indexOf(datePrefix)===0);
+
+  // روز فعال بدون هیچ فعالیت در پایگاه داده واقعی: ثبت نشده
+  if(!mKeys.length&&!sesKeys.length){
+    return {status:'none', label:'ثبت‌نشده', color:'#8a94a6', badge:'⚪ ثبت‌نشده', actCount:0, evalCount:0};
+  }
+
+  const pn=presN(k);
+  let totalEvaluated=0, fullActs=0;
+  mKeys.forEach(key=>{
+    const marks=d.m[key]||{};
+    const count=Object.keys(marks).filter(sid=>!absent(k,+sid)).length;
+    totalEvaluated+=count;
+    if(pn>0&&count>=pn) fullActs++;
+  });
+
+  // معیار تکمیل: داشتن فعالیت‌های ثبت‌شده با پوشش مناسب دانش‌آموزان
+  if(mKeys.length>0&&(fullActs>=1||(pn>0&&totalEvaluated>=pn*0.75))){
+    return {status:'full', label:'تکمیل‌شده', color:'#1a8f55', badge:'✅ تکمیل‌شده', actCount:mKeys.length, evalCount:totalEvaluated};
+  }
+  return {status:'part', label:'ناقص', color:'#d98600', badge:'🟡 ناقص', actCount:mKeys.length, evalCount:totalEvaluated};
+}
+
+/* دفترهای روزانه ثبت‌نشده یا ناقص در N روز اخیر (کاملاً مستقل از زنگ‌های برنامه هفتگی) */
+function journalPendingDays(days){
+  const out=[], t=todayK(), maxD=days||7;
+  for(let i=0; i<maxD; i++){
+    const k=addD(t, -i);
+    const info=dayJournalStatus(k);
+    if(info.status==='none'||info.status==='part'){
+      out.push({k, q:info.status, info});
+    }
+  }
+  return out;
+}
+
+/* برای سازگاری سایر بخش‌ها */
+function pending(days){
+  return journalPendingDays(days);
+}
 
 const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 #dj .dj-day{font-weight:800;text-align:center;flex:1;min-width:150px}
@@ -208,26 +275,68 @@ const PENDCSS=`
 #dj .dj-mxem{padding:18px;text-align:center;color:var(--mut,#888);font-size:13px}`;
 const MXCSS=`
 .dj-mx .dj-mxw{overflow:auto;border-radius:14px;border:1px solid var(--line,#dfe3ee)}
-.dj-mx table{border-collapse:separate;border-spacing:0;font:700 12px Vazirmatn,Tahoma,sans-serif;width:max-content;min-width:100%;color:var(--tx,#222)}
-.dj-mx th,.dj-mx td{padding:0;text-align:center;border-bottom:1px solid var(--line,#e6e9f2);border-left:1px solid var(--line,#e6e9f2)}
-.dj-mx thead th{background:#2b4a9b;color:#fff;font-weight:800;position:sticky;top:0;z-index:2}
+.dj-mx table{border-collapse:separate;border-spacing:0;font:700 12px Vazirmatn,Tahoma,sans-serif;width:max-content;min-width:100%;table-layout:auto;color:var(--tx,#222)}
+.dj-mx th,.dj-mx td{padding:0;text-align:center;vertical-align:middle;border-bottom:1px solid var(--line,#e6e9f2);border-left:1px solid var(--line,#e6e9f2)}
+.dj-mx thead th{background:#2b4a9b;color:#fff;font-weight:800;position:sticky;top:0;z-index:2;text-align:center !important;vertical-align:middle !important}
 .dj-mx thead th.d1{background:#3d63bd}
-.dj-mx th.nm,.dj-mx td.nm{position:sticky;right:0;z-index:3;text-align:right;padding:6px 10px;min-width:125px;max-width:170px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:900;font-size:13px;background:var(--card,#fff);color:var(--tx,#222);border-left:2px solid #c9d2ea}
-.dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:4;text-align:center}
+.dj-mx th.nm,.dj-mx td.nm{position:sticky;right:0;z-index:3;text-align:right;padding:7px 16px;min-width:max-content;width:auto;max-width:none;white-space:nowrap !important;overflow:visible !important;text-overflow:clip !important;font-weight:900;font-size:13.5px;background:var(--card,#fff);color:var(--tx,#222);border-left:2px solid #c9d2ea}
+.dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:5;text-align:center !important;vertical-align:middle !important;padding:8px 16px}
 .dj-mx tbody tr:nth-child(even) td.nm{background:var(--bg2,#f4f6fb)}
-.dj-mx th.h{width:28px;min-width:28px;vertical-align:bottom;padding:7px 0}
-.dj-mx th.h span{display:block;writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;max-height:190px;overflow:hidden;margin:0 auto;font-size:11px;line-height:1.55}
+.dj-mx th.h{width:36px;min-width:36px;vertical-align:middle !important;padding:8px 2px;text-align:center !important}
+.dj-mx th.h span{display:inline-flex !important;align-items:center !important;justify-content:center !important;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center !important;white-space:nowrap;max-height:220px;overflow:hidden;margin:0 auto !important;font-size:11px;line-height:1.6}
 .dj-mx th.h b{font-weight:900;color:#ffe08a}
-.dj-mx th.sm{background:#1d3470;min-width:34px;width:34px}
-.dj-mx td.c{width:28px;min-width:28px;height:30px;font-size:12px;font-weight:900;color:#fff}
+.dj-mx th.sm{background:#1d3470;min-width:40px;width:40px;text-align:center !important;vertical-align:middle !important}
+.dj-mx th.sm span{display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;width:100% !important;margin:0 auto !important}
+.dj-mx td.c{width:34px;min-width:34px;height:30px;font-size:11.5px;font-weight:900;color:#fff;text-align:center !important;vertical-align:middle !important}
 .dj-mx td.l4{background:#1a8f55}.dj-mx td.l3{background:#55b043}.dj-mx td.l2{background:#e2a300}.dj-mx td.l1{background:#d9363e}
 .dj-mx td.ok{background:#1a8f55}.dj-mx td.no{background:#d9363e}
-.dj-mx td.ab{background:#fde7e8;color:#c0262c}
+.dj-mx td.ab{background:#fde7e8;color:#c0262c;font-weight:900;text-align:center !important}
 .dj-mx td.em{background:transparent}
-.dj-mx td.sm{min-width:34px;width:34px;font-size:12px;font-weight:900;background:var(--bg2,#f4f6fb)}
+.dj-mx td.sm{min-width:40px;width:40px;font-size:12px;font-weight:900;background:var(--bg2,#f4f6fb);text-align:center !important;vertical-align:middle !important}
 .dj-mx td.sm.z{color:#a7afc0;font-weight:600}
 .dj-mx td.sm.s4{color:#1a8f55}.dj-mx td.sm.s3{color:#3f8f2a}.dj-mx td.sm.s2{color:#b26a00}.dj-mx td.sm.s1{color:#c0262c}
-.dj-mx tbody tr:hover td.nm{background:#e8edf9}`;
+.dj-mx tbody tr:hover td.nm{background:#e8edf9}
+
+/* استایل‌های داشبورد تحلیلی و نمودار عملکرد کلاس */
+.dj-dash{margin-top:14px;padding:16px;background:var(--card,#fff);border-radius:16px;border:1px solid var(--line,#dfe3ee)}
+.dj-dash-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.dj-dash-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:16px}
+.dj-dash-card{border-radius:12px;padding:12px 14px;border:1px solid var(--line,#e2e8f0);background:var(--bg2,#f8fafc)}
+.dj-dash-card.top{border-color:#1a8f5544;background:#1a8f550c}
+.dj-dash-card.act{border-color:#5b3fd644;background:#5b3fd60c}
+.dj-dash-card.need{border-color:#d9363e44;background:#d9363e0c}
+.dj-dash-card b{display:block;font-size:13px;margin-bottom:6px}
+.dj-dash-card .st-list{display:flex;flex-direction:column;gap:5px;font-size:12px}
+.dj-dash-card .st-item{display:flex;justify-content:space-between;align-items:center}
+.dj-dash-card .st-badge{font-weight:800;font-size:11px;padding:2px 7px;border-radius:6px;background:#fff;border:1px solid currentColor}
+
+.dj-dash-chart{margin:14px 0;padding:12px;border-radius:12px;background:var(--bg2,#f8fafc);border:1px solid var(--line,#e2e8f0)}
+.dj-chart-title{font-size:13px;font-weight:800;margin-bottom:8px}
+.dj-dist-bar{display:flex;height:24px;border-radius:8px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,0.1);margin-bottom:8px}
+.dj-dist-seg{display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:11px;transition:width 0.3s}
+.dj-dist-lg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--tx,#333)}
+.dj-dist-lg span{display:inline-flex;align-items:center;gap:4px}
+.dj-dist-lg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+.dj-dash-rank{overflow-x:auto;margin-top:12px}
+.dj-dash-rank table{width:100%;border-collapse:collapse;font-size:12px;text-align:right}
+.dj-dash-rank th,.dj-dash-rank td{padding:6px 8px;border-bottom:1px solid var(--line,#eee)}
+.dj-dash-rank th{background:var(--bg2,#f1f5f9);font-weight:800;color:var(--tx,#222)}
+.dj-prog-wrap{display:flex;align-items:center;gap:8px;min-width:140px}
+.dj-prog-bg{flex:1;height:8px;border-radius:4px;background:#e2e8f0;overflow:hidden}
+.dj-prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#4a7ae0,#1a8f55)}
+
+/* مودال گزارش رسمی دفتر روزانه */
+.dj-modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:99999;display:grid;place-items:center;padding:14px}
+.dj-modal-box{width:min(540px,100%);background:var(--card,#fff);color:var(--tx,#222);border-radius:18px;padding:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto}
+.dj-modal-hd{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line,#e2e8f0);padding-bottom:10px;margin-bottom:14px}
+.dj-modal-hd b{font-size:16px;color:#1e3a8a}
+.dj-modal-sec{margin:12px 0}
+.dj-modal-sec label{display:block;font-size:13px;font-weight:700;margin-bottom:6px}
+.dj-modal-opt{display:flex;gap:8px;flex-wrap:wrap}
+.dj-modal-opt button{flex:1;min-width:120px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line,#cbd5e1);background:var(--card,#fff);color:var(--tx,#333);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.dj-modal-opt button.on{border-color:#2563eb;background:#2563eb12;color:#1d4ed8}
+.dj-modal-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;border-top:1px solid var(--line,#e2e8f0);padding-top:12px}`;
 const cs=document.createElement('style');cs.textContent=CSS+PENDCSS+MXCSS;document.head.appendChild(cs);
 
 /* ساخت صفحه و منو */
@@ -273,7 +382,7 @@ function calHtml(){
 function render(){const s=$('dj');if(!s)return;
  const k=st.k,t=todayK();pickDefault();
  const L=dayBells(k),ses=st.b!=null?viewSes(k,st.b):null,pend=pending(7);
- let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان در هر زنگ؛ همه‌ی اطلاعات به پرونده‌ی دانش‌آموز می‌رود.</p><div class="card dj-report-tools"><b>📄 گزارش رسمی عملکرد دانش‌آموزان</b><div class="dj-nt" style="margin-top:8px"><select class="dj-in" data-report-period aria-label="بازه گزارش"><option value="week"${st.reportPeriod==='week'?' selected':''}>گزارش هفتگی</option><option value="month"${st.reportPeriod==='month'?' selected':''}>گزارش ماهانه</option><option value="year"${st.reportPeriod==='year'?' selected':''}>گزارش سالانه</option></select><button type="button" class="dj-sm" data-dj="report">🖨️ تهیه خروجی PDF</button></div><small style="color:var(--mut,#888)">پس از انتخاب بازه، در پنجره چاپ گزینه «ذخیره به‌صورت PDF» را انتخاب کنید.</small></div>`;
+ let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان در هر زنگ؛ همه‌ی اطلاعات به پرونده‌ی دانش‌آموز می‌رود.</p><div class="card dj-report-tools"><b>📄 گزارش‌های رسمی و چاپی دفتر روزانه</b><div class="dj-nt" style="margin-top:8px;flex-wrap:wrap"><button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:13px;padding:9px 15px;border-radius:12px;border:0;cursor:pointer;font-weight:800" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 افقی / عمودی با حضور و غیاب)</button><select class="dj-in" data-report-period aria-label="بازه گزارش"><option value="week"${st.reportPeriod==='week'?' selected':''}>گزارش هفتگی</option><option value="month"${st.reportPeriod==='month'?' selected':''}>گزارش ماهانه</option><option value="year"${st.reportPeriod==='year'?' selected':''}>گزارش سالانه</option></select><button type="button" class="dj-sm" data-dj="report">🖨️ خروجی استاندارد</button></div><small style="color:var(--mut,#888)">گزارش دفتر روزانه معلم شامل عملکرد هر روز در کنار حضور و غیاب دانش‌آموزان در برگه A4 افقی (ماهانه) یا عمودی (هفتگی) آماده چاپ است.</small></div>`;
  h+=`<div class="card"><div class="dj-hd"><button class="dj-sm" data-dj="nav:-1">‹ روز قبل</button><button type="button" class="dj-day" data-dj="calendar" aria-label="انتخاب تاریخ">${esc(dlab(k))}${k===t?' <small>(امروز)</small>':''}</button><button class="dj-sm" data-dj="nav:1">روز بعد ›</button>${k!==t?`<button class="dj-sm" data-dj="today">امروز</button>`:''}</div>`;
  if(!wkSet()&&dow(k)>4)h+=`<div class="dj-warn">روزهای کاری مدرسه هنوز تنظیم نشده و این روز تعطیل فرض نشده است.${(()=>{const q=dstat(k);return q&&q.status==='unknown'?' وضعیت این روز «نامشخص» است (نه فعال، نه تعطیل).':''})()} اگر مدرسه‌ی شما این روز تعطیل است، <button type="button" class="dj-sm" data-dj="setwk">⚙️ روزهای کاری را تنظیم کنید</button></div>`;
  if(isOff(k)){const hi=hinfo(k),nrec=L.length;if(hi&&hi.official)h+=`<div class="dj-ho" id="djHol">🎉 <b>تعطیل رسمی:</b> ${esc(hi.label)}<br><small>این روز «دفتر ثبت‌نشده» یا ناقص حساب نمی‌شود. ${nrec?`سوابق این روز: <b>${fa(nrec)}</b> زنگ ثبت‌شده در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ اگر کلاسی برگزار شده، با «＋ زنگ دستی» ثبت کنید.'}</small></div>`;else if(hi&&hi.custom)h+=`<div class="dj-cu" id="djCu">🏫 <b>تعطیلی اختصاصی مدرسه${hi.emergency?' (اضطراری 🚨)':''}:</b> ${esc(hi.label)}${hi.reason?`<br><small>علت: ${esc(hi.reason)}</small>`:''}<br><small>${nrec?`سوابق ثبت‌شده‌ی این روز: <b>${fa(nrec)}</b> زنگ در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ ثبت فعالیت در روز تعطیل نیاز به تأیید شما دارد.'}</small></div>`;else h+=`<div class="dj-warn">این روز تعطیل است${hi&&hi.label?' ('+esc(hi.label)+')':''}. ${nrec?`سوابق ثبت‌شده‌ی این روز: ${fa(nrec)} زنگ.`:'اگر زنگی برگزار شده، با «＋ زنگ دستی» ثبت کنید.'}</div>`}
@@ -281,7 +390,7 @@ function render(){const s=$('dj');if(!s)return;
  h+=`<div class="dj-bl">${L.map(x=>`<button class="dj-ch${x.b===st.b?' on':''}" data-dj="bell:${esc(x.b)}">${SI[stat(k,x.b)]} ${esc(bellName(k,x))}${x.s?` <small>${fa(x.s)}</small>`:''}</button>`).join('')}<button class="dj-ch" data-dj="manual">＋ زنگ دستی</button></div></div>`;
  h+=calHtml();
  if(ses)h+=sessionCard(k,st.b,ses);
- h+=pendCard(pend);h+=mxCard();
+ h+=pendCard(pend);h+=mxCard();h+=teacherReportModalHtml();
  const w0=s.querySelector('.dj-mxw'),sl=w0?w0.scrollLeft:null;
  s.innerHTML=h;
  if(sl!=null){const w1=s.querySelector('.dj-mxw');if(w1)w1.scrollLeft=sl}}
@@ -289,7 +398,7 @@ function render(){const s=$('dj');if(!s)return;
 function sessionCard(k,b,s){
  const items=itemsOf(s),pn=presN(k),sk=s.st==='skip';
  let h=`<div class="card"><div class="dj-hd"><b>${esc(cname(s.c))}</b><span style="font-size:12px;color:#888">${fa(pn)} حاضر از ${fa(sts().length)}</span></div>
- <div class="dj-nt" style="margin-top:8px"><select class="dj-in" data-f="course">${courses().map(c=>`<option value="${c.id}"${c.id===s.c?' selected':''}>${esc(c.name)}</option>`).join('')}</select><input class="dj-in" data-f="topic" placeholder="درس و مبحث تدریس‌شده (اختیاری)" value="${esc(s.tp||'')}"></div>
+ <div class="dj-nt" style="margin-top:8px"><select class="dj-in" data-f="course">${allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(s.c)?' selected':''}>${esc(c.name)}</option>`).join('')}</select><input class="dj-in" data-f="topic" placeholder="درس و مبحث تدریس‌شده (اختیاری)" value="${esc(s.tp||'')}"></div>
  <div class="dj-nt" style="margin-top:6px"><input class="dj-in" data-f="snote" placeholder="یادداشت کلی این زنگ (اختیاری)" value="${esc(s.nt||'')}"></div>
  <div style="margin-top:8px"><button class="dj-sm" data-dj="skip">${sk?'↩️ برگرداندن به حالت ثبت':'➖ این زنگ ثبت نمی‌شود'}</button></div></div>`;
  if(sk)return h+`<div class="dj-warn">این زنگ «بدون ثبت» علامت خورده و در فهرست ثبت‌نشده‌ها نمی‌آید.</div>`;
@@ -322,16 +431,25 @@ function tplEditor(cid){const t=tplOf(cid);
  <div class="r"><input class="dj-in" id="djNewN" placeholder="فعالیت جدید…"><select class="dj-in" style="max-width:130px" id="djNewT"><option value="g">۴ سطحی</option><option value="d">انجام شد/نشد</option></select><button class="dj-sm" data-dj="tpladd">＋ افزودن</button></div></div>`}
 
 function pendCard(p){
- if(!p.length)return`<div class="card dj-pend ok"><b>✅ زنگ ثبت‌نشده‌ای در ۷ روز اخیر نیست</b></div>`;
+ if(!p.length)return`<div class="card dj-pend ok"><b>✅ دفتر روزانه‌ی همه‌ی روزهای فعال در ۷ روز اخیر تکمیل است</b></div>`;
  const none=p.filter(x=>x.q==='none').length,part=p.length-none,t=todayK();
- const days=[];p.forEach(x=>{let g=days.find(y=>y.k===x.k);if(!g){g={k:x.k,L:[]};days.push(g)}g.L.push(x)});
- const shown=st.pendAll?days:days.slice(0,3);
+ const shown=st.pendAll?p:p.slice(0,4);
  const rel=k=>k===t?'امروز':k===addD(t,-1)?'دیروز':'';
- let h=`<div class="card dj-pend"><div class="dj-ph"><b>⏳ زنگ‌های ثبت‌نشده یا ناقص</b><small>۷ روز اخیر</small></div>
- <div class="dj-pc"><span class="n">⚪ ${fa(none)} ثبت‌نشده</span><span class="p">🟡 ${fa(part)} ناقص</span><span class="t">مجموع ${fa(p.length)} زنگ</span></div>`;
- h+=shown.map(g=>`<div class="dj-pd"><div class="dj-pdl"><b>${esc(dshort(g.k))}</b>${rel(g.k)?`<small>${rel(g.k)}</small>`:''}</div><div class="dj-pbs">${g.L.map(x=>`<button type="button" class="dj-pb ${x.q}" data-dj="go:${x.k}:${esc(x.b)}"><span class="ic">${SI[x.q]}</span><span class="tx"><b>${esc(x.cids.map(cname).join(' + '))}</b><small>زنگ ${ORD[+x.b]||''}${x.s?' · '+fa(x.s):''}</small></span></button>`).join('')}</div></div>`).join('');
- if(days.length>3)h+=`<div style="text-align:center;padding:4px 0 8px"><button type="button" class="dj-sm" data-dj="pendall">${st.pendAll?'▲ نمایش کمتر':'▼ نمایش همه‌ی روزها ('+fa(days.length)+' روز)'}</button></div>`;
- return h+`<div class="dj-pf"><span class="lg">🟡 ناقص · ⚪ ثبت‌نشده — با لمس هر مورد به همان زنگ می‌روید</span><button type="button" class="dj-sm" data-dj="skipall">➖ همه‌ی ${fa(p.length)} زنگ را «بدون ثبت» علامت بزن</button></div></div>`}
+ let h=`<div class="card dj-pend"><div class="dj-ph"><b>⏳ دفترهای روزانه ثبت‌نشده یا ناقص</b><small>۷ روز اخیر (مستقل از برنامه‌ی هفتگی)</small></div>
+ <div class="dj-pc"><span class="n">⚪ ${fa(none)} روز ثبت‌نشده</span><span class="p">🟡 ${fa(part)} روز ناقص</span><span class="t">مجموع ${fa(p.length)} روز نیازمند پیگیری</span></div>`;
+ h+=shown.map(x=>{
+  const info=x.info||dayJournalStatus(x.k);
+  const actText=info.actCount?fa(info.actCount)+' فعالیت ثبت‌شده':'بدون ثبت فعالیت';
+  return`<div class="dj-pd"><div class="dj-pdl"><b>${esc(dshort(x.k))}</b>${rel(x.k)?`<small>${rel(x.k)}</small>`:''}</div>
+  <div class="dj-pbs" style="align-items:center;justify-content:space-between;width:100%">
+    <div style="font-size:13px;display:flex;align-items:center;gap:8px">
+      <span style="font-weight:900;font-size:12px;padding:3px 10px;border-radius:8px;background:${info.status==='none'?'#8a94a622':'#d9860022'};color:${info.color}">${info.badge}</span>
+      <span style="color:var(--mut,#666);font-size:12px">${actText}</span>
+    </div>
+    <button type="button" class="dj-pb" style="min-height:36px;padding:6px 14px;background:var(--p,#5b3fd6);color:#fff;border-color:transparent;cursor:pointer" data-dj="goday:${x.k}">باز کردن دفتر این روز ‹</button>
+  </div></div>`}).join('');
+ if(p.length>4)h+=`<div style="text-align:center;padding:4px 0 8px"><button type="button" class="dj-sm" data-dj="pendall">${st.pendAll?'▲ نمایش کمتر':'▼ نمایش همه‌ی روزها ('+fa(p.length)+' روز)'}</button></div>`;
+ return h+`<div class="dj-pf"><span class="lg">⚪ ثبت‌نشده: روز فعالِ بدون فعالیت · 🟡 ناقص: روزِ دارای فعالیتِ ناتمام</span><button type="button" class="dj-sm" data-dj="skipall">➖ علامت‌گذاری به عنوان «بدون نیاز به ثبت»</button></div></div>`}
 
 /* ───── جدول عملکرد هفتگی / ماهانه (پیش‌نمایش زنده، بر پایه‌ی همان داده‌ی دفتر) ───── */
 function mxAnchor(){return st.mx.k||st.k||todayK()}
@@ -346,29 +464,156 @@ function mxBuild(){const R=mxRange(),d=D(),cf=st.mx.c,cols=[];
  const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
  cols.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
  return{R,cols}}
-const MXS={4:['۴','l4'],3:['۳','l3'],2:['۲','l2'],1:['۱','l1']};
+const MXS={4:['خ خ','l4','خیلی خوب'],3:['خ','l3','خوب'],2:['ق ق','l2','قابل قبول'],1:['ن ت','l1','نیاز به تلاش بیشتر']};
 function mxTable(B){const cols=B.cols;if(!cols.length)return'';
- let alt=0,prev=null;
- const head=cols.map(c=>{if(c.k!==prev){alt^=1;prev=c.k}c.alt=alt;const jp=jparts(c.k),dt=fa(jp.d)+' '+JMN[jp.m-1],tx=cname(c.c)+' · '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
-  return`<th class="h${alt?' d1':''}" title="${esc(tt)}"><span><b>${esc(dt)}</b> | ${esc(tx.length>34?tx.slice(0,33)+'…':tx)}</span></th>`}).join('');
- const sumH=[['خیلی خوب','#1a8f55'],['خوب','#3f8f2a'],['قابل قبول','#b26a00'],['نیاز به تلاش','#c0262c'],['انجام شد','#1a8f55'],['انجام نشد','#c0262c']].map(x=>`<th class="h sm"><span style="color:#fff">${x[0]}</span></th>`).join('');
+ const maxLen=sts().reduce((m,s)=>Math.max(m,(s.name||'').trim().length),0);
+ const nmW=Math.max(140,Math.ceil(maxLen*10.5)+40);
+ let alt=0,prevDate=null;
+ const head=cols.map(c=>{
+  const isNewDate=(c.k!==prevDate);
+  if(isNewDate){alt^=1;prevDate=c.k}
+  c.alt=alt;
+  const jp=jparts(c.k),dt=fa(jp.d)+' '+JMN[jp.m-1],tx=cname(c.c)+' · '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
+  const titleHtml=isNewDate?`<b>${esc(dt)}</b> | ${esc(tx.length>34?tx.slice(0,33)+'…':tx)}`:`${esc(tx.length>34?tx.slice(0,33)+'…':tx)}`;
+  return`<th class="h${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${titleHtml}</span></th>`}).join('');
+ const sumH=[['خ خ','#1a8f55','خیلی خوب'],['خ','#3f8f2a','خوب'],['ق ق','#b26a00','قابل قبول'],['ن ت','#c0262c','نیاز به تلاش'],['انجام','#1a8f55','انجام شد'],['نشد','#c0262c','انجام نشد']].map(x=>`<th class="h sm" title="${x[2]}"><span style="color:#fff">${x[0]}</span></th>`).join('');
  const body=sts().map(s=>{const sum={4:0,3:0,2:0,1:0,ok:0,no:0};
   const tds=cols.map(c=>{const v=c.mk[s.id];
    if(v==null)return absent(c.k,s.id)?`<td class="c ab" title="غایب">غ</td>`:`<td class="c em"></td>`;
-   if(c.t==='d'){if(v===1){sum.ok++;return`<td class="c ok">✓</td>`}sum.no++;return`<td class="c no">✗</td>`}
-   const m=MXS[v];if(!m)return`<td class="c em"></td>`;sum[v]++;return`<td class="c ${m[1]}">${m[0]}</td>`}).join('');
+   if(c.t==='d'){if(v===1){sum.ok++;return`<td class="c ok" title="انجام شد">✓</td>`}sum.no++;return`<td class="c no" title="انجام نشد">✗</td>`}
+   const m=MXS[v];if(!m)return`<td class="c em"></td>`;sum[v]++;return`<td class="c ${m[1]}" title="${m[2]}">${m[0]}</td>`}).join('');
   const sm=[[4,'s4'],[3,'s3'],[2,'s2'],[1,'s1'],['ok','s4'],['no','s1']].map(x=>`<td class="sm ${sum[x[0]]?x[1]:'z'}">${fa(sum[x[0]])}</td>`).join('');
-  return`<tr><td class="nm">${esc(s.name)}</td>${tds}${sm}</tr>`}).join('');
- return`<table><thead><tr><th class="nm">نام دانش‌آموز</th>${head}${sumH}</tr></thead><tbody>${body}</tbody></table>`}
+  return`<tr><td class="nm" style="min-width:${nmW}px;width:${nmW}px">${esc(s.name)}</td>${tds}${sm}</tr>`}).join('');
+ return`<table><thead><tr><th class="nm" style="min-width:${nmW}px;width:${nmW}px">نام دانش‌آموز</th>${head}${sumH}</tr></thead><tbody>${body}</tbody></table>`}
 function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
-function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">۴</i>خیلی خوب <i style="background:#55b043">۳</i>خوب <i style="background:#e2a300">۲</i>قابل قبول <i style="background:#d9363e">۱</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#fde7e8;color:#c0262c">غ</i>غایب (بدون ثبت) · خانه‌ی خالی = ثبت نشده</div>`}
+function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#fde7e8;color:#c0262c">غ</i>غایب · خانه‌ی خالی = ثبت نشده</div>`}
+
+/* ───── داشبورد تحلیلی و نمودار وضعیت دانش‌آموزان در انتهای صفحه ───── */
+function classAnalyticsDashboard(B){
+ const cols=B.cols||[];
+ const students=sts();
+ if(!students.length)return'';
+ const studentStats=students.map(s=>{
+  let l4=0,l3=0,l2=0,l1=0,ok=0,no=0,abs=0,tot=0;
+  cols.forEach(c=>{
+   const v=c.mk[s.id];
+   if(v!=null){
+    tot++;
+    if(c.t==='d'){if(v===1)ok++;else no++;}
+    else{if(v===4)l4++;else if(v===3)l3++;else if(v===2)l2++;else if(v===1)l1++;}
+   }else if(absent(c.k,s.id)){abs++;}
+  });
+  const positive=l4+l3+ok;
+  const rate=tot>0?Math.round((positive/tot)*100):0;
+  return{student:s,l4,l3,l2,l1,ok,no,abs,tot,rate};
+ });
+ const classTotals={l4:0,l3:0,l2:0,l1:0,ok:0,no:0,tot:0};
+ studentStats.forEach(r=>{
+  classTotals.l4+=r.l4;classTotals.l3+=r.l3;classTotals.l2+=r.l2;classTotals.l1+=r.l1;
+  classTotals.ok+=r.ok;classTotals.no+=r.no;classTotals.tot+=r.tot;
+ });
+ const totMarks=classTotals.tot;
+ const pL4=totMarks>0?Math.round((classTotals.l4/totMarks)*100):0;
+ const pL3=totMarks>0?Math.round((classTotals.l3/totMarks)*100):0;
+ const pL2=totMarks>0?Math.round((classTotals.l2/totMarks)*100):0;
+ const pL1=totMarks>0?Math.round((classTotals.l1/totMarks)*100):0;
+
+ const topStudents=[...studentStats].filter(r=>r.tot>0).sort((a,b)=>(b.l4-a.l4)||(b.rate-a.rate)).slice(0,3);
+ const mostActive=[...studentStats].filter(r=>r.tot>0).sort((a,b)=>b.tot-a.tot).slice(0,3);
+ const needSupport=[...studentStats].filter(r=>r.tot>0&&(r.l1>0||r.l2>0||r.rate<60)).sort((a,b)=>(b.l1-a.l1)||(b.l2-a.l2)||(a.rate-b.rate)).slice(0,3);
+ const rankingList=[...studentStats].sort((a,b)=>(b.rate-a.rate)||(b.l4-a.l4)||(b.tot-a.tot));
+ const medals=['🥇','🥈','🥉'];
+
+ return`<div class="dj-dash">
+  <div class="dj-dash-hd">
+    <b style="font-size:15px;color:#1e3a8a">📊 داشبورد تحلیلی و وضعیت پویای دانش‌آموزان (${esc(B.R.title)})</b>
+    <small style="color:var(--mut,#666)">بر اساس مجموع ${fa(totMarks)} ثبت عملکرد کلاسی در این بازه</small>
+  </div>
+  <div class="dj-dash-cards">
+    <div class="dj-dash-card top">
+      <b style="color:#1a8f55">🌟 زرنگ‌ترین دانش‌آموزان (بیشترین خیلی‌خوب)</b>
+      <div class="st-list">
+        ${topStudents.length?topStudents.map((r,i)=>`<div class="st-item"><span>${medals[i]||'⭐'} <b>${esc(r.student.name)}</b></span><span class="st-badge" style="color:#1a8f55;border-color:#1a8f55">${fa(r.l4)} خیلی‌خوب (${fa(r.rate)}٪)</span></div>`).join(''):'<div style="color:var(--mut,#888)">هنوز ثبت سطحی انجام نشده است</div>'}
+      </div>
+    </div>
+    <div class="dj-dash-card act">
+      <b style="color:#5b3fd6">⚡ فعال‌ترین‌ها (بیشترین مشارکت)</b>
+      <div class="st-list">
+        ${mostActive.length?mostActive.map((r,i)=>`<div class="st-item"><span>${medals[i]||'🔹'} <b>${esc(r.student.name)}</b></span><span class="st-badge" style="color:#5b3fd6;border-color:#5b3fd6">${fa(r.tot)} فعالیت ثبت‌شده</span></div>`).join(''):'<div style="color:var(--mut,#888)">هنوز فعالیتی ثبت نشده است</div>'}
+      </div>
+    </div>
+    <div class="dj-dash-card need">
+      <b style="color:#d9363e">🎯 نیازمند تلاش و تمرین (پیگیری آموزشی)</b>
+      <div class="st-list">
+        ${needSupport.length?needSupport.map(r=>`<div class="st-item"><span>⚠️ <b>${esc(r.student.name)}</b></span><span class="st-badge" style="color:#d9363e;border-color:#d9363e">${fa(r.l1)} نیاز به تلاش · ${fa(r.l2)} قابل قبول</span></div>`).join(''):'<div style="color:#1a8f55;font-weight:700">خوشبختانه موردی برای پیگیری اضطراری نیست 🎉</div>'}
+      </div>
+    </div>
+  </div>
+  <div class="dj-dash-chart">
+    <div class="dj-chart-title">📈 نمودار مقایسه‌ای توزیع سطوح عملکرد کلاس</div>
+    ${totMarks>0?`
+      <div class="dj-dist-bar">
+        ${pL4>0?`<div class="dj-dist-seg" style="width:${pL4}%;background:#1a8f55" title="خیلی خوب: ${pL4}٪">${pL4>8?fa(pL4)+'٪':''}</div>`:''}
+        ${pL3>0?`<div class="dj-dist-seg" style="width:${pL3}%;background:#55b043" title="خوب: ${pL3}٪">${pL3>8?fa(pL3)+'٪':''}</div>`:''}
+        ${pL2>0?`<div class="dj-dist-seg" style="width:${pL2}%;background:#e2a300" title="قابل قبول: ${pL2}٪">${pL2>8?fa(pL2)+'٪':''}</div>`:''}
+        ${pL1>0?`<div class="dj-dist-seg" style="width:${pL1}%;background:#d9363e" title="نیاز به تلاش: ${pL1}٪">${pL1>8?fa(pL1)+'٪':''}</div>`:''}
+      </div>
+      <div class="dj-dist-lg">
+        <span><i style="background:#1a8f55"></i>خیلی خوب: <b>${fa(classTotals.l4)}</b> مورد (${fa(pL4)}٪)</span>
+        <span><i style="background:#55b043"></i>خوب: <b>${fa(classTotals.l3)}</b> مورد (${fa(pL3)}٪)</span>
+        <span><i style="background:#e2a300"></i>قابل قبول: <b>${fa(classTotals.l2)}</b> مورد (${fa(pL2)}٪)</span>
+        <span><i style="background:#d9363e"></i>نیاز به تلاش: <b>${fa(classTotals.l1)}</b> مورد (${fa(pL1)}٪)</span>
+      </div>
+    `:`<div style="color:var(--mut,#888);font-size:12px;text-align:center;padding:8px">اطلاعات کافی برای رسم نمودار توزیع در این بازه وجود ندارد.</div>`}
+  </div>
+  <div class="dj-chart-title" style="margin-top:16px">📋 رتبه‌بندی عملکرد دانش‌آموزان با نوار پیشرفت</div>
+  <div class="dj-dash-rank">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:40px;text-align:center">رتبه</th>
+          <th>نام دانش‌آموز</th>
+          <th style="min-width:160px">شاخص بازدهی مطلوب</th>
+          <th style="text-align:center">خیلی خوب</th>
+          <th style="text-align:center">خوب</th>
+          <th style="text-align:center">قابل قبول</th>
+          <th style="text-align:center">نیاز به تلاش</th>
+          <th style="text-align:center">کل ثبت‌ها</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rankingList.map((r,i)=>`<tr>
+          <td style="text-align:center;font-weight:900">${i===0?'🥇':i===1?'🥈':i===2?'🥉':fa(i+1)}</td>
+          <td style="font-weight:800">${esc(r.student.name)}</td>
+          <td>
+            <div class="dj-prog-wrap">
+              <div class="dj-prog-bg">
+                <div class="dj-prog-fill" style="width:${r.rate}%;background:${r.rate>=80?'#1a8f55':r.rate>=60?'#3f8f2a':r.rate>=40?'#d98600':'#d9363e'}"></div>
+              </div>
+              <span style="font-size:11px;font-weight:900;min-width:32px">${fa(r.rate)}٪</span>
+            </div>
+          </td>
+          <td style="text-align:center;font-weight:800;color:#1a8f55">${fa(r.l4)}</td>
+          <td style="text-align:center;font-weight:800;color:#3f8f2a">${fa(r.l3)}</td>
+          <td style="text-align:center;font-weight:800;color:#b26a00">${fa(r.l2)}</td>
+          <td style="text-align:center;font-weight:800;color:#c0262c">${fa(r.l1)}</td>
+          <td style="text-align:center;font-weight:700">${fa(r.tot)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+ </div>`}
+
 function mxCard(){const B=mxBuild(),tb=mxTable(B),own=st.mx.k!=null;
- const opt=`<option value="all"${st.mx.c==='all'?' selected':''}>همه‌ی درس‌ها</option>`+courses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.mx.c)?' selected':''}>${esc(c.name)}</option>`).join('');
+ const opt=`<option value="all"${st.mx.c==='all'?' selected':''}>همه‌ی درس‌ها</option>`+allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.mx.c)?' selected':''}>${esc(c.name)}</option>`).join('');
  return`<div class="card dj-mx" id="djMx"><div class="dj-ph"><b>📊 جدول عملکرد دانش‌آموزان <span class="dj-live">پیش‌نمایش زنده</span></b><small>${fa(B.cols.length)} ستون ثبت‌شده</small></div>
  <div class="dj-mxbar"><div class="dj-seg"><button type="button" class="${st.mx.m==='week'?'on':''}" data-dj="mxmode:week">هفتگی</button><button type="button" class="${st.mx.m==='month'?'on':''}" data-dj="mxmode:month">ماهانه</button></div>
  <button type="button" class="dj-sm" data-dj="mxprev" aria-label="قبلی">‹ قبلی</button><div class="dj-mxt">${esc(B.R.title)}</div><button type="button" class="dj-sm" data-dj="mxnext" aria-label="بعدی">بعدی ›</button>${own?`<button type="button" class="dj-sm" data-dj="mxnow">↻ هم‌گام با روز دفتر</button>`:''}</div>
- <div class="dj-mxbar"><select class="dj-in" data-mxc aria-label="فیلتر درس" style="max-width:220px">${opt}</select><button type="button" class="dj-sm" data-dj="mxprint">🖨️ چاپ / PDF این جدول</button></div>
- ${tb?`<div class="dj-mxw">${tb}</div>`:`<div class="dj-mxem">در این بازه هنوز عملکردی ثبت نشده است. با ثبت در بالای صفحه، جدول همین‌جا به‌روز می‌شود.</div>`}${mxLegend()}</div>`}
+ <div class="dj-mxbar"><select class="dj-in" data-mxc aria-label="فیلتر درس" style="max-width:220px">${opt}</select>
+ <button type="button" class="dj-sm on" style="background:#1d4ed8;color:#fff;border-color:transparent" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 چاپی و PDF)</button>
+ <button type="button" class="dj-sm" data-dj="mxprint">🖨️ چاپ سریع این جدول</button></div>
+ ${tb?`<div class="dj-mxw">${tb}</div>`:`<div class="dj-mxem">در این بازه هنوز عملکردی ثبت نشده است. با ثبت در بالای صفحه، جدول همین‌جا به‌روز می‌شود.</div>`}${mxLegend()}
+ ${classAnalyticsDashboard(B)}</div>`}
 function mxShift(dir){const a=mxAnchor();
  if(st.mx.m==='month'){const p=jparts(a);let m=p.m+dir,y=p.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.mx.k=jiso(y,m,1)||a}
  else st.mx.k=addD(a,7*dir)}
@@ -380,7 +625,7 @@ function printMatrix(){const B=mxBuild();if(!B.cols.length){flash('در این �
  @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
  @page{size:A4 landscape;margin:8mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#202a36;margin:0;font-size:11px}
  h1{font-size:17px;margin:0 0 3px;color:#17365d}.meta{display:flex;justify-content:space-between;gap:10px;color:#526477;border-bottom:2px solid #486581;padding-bottom:6px;margin-bottom:8px;font-size:11px}
- .dj-mx .dj-mxw{overflow:visible;border:0}.dj-mx table{width:100%;min-width:0}.dj-mx th.nm,.dj-mx td.nm{position:static;min-width:110px;font-size:11px;padding:3px 6px}.dj-mx thead th{position:static}.dj-mx td.c{height:22px;font-size:10px}.dj-mx tr{break-inside:avoid}
+ .dj-mx .dj-mxw{overflow:visible;border:0}.dj-mx table{width:100%;min-width:0}.dj-mx th.nm,.dj-mx td.nm{position:static;min-width:max-content;white-space:nowrap;font-size:11px;padding:4px 10px;text-align:right}.dj-mx thead th{position:static;text-align:center !important;vertical-align:middle !important}.dj-mx thead th.nm{text-align:center !important}.dj-mx td.c{height:22px;font-size:10px}.dj-mx tr{break-inside:avoid}
  .dj-mx i{font-style:normal;display:inline-block;min-width:22px;text-align:center;border-radius:4px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}.sign{display:flex;justify-content:space-around;margin-top:16px}.sign span{border-top:1px solid #7b8794;padding:5px 30px 0}.noprint{text-align:center;margin:12px}@media print{.noprint{display:none}}
  ${MXCSS}</style></head><body><h1>جدول عملکرد دانش‌آموزان — گزارش ${B.R.kind}</h1><div class="meta"><span>بازه: ${esc(B.R.title)}</span><span>درس: ${esc(cn)}</span><span>تاریخ تهیه: ${esc(dshort(todayK()))}</span></div>
  <div class="dj-mx"><div class="dj-mxw">${mxTable(B)}</div>${mxLegend().replace('class="dj-mxlg"','style="font-size:10px;line-height:2.1;margin-top:6px"')}</div>
@@ -416,6 +661,216 @@ function printDailyReport(period){
  win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700);
 }
 
+function teacherReportModalHtml(){
+ if(!st.repModal)return'';
+ const p=st.repModal.period||'month';
+ const att=st.repModal.att||'inline';
+ const opt=`<option value="all"${st.repModal.course==='all'?' selected':''}>همه‌ی درس‌ها</option>`+allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.repModal.course)?' selected':''}>${esc(c.name)}</option>`).join('');
+ return`<div class="dj-modal-overlay" data-dj="closerepmodal"><div class="dj-modal-box" onclick="event.stopPropagation()">
+  <div class="dj-modal-hd">
+    <b>📋 تنظیمات گزارش جامع دفتر روزانه معلم</b>
+    <button type="button" class="dj-sm" data-dj="closerepmodal">✕</button>
+  </div>
+  <p class="sub" style="margin-top:0">این گزارش جهت ارائه‌ی اداری، پوشه کار دانش‌آموزان و جلسات اولیا با قابلیت چاپ یا ذخیره به‌صورت PDF استاندارد آماده می‌شود.</p>
+  
+  <div class="dj-modal-sec">
+    <label>۱. بازه زمانی و قطع برگه چاپی:</label>
+    <div class="dj-modal-opt">
+      <button type="button" class="${p==='month'?'on':''}" data-dj="repmodperiod:month">📄 ماهانه (A4 افقی - Landscape)</button>
+      <button type="button" class="${p==='week'?'on':''}" data-dj="repmodperiod:week">📑 هفتگی (A4 عمودی - Portrait)</button>
+    </div>
+  </div>
+
+  <div class="dj-modal-sec">
+    <label>۲. نحوه نمایش حضور و غیاب دانش‌آموزان:</label>
+    <div class="dj-modal-opt">
+      <button type="button" class="${att==='inline'?'on':''}" data-dj="repmodatt:inline">ادغام در جدول (غایب، تأخیر و خلاصه)</button>
+      <button type="button" class="${att==='separate'?'on':''}" data-dj="repmodatt:separate">جدول تفکیکی مجزا</button>
+      <button type="button" class="${att==='none'?'on':''}" data-dj="repmodatt:none">بدون حضور و غیاب</button>
+    </div>
+  </div>
+
+  <div class="dj-modal-sec">
+    <label>۳. درس انتخابی:</label>
+    <select class="dj-in" data-repmodcourse style="width:100%">${opt}</select>
+  </div>
+
+  <div class="dj-modal-ft">
+    <button type="button" class="dj-sm" data-dj="closerepmodal">انصراف</button>
+    <button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:14px;padding:10px 20px;border-radius:12px;border:0;cursor:pointer" data-dj="doreport">🖨️ چاپ و ذخیره PDF</button>
+  </div>
+ </div></div>`;
+}
+
+function printTeacherJournalReport(){
+ const cfg=st.repModal||{period:'month',att:'inline',course:'all'};
+ const today=todayK(), anchor=st.mx.k||st.k||today, jp0=jparts(anchor);
+ let from, to, title, kind;
+ if(cfg.period==='month'){
+  from=jiso(jp0.y,jp0.m,1);
+  to=jiso(jp0.y,jp0.m,jlen(jp0.y,jp0.m));
+  title='ماهانه — ماه '+JMN[jp0.m-1]+' '+fa(jp0.y);
+  kind='month';
+ }else{
+  const start=addD(anchor,-dow(anchor));
+  from=start;
+  to=addD(start,6);
+  title='هفتگی — '+dshort(from)+' تا '+dshort(to);
+  kind='week';
+ }
+ if(!from||!to){flash('تعیین بازه گزارش ممکن نشد');return;}
+
+ const d=D(), cf=cfg.course||'all', cols=[];
+ Object.keys(d.m).forEach(key=>{
+  const p=key.split('|'), k=p[0];
+  if(k<from||k>to)return;
+  const ses=d.ses[k+'|'+p[1]], it=ses&&(ses.it||{})[p[2]], mk=d.m[key];
+  if(!it||!mk||!Object.keys(mk).length)return;
+  if(cf!=='all'&&String(ses.c)!==String(cf))return;
+  cols.push({key,k,b:p[1],id:p[2],c:ses.c,t:it.t==='d'?'d':'g',n:it.n,mk});
+ });
+ const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
+ cols.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
+
+ const students=sts();
+ if(!students.length){flash('دانش‌آموزی در کلاس وجود ندارد');return;}
+
+ const win=window.open('','_blank');
+ if(!win){flash('پنجره گزارش مسدود شد؛ باز شدن پنجره را تأیید کنید');return;}
+
+ const u=f=>{try{return new URL('assets/fonts/'+f,location.href).href}catch(e){return'assets/fonts/'+f}};
+ const schoolName=(S.profile&&S.profile.school)||'دبستان';
+ const teacherName=(S.profile&&S.profile.teacher)||'آموزگار کلاس';
+ const gradeName=(S.profile&&S.profile.grade)||'';
+ const isLandscape=(kind==='month');
+
+ let prevDate=null;
+ const colHeaders=cols.map(c=>{
+  const isNewDate=(c.k!==prevDate);
+  if(isNewDate) prevDate=c.k;
+  const jp=jparts(c.k), dt=fa(jp.d)+' '+JMN[jp.m-1];
+  const tx=cname(c.c)+' · '+c.n;
+  return `<th><div style="writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;max-height:160px;font-size:10px;padding:4px 0">${isNewDate?`<b>${esc(dt)}</b> | `:''}${esc(tx)}</div></th>`;
+ }).join('');
+
+ const summaryHeaders=`
+  <th style="min-width:32px;background:#1a8f55;color:#fff" title="خیلی خوب">خ خ</th>
+  <th style="min-width:32px;background:#3f8f2a;color:#fff" title="خوب">خ</th>
+  <th style="min-width:32px;background:#b26a00;color:#fff" title="قابل قبول">ق ق</th>
+  <th style="min-width:32px;background:#c0262c;color:#fff" title="نیاز به تلاش">ن ت</th>
+  ${cfg.att!=='none'?'<th style="min-width:32px;background:#fde7e8;color:#a8101a">غیبت</th>':''}
+  <th style="min-width:32px;background:#2563eb;color:#fff">مجموع</th>
+ `;
+
+ const rowsHtml=students.map((s,idx)=>{
+  let l4=0,l3=0,l2=0,l1=0,ok=0,no=0,abs=0,tot=0;
+  const tds=cols.map(c=>{
+   const v=c.mk[s.id];
+   const isAb=absent(c.k,s.id);
+   if(isAb) abs++;
+   if(v==null){
+    if(cfg.att!=='none'&&isAb) return `<td class="ab" style="background:#fde7e8;color:#c0262c;font-weight:bold">غ</td>`;
+    return `<td></td>`;
+   }
+   tot++;
+   if(c.t==='d'){
+    if(v===1){ok++;return `<td style="color:#1a8f55;font-weight:bold">✓</td>`;}
+    no++;return `<td style="color:#c0262c;font-weight:bold">✗</td>`;
+   }
+   if(v===4){l4++;return `<td style="background:#1a8f5518;color:#1a8f55;font-weight:900">خ خ</td>`;}
+   if(v===3){l3++;return `<td style="background:#55b04318;color:#3f8f2a;font-weight:900">خ</td>`;}
+   if(v===2){l2++;return `<td style="background:#e2a30018;color:#b26a00;font-weight:900">ق ق</td>`;}
+   if(v===1){l1++;return `<td style="background:#d9363e18;color:#c0262c;font-weight:900">ن ت</td>`;}
+   return `<td></td>`;
+  }).join('');
+
+  return `<tr>
+    <td style="text-align:center">${fa(idx+1)}</td>
+    <td style="text-align:right;font-weight:bold;white-space:nowrap;padding:4px 8px">${esc(s.name)}</td>
+    ${tds}
+    <td style="font-weight:bold;color:#1a8f55">${fa(l4)}</td>
+    <td style="font-weight:bold;color:#3f8f2a">${fa(l3)}</td>
+    <td style="font-weight:bold;color:#b26a00">${fa(l2)}</td>
+    <td style="font-weight:bold;color:#c0262c">${fa(l1)}</td>
+    ${cfg.att!=='none'?`<td style="font-weight:bold;color:${abs?'#c0262c':'#888'}">${fa(abs)}</td>`:''}
+    <td style="font-weight:bold">${fa(tot)}</td>
+  </tr>`;
+ }).join('');
+
+ win.document.open();
+ win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
+ <title>گزارش دفتر روزانه معلم — ${title}</title>
+ <style>
+  @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}
+  @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
+  @page{size:A4 ${isLandscape?'landscape':'portrait'};margin:${isLandscape?'8mm':'10mm'}}
+  *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#1e293b;margin:0;font-size:10.5px;line-height:1.6}
+  .rep-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #334155;padding-bottom:6px;margin-bottom:8px}
+  .rep-header h1{font-size:15px;margin:0 0 2px;color:#0f172a}
+  .rep-meta{font-size:10px;color:#475569;display:flex;gap:14px}
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:10px}
+  th,td{border:1px solid #cbd5e1;padding:4px;text-align:center}
+  thead th{background:#f1f5f9;color:#0f172a;font-weight:bold}
+  tbody tr:nth-child(even){background:#f8fafc}
+  .legend{display:flex;gap:12px;font-size:9.5px;color:#475569;margin-top:8px}
+  .legend i{font-style:normal;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:2px}
+  .sign{display:flex;justify-content:space-around;margin-top:24px;font-size:11px;font-weight:bold}
+  .sign span{border-top:1px solid #64748b;padding:6px 28px 0}
+  .noprint{text-align:center;margin:16px}@media print{.noprint{display:none}}
+ </style></head><body>
+ <div class="rep-header">
+  <div>
+   <h1>دفتر روزانه معلم — گزارش ارزشیابی توصیفی و فعالیت‌های کلاسی</h1>
+   <div class="rep-meta">
+     <span>آموزشگاه: <b>${esc(schoolName)}</b></span>
+     <span>پایه/کلاس: <b>${esc(gradeName)}</b></span>
+     <span>آموزگار: <b>${esc(teacherName)}</b></span>
+   </div>
+  </div>
+  <div style="text-align:left;font-size:10px;color:#475569">
+   <div><b>دوره:</b> ${esc(title)}</div>
+   <div><b>تاریخ چاپ:</b> ${esc(dshort(today))}</div>
+  </div>
+ </div>
+
+ <table>
+  <thead>
+    <tr>
+      <th style="width:28px">ردیف</th>
+      <th style="min-width:110px">نام و نام خانوادگی دانش‌آموز</th>
+      ${colHeaders}
+      ${summaryHeaders}
+    </tr>
+  </thead>
+  <tbody>
+    ${rowsHtml}
+  </tbody>
+ </table>
+
+ <div class="legend">
+  <span><i style="background:#1a8f55;color:#fff">خ خ</i> خیلی خوب</span>
+  <span><i style="background:#55b043;color:#fff">خ</i> خوب</span>
+  <span><i style="background:#e2a300;color:#fff">ق ق</i> قابل قبول</span>
+  <span><i style="background:#d9363e;color:#fff">ن ت</i> نیاز به تلاش بیشتر</span>
+  <span><i style="background:#1a8f55;color:#fff">✓</i> انجام شد</span>
+  <span><i style="background:#d9363e;color:#fff">✗</i> انجام نشد</span>
+  ${cfg.att!=='none'?'<span><i style="background:#fde7e8;color:#c0262c">غ</i> غایب</span>':''}
+ </div>
+
+ <div class="sign">
+  <span>نام و امضای آموزگار: ${esc(teacherName)}</span>
+  <span>مهر و امضای مدیریت دبستان</span>
+ </div>
+
+ <div class="noprint">
+  <button style="padding:8px 18px;font:bold 13px Vazirmatn,Tahoma,sans-serif;background:#2563eb;color:#fff;border:0;border-radius:8px;cursor:pointer" onclick="window.print()">🖨️ چاپ / ذخیره به‌صورت PDF</button>
+ </div>
+ </body></html>`);
+ win.document.close();
+ setTimeout(()=>{try{win.focus();win.print();}catch(e){}},700);
+}
+
 /* رویدادها */
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
  if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
@@ -428,14 +883,20 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='today'){st.k=todayK();st.b=null;st.item=null}
  else if(c==='bell'){st.b=x;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}
  else if(c==='go'){st.k=x;st.b=y;st.item=null;st.note=null;st.pick=new Set()}
+ else if(c==='goday'){st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
  else if(c==='item'){st.item=x;st.note=null;st.pick=new Set()}
  else if(c==='manual'){const d=D();let n=1;while(d.ses[sesKey(k,'m'+n)])n++;const b='m'+n;d.ses[sesKey(k,b)]={c:(courses()[0]||{}).id,tp:'',nt:''};save();st.b=b;st.item=null}
  else if(c==='skip'){const s=ensureSes(k,st.b);if(s.st==='skip')delete s.st;else s.st='skip';save()}
- else if(c==='skipall'){pending(7).forEach(p=>{const s=ensureSes(p.k,p.b);s.st='skip'});save()}
+ else if(c==='skipall'){journalPendingDays(7).forEach(p=>{const info=dayJournalStatus(p.k);const bls=dayBells(p.k);bls.forEach(b=>{const s=ensureSes(p.k,b.b);s.st='skip';});});save()}
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
  else if(c==='mxprint'){printMatrix();return}
+ else if(c==='teacherreport'){st.repModal={period:'month',att:'inline',course:st.mx.c||'all'};render();return}
+ else if(c==='closerepmodal'){st.repModal=null;render();return}
+ else if(c==='repmodperiod'){if(st.repModal){st.repModal.period=x;render();return}}
+ else if(c==='repmodatt'){if(st.repModal){st.repModal.att=x;render();return}}
+ else if(c==='doreport'){printTeacherJournalReport();st.repModal=null;render();return}
  else if(c==='pendall')st.pendAll=!st.pendAll;
  else if(c==='tpl')st.tpl=!st.tpl;
  else if(c==='selmode'){st.sel=!st.sel;st.pick=new Set()}
@@ -452,6 +913,7 @@ sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.
  try{act(t.dataset.dj)}catch(er){console.error('dj',er)}});
 sec.addEventListener('change',e=>{const t=e.target,k=st.k;try{
  if(t.hasAttribute('data-mxc')){st.mx.c=t.value;render();return}
+ if(t.hasAttribute('data-repmodcourse')){if(st.repModal){st.repModal.course=t.value;}return}
  if(t.hasAttribute('data-report-period')){st.reportPeriod=t.value;return}
  if(t.dataset.calm!==undefined||t.dataset.caly!==undefined){if(st.cal){const m=t.dataset.calm!==undefined?+t.value:st.cal.m,y=t.dataset.caly!==undefined?+t.value:st.cal.y;if(jiso(y,m,1))st.cal={y,m};render()}return}
  if(t.dataset.f){if(!offGuard(k)){render();return}const s=ensureSes(k,st.b);
@@ -469,7 +931,7 @@ function summary(sid,from,to){const d=D(),R={};
   if(it.t==='d'){v===1?r.ok++:r.no++}else if(r.g[v]!=null)r.g[v]++;r.n++;
   const nt=d.n[key+'|'+sid];if(nt)r.last.push({k,a:it.n,t:nt})});
  Object.values(R).forEach(r=>r.last.sort((a,b)=>b.k.localeCompare(a.k)));return Object.values(R)}
-window.djApi={summary,pending,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
+window.djApi={summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;
  const row=r=>`<tr><td style="padding:4px 6px;font-weight:700">${esc(cname(r.c))}</td>${[4,3,2,1].map(v=>`<td style="text-align:center;color:${LV.find(l=>l.v===v).c};font-weight:800">${fa(r.g[v])}</td>`).join('')}<td style="text-align:center">${r.ok||r.no?fa(r.ok)+' / '+fa(r.no):'—'}</td></tr>`;
@@ -483,7 +945,7 @@ try{const sfb=$('sfb');if(sfb)new MutationObserver(()=>{if(!$('djSf'))setTimeout
 function homeCard(){const sm=$('smart');if(!sm)return;const old=$('djHome');if(old)old.remove();
  const p=pending(3),t=todayK();let cur=null;try{const n=window.wscApi&&wscApi.now&&wscApi.now();if(n&&n.i!=null)cur={i:n.i,name:n.name}}catch(e){}
  if(!p.length&&!cur)return;
- sm.insertAdjacentHTML('beforebegin',`<div class="card" id="djHome"><b>📓 دفتر روزانه</b><div style="font-size:13px;margin-top:6px">${cur?`زنگ جاری: <b>${esc(cur.name)}</b> `:''}${p.length?`· ${fa(p.length)} زنگ ثبت‌نشده در ۳ روز اخیر`:'· همه‌چیز ثبت شده'}</div>
+ sm.insertAdjacentHTML('beforebegin',`<div class="card" id="djHome"><b>📓 دفتر روزانه</b><div style="font-size:13px;margin-top:6px">${cur?`زنگ جاری: <b>${esc(cur.name)}</b> `:''}${p.length?`· ${fa(p.length)} دفتر روزانه ثبت‌نشده یا ناقص در ۳ روز اخیر`:'· همه‌چیز ثبت شده'}</div>
  ${cur?`<button class="dj-hb" data-djh="${t}:${cur.i}">ثبت همین زنگ</button>`:''}<button class="dj-hb" data-djh="open">باز کردن دفتر</button></div>`)}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-djh]');if(!t)return;const v=t.dataset.djh;if(v==='open'){const f=pending(3)[0];djApi.open(f?f.k:todayK(),f?f.b:null)}else{const a=v.split(':');djApi.open(a[0],a[1])}});
 

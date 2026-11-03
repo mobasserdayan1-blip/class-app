@@ -62,7 +62,7 @@ const css=document.createElement('style');css.id='wscCss';css.textContent=`
 #wsc .ws-t th{font-size:12px;font-weight:800;color:var(--mut);padding:4px 2px;text-align:center}
 #wsc .ws-t th.td{color:var(--p)}
 #wsc .ws-t th.td span{display:block;margin:3px auto 0;width:22px;height:4px;border-radius:4px;background:linear-gradient(90deg,#7e57c2,#ff7aa2)}
-#wsc .ws-pt{width:54px}#wsc .ws-pt b{display:block;font-size:12px;color:var(--tx)}#wsc .ws-pt small{font-size:10.5px;color:var(--mut)}
+#wsc .ws-pt{width:54px}#wsc .ws-pt b{display:block;font-size:12px;color:var(--tx)}#wsc .ws-pt small{font-size:10.5px;color:var(--mut)}#wsc .ws-ph b{display:block;font-size:12px;color:var(--tx)}#wsc .ws-ph small{display:block;font-size:10.5px;color:var(--mut)}
 #wsc .ws-c{width:100%;min-height:52px;border:2px dashed var(--line);border-radius:14px;background:transparent;color:var(--mut);font:700 12px Vazirmatn,Tahoma,sans-serif;cursor:pointer;padding:4px 3px;line-height:1.5;transition:transform .15s,box-shadow .2s,background .2s;animation:wspop .45s both;animation-delay:calc(var(--i,0)*28ms)}
 #wsc .ws-c:active{transform:scale(.92)}
 #wsc .ws-c.f{border:2px solid transparent;background:hsl(var(--h) 75% 62% / .22);color:var(--tx)}
@@ -118,7 +118,7 @@ const css=document.createElement('style');css.id='wscCss';css.textContent=`
 @keyframes wsglow{0%,100%{box-shadow:0 0 0 0 hsl(var(--h) 80% 55% / .5)}50%{box-shadow:0 0 0 8px hsl(var(--h) 80% 55% / 0)}}
 @keyframes wspulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 @media (prefers-reduced-motion:reduce){#wsc *,.ws-today,.ws-today *,#wsSheet{animation:none!important;transition:none!important}}
-#wsc .ws-pt{width:54px}#wsc .ws-pt small{display:block;font-size:9.5px;line-height:1.45}
+#wsc .ws-pt{width:54px}#wsc .ws-pt small,#wsc .ws-ph small{display:block;font-size:9.5px;line-height:1.45}
 #wsc table.ws-t{border-spacing:3px}#wsc .ws-c{font-size:11.5px;padding:4px 1px;word-break:keep-all;overflow-wrap:normal;hyphens:none}
 #wsSheet label{justify-content:flex-start}
 #wsc .ws-c.two{background-image:linear-gradient(135deg,hsl(var(--h) 75% 62% / .3) 50%,hsl(var(--h2) 75% 62% / .3) 50%)}
@@ -172,12 +172,9 @@ function cellBtn(d,i,st,ti,n){
 }
 function grid(){
  const w=W(),st=status(),ti=todayIdx();let n=0;
- const head=`<tr><th class="ws-pt"></th>${DAYS.map((d,i)=>`<th class="${i===ti?'td':''}">${d}${i===ti?'<span></span>':''}</th>`).join('')}</tr>`;
- const rows=w.per.map((p,i)=>{
-  const r=`<tr><th class="ws-pt"><b>زنگ ${fa(i+1)}</b><small>${hhmm(p.s)}</small><small>تا ${hhmm(tstr(endM(i)))}</small></th>${DAYS.map((_,d)=>cellBtn(d,i,st,ti,n++)).join('')}</tr>`;
-  const g=+w.gaps[i]||0;
-  const rc='';
-  return r+rc}).join('');
+ /* روزها زیر هم (سطر)، زنگ‌ها کنار هم (ستون) — مطابق برنامه‌ی کلاسی چاپی مدرسه و خروجی PDF */
+ const head=`<tr><th class="ws-pt"><small>روز ⁄ زنگ</small></th>${w.per.map((p,i)=>`<th class="ws-ph"><b>زنگ ${fa(i+1)}</b><small>${hhmm(p.s)}</small><small>تا ${hhmm(tstr(endM(i)))}</small></th>`).join('')}</tr>`;
+ const rows=DAYS.map((dn,d)=>`<tr><th class="ws-pt ${d===ti?'td':''}">${dn}${d===ti?'<span></span>':''}</th>${w.per.map((_,i)=>cellBtn(d,i,st,ti,n++)).join('')}</tr>`).join('');
  return`<div class="ws-card" style="animation-delay:.05s"><div class="ws-tw" data-noresp><table class="ws-t" data-noresp><thead>${head}</thead><tbody>${rows}</tbody></table></div>
  <div class="ws-note">💡 روی هر خانه بزنید تا درس یا زنگ ویژه (انشا، املا، نماز، ورزش، آزاد…) را انتخاب کنید؛ هر زنگ تا دو مورد می‌پذیرد. ساعت هر زنگ از روی «شروع + مدت زنگ + تفریح» خودکار حساب می‌شود.</div></div>`;
 }

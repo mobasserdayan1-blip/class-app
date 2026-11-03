@@ -8,17 +8,32 @@ const FIX={'1/1':'عید نوروز','1/2':'عید نوروز','1/3':'عید ن�
 const LUN={'1/9':'تاسوعا','1/10':'عاشورا','2/20':'اربعین','2/28':'رحلت پیامبر و شهادت امام حسن','2/30':'شهادت امام رضا','3/17':'میلاد پیامبر و امام صادق','6/3':'شهادت حضرت فاطمه','7/13':'میلاد امام علی','7/27':'مبعث','8/15':'نیمه شعبان','9/21':'شهادت امام علی','10/1':'عید فطر','10/2':'تعطیل بعد از عید فطر','10/25':'شهادت امام صادق','12/10':'عید قربان','12/18':'عید غدیر'};
 /* تقویم رسمی (مصوب) مناسبت‌های قمری؛ برای این سال‌ها به‌جای تخمین خودکار استفاده می‌شود */
 const OFF={1405:{'1/25':'شهادت امام جعفر صادق (ع)','3/6':'عید سعید قربان','3/14':'عید سعید غدیر خم','4/3':'تاسوعای حسینی','4/4':'عاشورای حسینی','5/13':'اربعین حسینی','5/21':'رحلت پیامبر و شهادت امام حسن','5/22':'شهادت امام رضا','5/30':'شهادت امام حسن عسکری','8/22':'شهادت حضرت فاطمه زهرا (س)','10/2':'ولادت امام علی (ع)','10/16':'مبعث پیامبر اکرم (ص)','11/4':'ولادت حضرت قائم (عج)','12/9':'شهادت امام علی (ع)','12/19':'عید سعید فطر','12/20':'تعطیل به مناسبت عید فطر'},1406:{'1/14':'شهادت امام جعفر صادق (ع)','2/27':'عید سعید قربان','3/4':'عید سعید غدیر خم','3/24':'تاسوعای حسینی','3/25':'عاشورای حسینی'}};
-const HK='cl_hol2',hs=()=>{try{const o=JSON.parse(localStorage.getItem(HK)||'{}');o.add=o.add||[];o.skip=o.skip||[];return o}catch(e){return{add:[],skip:[]}}},hw=o=>{try{localStorage.setItem(HK,JSON.stringify(o))}catch(e){}};
+/* تعطیلات ویرایش‌شده حالا داخل S.hol است (در پشتیبان/ابر می‌آید). کلید قدیمی cl_hol2 فقط یک‌بار برای مهاجرت خوانده می‌شود و پاک نمی‌شود. */
+/* S با let تعریف شده و روی window نیست؛ پس window.S همیشه undefined است */
+const hasS=()=>typeof S!=='undefined'&&!!S,HK='cl_hol2',cleanH=o=>({add:Array.isArray(o&&o.add)?o.add:[],skip:Array.isArray(o&&o.skip)?o.skip:[]});
+const hs=()=>{try{if(hasS()&&S.hol&&typeof S.hol==='object')return S.hol=Object.assign(S.hol,cleanH(S.hol));let o={};try{o=JSON.parse(localStorage.getItem(HK)||'{}')||{}}catch(e){}o=cleanH(o);if(hasS())S.hol=o;return o}catch(e){return{add:[],skip:[]}}},hw=o=>{try{if(hasS()){S.hol=cleanH(o);if(typeof save==='function')save()}}catch(e){console.warn('hol save',e)}};
 const iso=d=>d.toISOString().slice(0,10);
 function list(n,all){const o=hs(),r=[],t=new Date(),y=t.getFullYear(),m=t.getMonth(),d0=t.getDate(),c0=pp(PF,new Date(Date.UTC(y,m,d0,12))),ey=c0.m>=7?c0.y+1:c0.y;
  for(let i=0;i<420&&r.length<n;i++){const u=new Date(Date.UTC(y,m,d0+i,12)),p=pp(PF,u),q=pp(IF,u),k=p.y+'-'+p.m+'-'+p.d,pk=p.m+'/'+p.d,qk=q.m+'/'+q.d;if(all&&(p.y>ey||(p.y===ey&&p.m>3)))break;
-  let ti=o.add.find(x=>x.k===k);ti=ti?ti.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||((window.S&&S.closed&&S.closed[iso(u)])?'تعطیلی مدرسه':null);
+  let ti=o.add.find(x=>x.k===k);ti=ti?ti.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||((hasS()&&S.closed&&S.closed[iso(u)])?'تعطیلی مدرسه':null);
   if(ti&&!o.skip.includes(k)&&![4,5].includes(u.getUTCDay()))r.push({k,t:ti,at:new Date(y,m,d0+i),u,p})}
  return r}
 window.nextHol=()=>{try{const L=list(3),n=new Date();const A=L.filter(x=>x.at>n||(x.at.toDateString()===n.toDateString()));const h=A[0];if(!h)return null;
  const sameDay=h.at.toDateString()===n.toDateString();const at=sameDay?new Date(n.getTime()+864e5*0):h.at;
  const ds=h.u.toLocaleDateString('fa-IR-u-ca-persian',{timeZone:'UTC',weekday:'long',day:'numeric',month:'long'});
  return{at:sameDay?new Date(n.getTime()+1000):h.at,title:sameDay?'امروز تعطیل است: '+h.t:'تعطیلی بعدی: '+h.t,when:ds,next:A[1]?A[1].t:''}}catch(e){return null}};
+/* نوع روز: work | weekend | official | closed — فقط اطلاع‌رسانی؛ هیچ قفلی ایجاد نمی‌کند.
+   منطق عنوان دقیقاً مثل list() است (add ← ثابت ← مصوب/قمری ← تعطیلی مدرسه؛ skip حذف می‌کند). */
+window.dayType=k=>{try{const u=new Date(k+'T12:00:00Z'),w=u.getUTCDay(),o=hs();
+ if(w===4||w===5)return{kind:'weekend',label:w===4?'پنجشنبه':'جمعه'};
+ const p=pp(PF,u),q=pp(IF,u),jk=p.y+'-'+p.m+'-'+p.d,pk=p.m+'/'+p.d,qk=q.m+'/'+q.d;
+ const ad=o.add.find(x=>x.k===jk);
+ let ti=ad?ad.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||null;
+ const closed=!!(hasS()&&S.closed&&S.closed[k]);
+ if(o.skip.includes(jk)&&!closed)return{kind:'work',label:''};
+ if(closed&&!ti)return{kind:'closed',label:'تعطیلی مدرسه'};
+ if(ti&&!o.skip.includes(jk))return{kind:closed?'closed':'official',label:ti};
+ return{kind:closed?'closed':'work',label:closed?'تعطیلی مدرسه':''}}catch(e){return{kind:'work',label:''}}};
 let ED=null;
 const WD=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
 function holCard(){const b=$('setBody');if(!b||$('hlCard'))return;const o=hs(),L=list(999,true),G={};
@@ -30,7 +45,7 @@ function holCard(){const b=$('setBody');if(!b||$('hlCard'))return;const o=hs(),L
 document.addEventListener('click',e=>{const t=e.target.closest('[data-hl]');if(!t)return;const o=hs(),a=t.dataset.hl,f=s=>String(s).replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
  if(a==='s')o.skip.push(t.dataset.k);else if(a==='r')o.skip=[];else if(a==='c')ED=null;
  else if(a==='e'){const [y,m,d]=t.dataset.k.split('-');ED={k:t.dataset.k,v:{y,m,d,t:t.dataset.t}}}
- else if(a==='a'){const y=+f($('hl_y').value),m=+f($('hl_m').value),d=+f($('hl_d').value),ti=$('hl_t').value.trim();if(!(y>1300&&m>=1&&m<=12&&d>=1&&d<=31)||!ti){$('hl_x').textContent='سال، ماه، روز و عنوان را درست وارد کنید';return}
+ else if(a==='a'){const y=+f($('hl_y').value),m=+f($('hl_m').value),d=+f($('hl_d').value),ti=$('hl_t').value.trim();if(!ti||!(window.JDate?JDate.isValid(y,m,d):(y>1300&&m>=1&&m<=12&&d>=1&&d<=31))){$('hl_x').textContent=(!ti?'عنوان تعطیلی را بنویسید':'این تاریخ شمسی وجود ندارد (مثلاً ۳۰ اسفند فقط در سال کبیسه است)');return}
   if(ED){o.add=o.add.filter(x=>x.k!==ED.k);if(!o.skip.includes(ED.k))o.skip.push(ED.k);ED=null}
   const nk=y+'-'+m+'-'+d;o.skip=o.skip.filter(x=>x!==nk);o.add=o.add.filter(x=>x.k!==nk);o.add.push({k:nk,t:ti})}
  hw(o);const c=$('hlCard');if(c)c.remove();holCard()});

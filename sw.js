@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v136';
+const C='cl-v138';
 const A=[
   './',
   './index.html',
@@ -32,6 +32,7 @@ const A=[
   './assets/js/boot/03-storage-boot.js',
   './assets/js/boot/04-nav-collapse.js',
   './assets/js/core/storage-partitions.js',
+  './assets/js/core/jdate.js',
   './assets/js/core/app-core.js',
   './assets/js/features/activities.js',
   './assets/js/features/smart-home-scores.js',

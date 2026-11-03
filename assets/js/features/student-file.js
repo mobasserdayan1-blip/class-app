@@ -77,7 +77,7 @@ const MS=[7,8,9,10,11,12,1,2,3];let fq='r';
 $('fr_d1').innerHTML=$('fr_d2').innerHTML=Array.from({length:31},(_,i)=>`<option value="${i+1}">${fa(i+1)}</option>`).join('');
 $('fr_m1').innerHTML=$('fr_m2').innerHTML=MS.map(m=>`<option value="${m}">${MN[m-1]}</option>`).join('');$('fr_d2').value=30;$('fr_m2').value=3;$('fr_m1').value=7;
 $('fr_q').onclick=e=>{const q=e.target.dataset.q;if(!q)return;fq=q;[...$('fr_q').children].forEach(b=>b.classList.toggle('on',b.dataset.q===q));$('fr_r').style.display=q==='r'?'flex':'none'};
-const yy=m=>m>=7?SY:SY+1,ld=m=>m<=6?31:m===12?29:30;
+const yy=m=>m>=7?SY:SY+1,ld=m=>window.JDate?JDate.monthLen(yy(m),m):(m<=6?31:m===12?29:30);
 function rng(){let a,b,l;if(fq==='y'||(fq==='m'&&!+$('rm').value)){a=fromJ(SY,7,1);b=fromJ(SY+1,3,31);l='سال تحصیلی '+syLab(SY)}
  else if(fq==='s1'||fq==='s2'){const v=window.semGet(fq==='s1'?1:2),m1=v[0],d1=v[1],m2=v[2],d2=v[3];a=fromJ(yy(m1),m1,d1);b=fromJ(yy(m2),m2,d2);l='نیمسال '+(fq==='s1'?'اول':'دوم')+' ('+fa(d1)+' '+MN[m1-1]+' تا '+fa(d2)+' '+MN[m2-1]+')'}
  else if(fq==='m'){const m=+$('rm').value;a=fromJ(yy(m),m,1);b=fromJ(yy(m),m,ld(m));l='ماه '+MN[m-1]}

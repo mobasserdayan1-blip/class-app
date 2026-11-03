@@ -1,21 +1,21 @@
 /* تعطیلات و برنامه‌ی مدرسه */
 (function(){
 const $=id=>document.getElementById(id),E=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
-const PF=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'}),IF=new Intl.DateTimeFormat('en-u-ca-islamic-civil-nu-latn',{timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'});
+const PF=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'});
 const pp=(f,d)=>{const o={};f.formatToParts(d).forEach(p=>{if(p.type==='year'||p.type==='relatedYear')o.y=+p.value;else if(p.type==='month')o.m=+p.value;else if(p.type==='day')o.d=+p.value});return o};
 const MNm=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
-const FIX={'1/1':'عید نوروز','1/2':'عید نوروز','1/3':'عید نوروز','1/4':'عید نوروز','1/12':'روز جمهوری اسلامی','1/13':'سیزده‌بدر','3/14':'رحلت امام خمینی','3/15':'قیام ۱۵ خرداد','11/22':'پیروزی انقلاب اسلامی','12/29':'ملی شدن صنعت نفت'};
-const LUN={'1/9':'تاسوعا','1/10':'عاشورا','2/20':'اربعین','2/28':'رحلت پیامبر و شهادت امام حسن','2/30':'شهادت امام رضا','3/17':'میلاد پیامبر و امام صادق','6/3':'شهادت حضرت فاطمه','7/13':'میلاد امام علی','7/27':'مبعث','8/15':'نیمه شعبان','9/21':'شهادت امام علی','10/1':'عید فطر','10/2':'تعطیل بعد از عید فطر','10/25':'شهادت امام صادق','12/10':'عید قربان','12/18':'عید غدیر'};
-/* تقویم رسمی (مصوب) مناسبت‌های قمری؛ برای این سال‌ها به‌جای تخمین خودکار استفاده می‌شود */
-const OFF={1405:{'1/25':'شهادت امام جعفر صادق (ع)','3/6':'عید سعید قربان','3/14':'عید سعید غدیر خم','4/3':'تاسوعای حسینی','4/4':'عاشورای حسینی','5/13':'اربعین حسینی','5/21':'رحلت پیامبر و شهادت امام حسن','5/22':'شهادت امام رضا','5/30':'شهادت امام حسن عسکری','8/22':'شهادت حضرت فاطمه زهرا (س)','10/2':'ولادت امام علی (ع)','10/16':'مبعث پیامبر اکرم (ص)','11/4':'ولادت حضرت قائم (عج)','12/9':'شهادت امام علی (ع)','12/19':'عید سعید فطر','12/20':'تعطیل به مناسبت عید فطر'},1406:{'1/14':'شهادت امام جعفر صادق (ع)','2/27':'عید سعید قربان','3/4':'عید سعید غدیر خم','3/24':'تاسوعای حسینی','3/25':'عاشورای حسینی'}};
+/* تعطیلات رسمی: داده در core/official-holidays.js (ثابت‌های شمسی + قمری‌های تأییدشده‌ی هر سال).
+   مناسبت قمری سالی که ثبت نشده «حدس» زده نمی‌شود؛ فقط ثابت‌ها می‌آیند و پوشش سال 'fixed-only' است. */
+const OH=window.OfficialHolidays||{titles:()=>[],coverage:()=>'none',ofYear:()=>[],years:()=>[],ASOF:'',SRC:''};
+const offT=p=>{const a=OH.titles(p.y,p.m,p.d);return a.length?a.join(' · '):null};
 /* تعطیلات ویرایش‌شده حالا داخل S.hol است (در پشتیبان/ابر می‌آید). کلید قدیمی cl_hol2 فقط یک‌بار برای مهاجرت خوانده می‌شود و پاک نمی‌شود. */
 /* S با let تعریف شده و روی window نیست؛ پس window.S همیشه undefined است */
 const hasS=()=>typeof S!=='undefined'&&!!S,HK='cl_hol2',cleanH=o=>({add:Array.isArray(o&&o.add)?o.add:[],skip:Array.isArray(o&&o.skip)?o.skip:[]});
 const hs=()=>{try{if(hasS()&&S.hol&&typeof S.hol==='object')return S.hol=Object.assign(S.hol,cleanH(S.hol));let o={};try{o=JSON.parse(localStorage.getItem(HK)||'{}')||{}}catch(e){}o=cleanH(o);if(hasS())S.hol=o;return o}catch(e){return{add:[],skip:[]}}},hw=o=>{try{if(hasS()){S.hol=cleanH(o);if(typeof save==='function')save()}}catch(e){console.warn('hol save',e)}};
 const iso=d=>d.toISOString().slice(0,10);
 function list(n,all){const o=hs(),r=[],t=new Date(),y=t.getFullYear(),m=t.getMonth(),d0=t.getDate(),c0=pp(PF,new Date(Date.UTC(y,m,d0,12))),ey=c0.m>=7?c0.y+1:c0.y;
- for(let i=0;i<420&&r.length<n;i++){const u=new Date(Date.UTC(y,m,d0+i,12)),p=pp(PF,u),q=pp(IF,u),k=p.y+'-'+p.m+'-'+p.d,pk=p.m+'/'+p.d,qk=q.m+'/'+q.d;if(all&&(p.y>ey||(p.y===ey&&p.m>3)))break;
-  let ti=o.add.find(x=>x.k===k);ti=ti?ti.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||((hasS()&&S.closed&&S.closed[iso(u)])?'تعطیلی مدرسه':null);
+ for(let i=0;i<420&&r.length<n;i++){const u=new Date(Date.UTC(y,m,d0+i,12)),p=pp(PF,u),k=p.y+'-'+p.m+'-'+p.d;if(all&&(p.y>ey||(p.y===ey&&p.m>3)))break;
+  let ti=o.add.find(x=>x.k===k);ti=ti?ti.t:offT(p)||((hasS()&&S.closed&&S.closed[iso(u)])?'تعطیلی مدرسه':null);
   if(ti&&!o.skip.includes(k)&&![4,5].includes(u.getUTCDay()))r.push({k,t:ti,at:new Date(y,m,d0+i),u,p})}
  return r}
 window.nextHol=()=>{try{const L=list(3),n=new Date();const A=L.filter(x=>x.at>n||(x.at.toDateString()===n.toDateString()));const h=A[0];if(!h)return null;
@@ -36,15 +36,20 @@ window.schoolDays={names:WKN,days:wkGet,configured:()=>!!wkGet(),
 /* نوع روز: work | weekend | official | closed — فقط اطلاع‌رسانی؛ هیچ قفلی ایجاد نمی‌کند.
    منطق عنوان دقیقاً مثل list() است (add ← ثابت ← مصوب/قمری ← تعطیلی مدرسه؛ skip حذف می‌کند). */
 window.dayType=k=>{try{const u=new Date(k+'T12:00:00Z'),w=u.getUTCDay(),o=hs();
- {const wd=wkGet(),wi=(w+1)%7;if(wd&&!wd.includes(wi))return{kind:'weekend',label:WKN[wi]}}
- const p=pp(PF,u),q=pp(IF,u),jk=p.y+'-'+p.m+'-'+p.d,pk=p.m+'/'+p.d,qk=q.m+'/'+q.d;
- const ad=o.add.find(x=>x.k===jk);
- let ti=ad?ad.t:FIX[pk]||(OFF[p.y]?OFF[p.y][pk]:LUN[qk])||null;
- const closed=!!(hasS()&&S.closed&&S.closed[k]);
- if(o.skip.includes(jk)&&!closed)return{kind:'work',label:''};
- if(closed&&!ti)return{kind:'closed',label:'تعطیلی مدرسه'};
- if(ti&&!o.skip.includes(jk))return{kind:closed?'closed':'official',label:ti};
- return{kind:closed?'closed':'work',label:closed?'تعطیلی مدرسه':''}}catch(e){return{kind:'work',label:''}}};
+  {const wd=wkGet(),wi=(w+1)%7;if(wd&&!wd.includes(wi))return{kind:'weekend',label:WKN[wi]}}
+  const p=pp(PF,u),jk=p.y+'-'+p.m+'-'+p.d;
+  const ad=o.add.find(x=>x.k===jk),ot=offT(p);
+  let ti=ad?ad.t:ot,src=ad?'custom':'official';
+  const closed=!!(hasS()&&S.closed&&S.closed[k]);
+  if(o.skip.includes(jk)&&!closed)return{kind:'work',label:''};
+  if(closed&&!ti)return{kind:'closed',label:'تعطیلی مدرسه',src:'closed'};
+  if(ti&&!o.skip.includes(jk))return{kind:closed?'closed':'official',label:ti,src:closed?'closed':src};
+  return{kind:closed?'closed':'work',label:closed?'تعطیلی مدرسه':'',src:closed?'closed':undefined}}catch(e){return{kind:'work',label:''}}};
+/* اطلاعات تعطیلی یک روز برای رابط‌ها (فقط خواندنی): official=true فقط برای تعطیل رسمیِ فهرست کشور (نه افزوده‌ی دستی/بستن مدرسه).
+   coverage: 'full' | 'fixed-only' | 'none' — در 'fixed-only' مناسبت‌های قمری آن سال هنوز ثبت نشده (نامعلوم، نه «نیست»). */
+window.holidayInfo=k=>{try{const u=new Date(k+'T12:00:00Z'),p=pp(PF,u),dt=window.dayType(k),cv=OH.coverage(p.y),o=hs(),jk=p.y+'-'+p.m+'-'+p.d;
+  return{kind:dt.kind,label:dt.label||'',src:dt.src||null,official:dt.kind==='official'&&dt.src==='official',coverage:cv,
+   removed:o.skip.includes(jk)&&!!offT(p),lunarUnknown:cv!=='full'}}catch(e){return{kind:'work',label:'',src:null,official:false,coverage:'none',removed:false,lunarUnknown:true}}};
 let ED=null,WKD=null;
 /* کارت «روزهای کاری مدرسه» در تنظیمات */
 const wkSel=()=>WKD||(wkGet()||[0,1,2,3,4]).slice();
@@ -68,10 +73,14 @@ function wkAct(e){const t=e.target.closest&&e.target.closest('[data-wk]');if(!t)
 document.addEventListener('click',wkAct);document.addEventListener('change',wkAct);
 {const b=$('setBody');if(b){new MutationObserver(wkCard).observe(b,{childList:true});wkCard()}}
 const WD=['یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه'];
+/* یادداشت پوشش داده‌ی رسمی برای سال‌های بازه‌ی گزارش */
+function covNote(){const t=new Date(),c=pp(PF,new Date(Date.UTC(t.getFullYear(),t.getMonth(),t.getDate(),12))),ey=c.m>=7?c.y+1:c.y,ys=[c.y];if(ey!==c.y)ys.push(ey);
+ const miss=ys.filter(y=>OH.coverage(y)!=='full');
+ return '<p class="sub" style="text-align:right;margin:6px 0;'+(miss.length?'color:#8a5a00':'')+'">'+(miss.length?'⚠️ مناسبت‌های قمری سال '+miss.map(fa).join(' و ')+' هنوز در برنامه ثبت نشده (نامعلوم، نه «تعطیل نیست») و فقط تعطیلات ثابت شمسی دیده می‌شوند. پس از انتشار تقویم رسمی، جدول '+'<code>core/official-holidays.js</code> را به‌روز کنید یا موارد را با «➕ افزودن تعطیلی» دستی بنویسید. ':'✅ تعطیلات رسمی این سال‌ها کامل ثبت شده‌اند. ')+'آخرین به‌روزرسانی جدول: '+fa(OH.ASOF||'—')+'.</p>'}
 function holCard(){const b=$('setBody');if(!b||$('hlCard'))return;const o=hs(),L=list(999,true),G={};
  L.forEach(x=>{const key=x.p.y+'-'+x.p.m;(G[key]=G[key]||{y:x.p.y,m:x.p.m,a:[]}).a.push(x)});
  const ev=ED&&ED.v||{},rows=Object.values(G).map(g=>'<div style="margin:10px 0 4px;font-weight:800;color:var(--p)">📅 '+MNm[g.m-1]+' '+fa(g.y)+' <small style="font-weight:400">('+fa(g.a.length)+' روز)</small></div>'+g.a.map(x=>'<div class="crow"><div><b>'+E(x.t)+'</b><small>'+WD[x.u.getUTCDay()]+' '+fa(x.p.d)+' '+MNm[x.p.m-1]+'</small></div><div style="display:flex;gap:6px"><button class="sm" data-hl="e" data-k="'+x.k+'" data-t="'+E(x.t)+'">✏️ ویرایش</button><button class="dl" data-hl="s" data-k="'+x.k+'">حذف</button></div></div>').join('')).join('');
- b.insertAdjacentHTML('beforeend','<div class="card" id="hlCard"><b>🎉 گزارش تعطیلات مدرسه تا پایان سال تحصیلی (خرداد)</b><p class="sub" style="text-align:right;margin:6px 0">فقط روزهایی که مدرسه باز است (شنبه تا چهارشنبه؛ پنجشنبه و جمعه خودش تعطیل است). جمع: <b>'+fa(L.length)+'</b> روز تعطیل از امروز تا پایان خرداد. تعطیلات ثابت شمسی و مناسبت‌های قمری خودکار حساب می‌شوند؛ تاریخ مناسبت‌های قمری ممکن است یک روز با تقویم رسمی فرق کند، پس هر مورد را می‌توانید ویرایش یا حذف کنید.</p>'+(rows||'<p class="sub">تعطیلی‌ای در این بازه نیست.</p>')+
+ b.insertAdjacentHTML('beforeend','<div class="card" id="hlCard"><b>🎉 گزارش تعطیلات مدرسه تا پایان سال تحصیلی (خرداد)</b><p class="sub" style="text-align:right;margin:6px 0">فقط روزهایی که مدرسه باز است (شنبه تا چهارشنبه؛ پنجشنبه و جمعه خودش تعطیل است). جمع: <b>'+fa(L.length)+'</b> روز تعطیل از امروز تا پایان خرداد. تعطیلات رسمی از جدول تأییدشده‌ی تقویم کشور می‌آیند (مناسبت‌های قمری هر سال حدس زده نمی‌شوند). هر مورد را می‌توانید ویرایش یا حذف کنید.</p>'+covNote()+(rows||'<p class="sub">تعطیلی‌ای در این بازه نیست.</p>')+
  (o.skip.length?'<button class="sm" data-hl="r" style="margin-top:6px">بازگرداندن '+fa(o.skip.length)+' تعطیلی حذف‌شده</button>':'')+
  '<b style="display:block;margin-top:12px">'+(ED?'✏️ ویرایش تعطیلی':'➕ افزودن تعطیلی')+'</b><div class="cadd" style="margin-top:8px"><input id="hl_y" inputmode="numeric" placeholder="سال (۱۴۰۵)" value="'+(ev.y||'')+'"><input id="hl_m" inputmode="numeric" placeholder="ماه (۱ تا ۱۲)" value="'+(ev.m||'')+'"><input id="hl_d" inputmode="numeric" placeholder="روز" value="'+(ev.d||'')+'"><input id="hl_t" placeholder="عنوان تعطیلی" value="'+E(ev.t||'')+'"></div><button class="big" data-hl="a" style="font-size:15px;padding:12px;margin-top:8px">'+(ED?'💾 ذخیره‌ی ویرایش':'➕ افزودن تعطیلی')+'</button>'+(ED?'<button class="sm" data-hl="c" style="margin-top:6px">انصراف</button>':'')+'<p class="sub" id="hl_x"></p></div>')}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-hl]');if(!t)return;const o=hs(),a=t.dataset.hl,f=s=>String(s).replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c));

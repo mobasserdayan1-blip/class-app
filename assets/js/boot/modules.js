@@ -4,6 +4,7 @@
 window.APP_MODULES=[
   {src:'assets/js/core/storage-partitions.js'},
   {src:'assets/js/core/jdate.js'},
+  {src:'assets/js/core/official-holidays.js'},
   {src:'assets/js/core/app-core.js'},
   {src:'assets/js/features/activities.js'},
   {src:'assets/js/features/smart-home-scores.js'},

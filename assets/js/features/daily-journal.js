@@ -143,6 +143,14 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 .dj-calgrid button.td{box-shadow:inset 0 0 0 2px var(--p)}
 .dj-calgrid button.wk{color:#c0262c}.dj-calgrid button.ho{color:#c0262c;background:#c0262c1f}
 .dj-calgrid button.fu{opacity:.55}
+.dj-calgrid button.of{color:#a8101a;font-weight:900;background:#c0262c3a;box-shadow:inset 0 -3px 0 #c0262c}
+.dj-calgrid button.of::before{content:'★';position:absolute;top:1px;right:3px;font-size:9px;line-height:1;color:#c0262c}
+.dj-calgrid button.cu{background:#d986001f;color:#8a5a00}
+.dj-calgrid button.on.of,.dj-calgrid button.on.cu{color:#fff}
+.dj-calgrid button.on.of::before{color:#fff}
+.dj-hol{margin-top:10px;padding-top:8px;border-top:1px solid var(--line,#eee);font-size:12px;line-height:1.9;max-height:120px;overflow:auto;text-align:right}
+.dj-hol b{color:#a8101a}.dj-hol .cov{color:#8a5a00}
+#dj .dj-ho{background:#c0262c1a;color:#8a1219;border-radius:12px;padding:9px 12px;margin:8px 0;font-size:13px;border:1px solid #c0262c55}
 .dj-calgrid button.on.wk,.dj-calgrid button.on.ho{color:#fff}
 .dj-calgrid button{position:relative}
 .dj-calgrid button.hd::after{content:'';position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#1a8f55}
@@ -168,11 +176,16 @@ try{if(!pages.some(p=>p[0]==='dj')){const i=pages.findIndex(p=>p[0]==='wsc');pag
 
 /* تقویم شمسیِ انتخاب روز دفتر — هر روزِ گذشته/آینده قابل انتخاب است؛ خروجی همیشه ISO میلادی (مثل قبل) */
 function recDays(){const o=new Set(),d=D();Object.keys(d.m||{}).forEach(x=>o.add(x.split('|')[0]));Object.keys(d.ses||{}).forEach(x=>o.add(x.split('|')[0]));return o}
-function dayKind(k){/* فقط برای نمایش در تقویم */
- try{if(typeof window.dayType==='function'){const t=window.dayType(k);if(t&&t.kind&&t.kind!=='work')return{c:t.kind==='weekend'?'wk':'ho',t:t.label||''}}}catch(e){}
+function hinfo(k){try{if(typeof window.holidayInfo==='function')return window.holidayInfo(k)}catch(e){}return null}
+function dayKind(k){/* فقط برای نمایش در تقویم — of: تعطیل رسمی کشور؛ cu: افزوده‌ی دستی/تعطیلی مدرسه؛ wk: تعطیل هفتگی */
+ try{const h=hinfo(k);if(h){if(h.kind==='weekend')return{c:'wk',t:h.label||''};
+  if(h.official)return{c:'ho of',t:h.label||'تعطیل رسمی',off:1};
+  if(h.kind!=='work')return{c:'ho cu',t:h.label||'',off:2}}}catch(e){}
  if(wkOff(k))return{c:'wk',t:WDN[dow(k)]};
- if(S.closed&&S.closed[k])return{c:'ho',t:'تعطیلی مدرسه'};
+ if(S.closed&&S.closed[k])return{c:'ho cu',t:'تعطیلی مدرسه',off:2};
  return null}
+/* مناسبت‌های رسمی/دستی یک ماه شمسی برای زیر تقویم */
+function monthHol(y,m){const out=[],n=jlen(y,m);for(let d=1;d<=n;d++){const k=jiso(y,m,d);if(!k)continue;const h=hinfo(k);if(h&&h.kind!=='work'&&h.kind!=='weekend'&&h.label)out.push({d,k,t:h.label,o:h.official})}return out}
 function calHtml(){
  if(!st.cal)return'';
  const {y,m}=st.cal,t=todayK(),tp=jparts(t),first=jiso(y,m,1);
@@ -185,8 +198,9 @@ function calHtml(){
  h+='<i></i>'.repeat(off);
  for(let d=1;d<=days;d++){const k=jiso(y,m,d);if(!k){h+='<i></i>';continue}
   const dk=dayKind(k),c=[k===st.k?'on':'',k===t?'td':'',dk?dk.c:'',k>t?'fu':'',rec.has(k)?'hd':''].filter(Boolean).join(' ');
-  h+=`<button type="button" class="${c}" data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?' — '+dk.t:'')+(rec.has(k)?' — دارای ثبت':''))}">${fa(d)}</button>`}
- return h+`</div><div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · قرمز: تعطیل${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
+  h+=`<button type="button" class="${c}" data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?(dk.off===1?' — تعطیل رسمی: ':' — ')+dk.t:'')+(rec.has(k)?' — دارای ثبت':''))}">${fa(d)}</button>`}
+ {const mh=monthHol(y,m),hi=hinfo(first);h+=`</div><div class="dj-hol">${mh.length?mh.map(x=>`<div>${x.o?'<b>★</b>':'▪'} ${fa(x.d)} ${JMN[m-1]} — ${esc(x.t)}</div>`).join(''):'<div>مناسبت یا تعطیلی ثبت‌شده‌ای در این ماه نیست.</div>'}${hi&&hi.lunarUnknown?`<div class="cov">⚠️ مناسبت‌های قمری سال ${fa(y)} هنوز در برنامه ثبت نشده (نامعلوم، نه «تعطیل نیست»)؛ فقط تعطیلات ثابت شمسی دیده می‌شوند.</div>`:''}</div>`}
+ return h+`<div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · ★ تعطیل رسمی · قرمز: تعطیل هفتگی${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
 }
 
 /* رندر */
@@ -196,7 +210,7 @@ function render(){const s=$('dj');if(!s)return;
  let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان در هر زنگ؛ همه‌ی اطلاعات به پرونده‌ی دانش‌آموز می‌رود.</p>`;
  h+=`<div class="card"><div class="dj-hd"><button class="dj-sm" data-dj="nav:-1">‹ روز قبل</button><button type="button" class="dj-day" data-dj="calendar" aria-label="انتخاب تاریخ">${esc(dlab(k))}${k===t?' <small>(امروز)</small>':''}</button><button class="dj-sm" data-dj="nav:1">روز بعد ›</button>${k!==t?`<button class="dj-sm" data-dj="today">امروز</button>`:''}</div>`;
  if(!wkSet()&&dow(k)>4)h+=`<div class="dj-warn">روزهای کاری مدرسه هنوز تنظیم نشده و این روز تعطیل فرض نشده است. اگر مدرسه‌ی شما این روز تعطیل است، <button type="button" class="dj-sm" data-dj="setwk">⚙️ روزهای کاری را تنظیم کنید</button></div>`;
- if(isOff(k))h+=`<div class="dj-warn">این روز تعطیل است. اگر زنگی برگزار شده، با «＋ زنگ دستی» ثبت کنید.</div>`;
+ if(isOff(k)){const hi=hinfo(k),nrec=L.length;if(hi&&hi.official)h+=`<div class="dj-ho" id="djHol">🎉 <b>تعطیل رسمی:</b> ${esc(hi.label)}<br><small>این روز «دفتر ثبت‌نشده» یا ناقص حساب نمی‌شود. ${nrec?`سوابق این روز: <b>${fa(nrec)}</b> زنگ ثبت‌شده در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ اگر کلاسی برگزار شده، با «＋ زنگ دستی» ثبت کنید.'}</small></div>`;else h+=`<div class="dj-warn">این روز تعطیل است${hi&&hi.label?' ('+esc(hi.label)+')':''}. ${nrec?`سوابق ثبت‌شده‌ی این روز: ${fa(nrec)} زنگ.`:'اگر زنگی برگزار شده، با «＋ زنگ دستی» ثبت کنید.'}</div>`}
  else if(!L.length)h+=`<div class="dj-warn">برای این روز در برنامه‌ی هفتگی زنگ درسی چیده نشده است. در بخش «برنامه هفتگی» درس‌ها را بچینید یا از «＋ زنگ دستی» استفاده کنید.</div>`;
  h+=`<div class="dj-bl">${L.map(x=>`<button class="dj-ch${x.b===st.b?' on':''}" data-dj="bell:${esc(x.b)}">${SI[stat(k,x.b)]} ${esc(bellName(k,x))}${x.s?` <small>${fa(x.s)}</small>`:''}</button>`).join('')}<button class="dj-ch" data-dj="manual">＋ زنگ دستی</button></div></div>`;
  h+=calHtml();

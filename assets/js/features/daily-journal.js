@@ -68,7 +68,8 @@ function dayBells(k){const L=bells(k).map(x=>({b:x.i,s:x.s,cids:x.cids,man:false
  Object.keys(d.ses).forEach(key=>{if(key.indexOf(k+'|')!==0)return;const b=key.slice(k.length+1);if(!L.some(x=>x.b===b)){const s=d.ses[key];L.push({b,s:'',cids:[s.c],man:true})}});
  return L.sort((a,b)=>(a.man-b.man)||(+String(a.b).replace(/\D/g,'')||0)-(+String(b.b).replace(/\D/g,'')||0))}
 const bellName=(k,x)=>{const s=getSes(k,x.b);const c=s?[s.c]:x.cids;const nm=c.map(cname).join(' + ');return(x.man?(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||'')):'زنگ '+ORD[+x.b])+' · '+nm}
-function itemsOf(s){return s?tplOf(s.c):[]}
+/* فعالیت‌هایی که در این زنگ سابقه دارند اما بعداً از فهرست پیشنهادی حذف شده‌اند همچنان با نام و نوعِ ثبت‌شده (Snapshot) نمایش داده می‌شوند */
+function itemsOf(s){if(!s)return[];const t=tplOf(s.c),ids=new Set(t.map(x=>x.id));const old=Object.keys(s.it||{}).filter(id=>!ids.has(id)&&s.it[id]).map(id=>({id,n:s.it[id].n,t:s.it[id].t==='d'?'d':'g',hw:s.it[id].hw?1:0,old:1}));return t.concat(old)}
 const cnt=(k,b,id)=>Object.keys(D().m[k+'|'+b+'|'+id]||{}).filter(sid=>!absent(k,+sid)).length;
 const presN=k=>sts().filter(s=>!absent(k,s.id)).length;
 function stat(k,b){const s=getSes(k,b);if(s&&s.st==='skip')return'skip';const ids=Object.keys((s&&s.it)||{});if(!ids.length)return'none';const p=presN(k);return ids.every(id=>cnt(k,b,id)>=p)?'full':'part'}
@@ -225,7 +226,7 @@ function sessionCard(k,b,s){
  <div class="dj-nt" style="margin-top:6px"><input class="dj-in" data-f="snote" placeholder="یادداشت کلی این زنگ (اختیاری)" value="${esc(s.nt||'')}"></div>
  <div style="margin-top:8px"><button class="dj-sm" data-dj="skip">${sk?'↩️ برگرداندن به حالت ثبت':'➖ این زنگ ثبت نمی‌شود'}</button></div></div>`;
  if(sk)return h+`<div class="dj-warn">این زنگ «بدون ثبت» علامت خورده و در فهرست ثبت‌نشده‌ها نمی‌آید.</div>`;
- h+=`<div class="card"><b>فعالیت‌های این درس</b><div class="dj-it">${items.map(it=>{const c=cnt(k,b,it.id);return`<button class="dj-ch${it.id===st.item?' on':''}" data-dj="item:${esc(it.id)}">${esc(it.n)}${c?` <small>${fa(c)}/${fa(pn)}</small>`:''}</button>`}).join('')}<button class="dj-sm" data-dj="tpl">⚙️ ویرایش فعالیت‌ها</button></div>`;
+ h+=`<div class="card"><b>فعالیت‌های این درس</b><div class="dj-it">${items.map(it=>{const c=cnt(k,b,it.id);return`<button class="dj-ch${it.id===st.item?' on':''}" data-dj="item:${esc(it.id)}">${esc(it.n)}${it.old?' <small>(حذف‌شده از فهرست)</small>':''}${c?` <small>${fa(c)}/${fa(pn)}</small>`:''}</button>`}).join('')}<button class="dj-sm" data-dj="tpl">⚙️ ویرایش فعالیت‌ها</button></div>`;
  if(st.tpl)h+=tplEditor(s.c);
  const it=items.find(x=>x.id===st.item);
  if(!it){h+=`<p class="sub">یک فعالیت را انتخاب کنید تا فهرست دانش‌آموزان نمایش داده شود.</p></div>`;return h}

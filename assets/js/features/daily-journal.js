@@ -13,10 +13,16 @@ const todayK=()=>{const n=new Date();return new Date(Date.UTC(n.getFullYear(),n.
 const addD=(k,n)=>{const d=new Date(k+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const dow=k=>(new Date(k+'T12:00:00Z').getUTCDay()+1)%7;
 const fmtP=(k,o)=>{try{const m={};new Intl.DateTimeFormat('fa-IR-u-ca-persian',Object.assign({timeZone:'UTC'},o)).formatToParts(new Date(k+'T12:00:00Z')).forEach(p=>{m[p.type]=p.value});return[m.weekday,m.day,m.month,m.year].filter(Boolean).join(' ')}catch(e){return k}};
-const dlab=k=>fmtP(k,{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const WDN=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
+const JMN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+/* تبدیل ISO ↔ شمسی: اول JDate (اعتبارسنج)، در نبود آن توابع قدیمی برنامه */
+function jparts(k){try{if(window.JDate)return JDate.toJ(k)}catch(e){}const p=jp(new Date(k+'T12:00:00Z'));return{y:p.y,m:p.m,d:p.d}}
+function jiso(y,m,d){try{if(window.JDate)return JDate.toIso(y,m,d)}catch(e){}try{const g=fromJ(y,m,d),p=jp(g);return(p.y===y&&p.m===m&&p.d===d)?g.toISOString().slice(0,10):null}catch(e){return null}}
+function jlen(y,m){try{if(window.JDate)return JDate.monthLen(y,m)}catch(e){}return m<=6?31:m<=11?30:(jiso(y,12,30)?30:29)}
+const dlab=k=>{try{const p=jparts(k);if(p&&p.y&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]+' '+fa(p.y)}catch(e){}return fmtP(k,{weekday:'long',day:'numeric',month:'long',year:'numeric'})};
 const nowM=()=>{const n=new Date();return n.getHours()*60+n.getMinutes()};
 const tmin=s=>{const a=String(s||'0:0').split(':').map(Number);return(a[0]||0)*60+(a[1]||0)};
-const isOff=k=>{if(dow(k)>4)return true;if(S.closed&&S.closed[k])return true;try{if(typeof hol==='function'&&hol(new Date(k+'T12:00:00Z')))return true}catch(e){}return false};
+const isOff=k=>{if(dow(k)>4)return true;if(S.closed&&S.closed[k])return true;try{if(typeof hol==='function'&&hol(new Date(k+'T12:00:00Z')))return true}catch(e){}try{if(typeof window.dayType==='function'&&window.dayType(k).kind!=='work')return true}catch(e){}return false};
 const D=()=>{S.dj=S.dj||{};const o=S.dj;o.tpl=o.tpl||{};o.ses=o.ses||{};o.m=o.m||{};o.n=o.n||{};return o};
 const courses=()=>S.courses||[];
 const courseBy=id=>courses().find(c=>c.id===id);
@@ -81,7 +87,7 @@ function setMarks(k,b,id,sids,val,toggle){
  syncHw(k,b,id,s);save();return true}
 
 let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null};
-const dshort=k=>fmtP(k,{weekday:'short',day:'numeric',month:'long'});
+const dshort=k=>{try{const p=jparts(k);if(p&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]}catch(e){}return fmtP(k,{weekday:'short',day:'numeric',month:'long'})};
 function viewSes(k,b){const s=getSes(k,b);if(s)return s;const bl=bells(k).find(x=>x.i===String(b));return bl?{c:bl.cids[0],tp:'',nt:''}:null}
 function flash(msg){let t=$('djFl');if(t)t.remove();t=document.createElement('div');t.id='djFl';t.className='dj-fl';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.remove()},2300)}
 
@@ -129,6 +135,19 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 .dj-calgrid span{font-size:12px;color:var(--mut);padding:5px}
 .dj-calgrid i{min-height:36px}
 .dj-calgrid button.on{background:var(--p);color:#fff}
+.dj-calgrid button.td{box-shadow:inset 0 0 0 2px var(--p)}
+.dj-calgrid button.wk{color:#c0262c}.dj-calgrid button.ho{color:#c0262c;background:#c0262c1f}
+.dj-calgrid button.fu{opacity:.55}
+.dj-calgrid button.on.wk,.dj-calgrid button.on.ho{color:#fff}
+.dj-calgrid button{position:relative}
+.dj-calgrid button.hd::after{content:'';position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#1a8f55}
+.dj-calgrid button.on.hd::after{background:#fff}
+.dj-calsel{display:flex;gap:6px;flex:1;justify-content:center}
+.dj-calsel select{border:0;border-radius:10px;padding:8px 6px;background:var(--bg2);color:var(--tx);font:800 14px Vazirmatn,Tahoma,sans-serif;max-width:46%}
+.dj-calft{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-top:12px}
+.dj-calft button{border:0;border-radius:10px;padding:9px 14px;background:var(--bg2);color:var(--tx);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
+.dj-calft button.p{background:var(--p);color:#fff}
+.dj-calft small{font-size:11px;color:var(--mut)}
 .dj-fl{position:fixed;bottom:84px;left:50%;transform:translateX(-50%);background:#222c;color:#fff;padding:10px 16px;border-radius:12px;z-index:99999;font:700 13px Vazirmatn,Tahoma,sans-serif}
 #djHome .dj-hb{padding:8px 12px;border-radius:12px;border:0;background:var(--p,#5b3fd6);color:#fff;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;margin:3px}`;
 const cs=document.createElement('style');cs.textContent=CSS;document.head.appendChild(cs);
@@ -142,16 +161,27 @@ try{if(!pages.some(p=>p[0]==='dj')){const i=pages.findIndex(p=>p[0]==='wsc');pag
  const ref=nav.querySelector('[data-p="wsc"]')||nav.querySelector('[data-p="att"]');ref?ref.after(b):nav.appendChild(b)}}catch(e){console.warn('dj nav',e)}
 
 
-/* تقویم شمسیِ انتخاب روز دفتر */
-const JMN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
-function jparts(k){const p=jp(new Date(k+'T12:00:00Z'));return{y:p.y,m:p.m,d:p.d}}
+/* تقویم شمسیِ انتخاب روز دفتر — هر روزِ گذشته/آینده قابل انتخاب است؛ خروجی همیشه ISO میلادی (مثل قبل) */
+function recDays(){const o=new Set(),d=D();Object.keys(d.m||{}).forEach(x=>o.add(x.split('|')[0]));Object.keys(d.ses||{}).forEach(x=>o.add(x.split('|')[0]));return o}
+function dayKind(k){/* فقط برای نمایش در تقویم */
+ try{if(typeof window.dayType==='function'){const t=window.dayType(k);if(t&&t.kind&&t.kind!=='work')return{c:t.kind==='weekend'?'wk':'ho',t:t.label||''}}}catch(e){}
+ if(dow(k)>4)return{c:'wk',t:dow(k)===5?'پنجشنبه':'جمعه'};
+ if(S.closed&&S.closed[k])return{c:'ho',t:'تعطیلی مدرسه'};
+ return null}
 function calHtml(){
  if(!st.cal)return'';
- const {y,m}=st.cal,first=fromJ(y,m,1),days=monthDays(first).length,off=(first.getUTCDay()+1)%7;
- let h=`<div class="dj-cal"><div class="dj-calbox"><div class="dj-calhead"><button data-dj="calprev">›</button><b>${JMN[m-1]} ${fa(y)}</b><button data-dj="calnext">‹</button><button data-dj="calclose">✕</button></div><div class="dj-calgrid">${['ش','ی','د','س','چ','پ','ج'].map(x=>`<span>${x}</span>`).join('')}`;
+ const {y,m}=st.cal,t=todayK(),tp=jparts(t),first=jiso(y,m,1);
+ if(!first){st.cal=null;return''}
+ const days=jlen(y,m),off=dow(first),rec=recDays();
+ const y0=Math.min(tp.y-12,y),y1=Math.max(tp.y+1,y);
+ let ys='';for(let i=y1;i>=y0;i--)ys+=`<option value="${i}"${i===y?' selected':''}>${fa(i)}</option>`;
+ const ms=JMN.map((n,i)=>`<option value="${i+1}"${i+1===m?' selected':''}>${n}</option>`).join('');
+ let h=`<div class="dj-cal" data-dj="calbg" role="dialog" aria-modal="true" aria-label="انتخاب تاریخ"><div class="dj-calbox"><div class="dj-calhead"><button type="button" data-dj="calprev" aria-label="ماه قبل">›</button><div class="dj-calsel"><select data-calm aria-label="ماه">${ms}</select><select data-caly aria-label="سال">${ys}</select></div><button type="button" data-dj="calnext" aria-label="ماه بعد">‹</button></div><div class="dj-calgrid">${WDN.map(x=>`<span>${x.slice(0,1)}</span>`).join('')}`;
  h+='<i></i>'.repeat(off);
- for(let d=1;d<=days;d++){const k=iso(fromJ(y,m,d));h+=`<button class="${k===st.k?'on':''}" data-dj="calday:${k}">${fa(d)}</button>`}
- return h+'</div></div></div>';
+ for(let d=1;d<=days;d++){const k=jiso(y,m,d);if(!k){h+='<i></i>';continue}
+  const dk=dayKind(k),c=[k===st.k?'on':'',k===t?'td':'',dk?dk.c:'',k>t?'fu':'',rec.has(k)?'hd':''].filter(Boolean).join(' ');
+  h+=`<button type="button" class="${c}" data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?' — '+dk.t:'')+(rec.has(k)?' — دارای ثبت':''))}">${fa(d)}</button>`}
+ return h+`</div><div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · قرمز: تعطیل</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
 }
 
 /* رندر */
@@ -211,7 +241,8 @@ function pendCard(p){
 /* رویدادها */
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
  if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
- else if(c==='calclose')st.cal=null;
+ else if(c==='calclose'||c==='calbg')st.cal=null;
+ else if(c==='caltoday'){st.k=todayK();st.cal=null;st.b=null;st.item=null;st.note=null;st.pick=new Set()}
  else if(c==='calprev'||c==='calnext'){if(st.cal){let m=st.cal.m+(c==='calnext'?1:-1),y=st.cal.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.cal={y,m}}}
  else if(c==='calday'){st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
  else if(c==='nav'){st.cal=null;st.k=addD(k,+x);st.b=null;st.item=null;st.note=null;st.pick=new Set()}
@@ -233,9 +264,10 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='tpladd'){const n=($('djNewN').value||'').trim();if(!n){flash('نام فعالیت را بنویسید');return}const s=ensureSes(k,st.b),t=ownTpl(s.c);t.push({id:'u'+Date.now(),n,t:$('djNewT').value==='d'?'d':'g',hw:0});save()}
  else if(c==='tpldel'){const s=ensureSes(k,st.b),t=ownTpl(s.c),i=t.findIndex(q=>q.id===x);if(i>=0){t.splice(i,1);if(st.item===x)st.item=null;save()}}
  render()}
-sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.disabled)return;if(t.type==='checkbox'){const id=+t.dataset.dj.split(':')[1];st.pick.has(id)?st.pick.delete(id):st.pick.add(id);return}
+sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.disabled)return;if(t.dataset.dj==='calbg'&&e.target!==t)return;if(t.type==='checkbox'){const id=+t.dataset.dj.split(':')[1];st.pick.has(id)?st.pick.delete(id):st.pick.add(id);return}
  try{act(t.dataset.dj)}catch(er){console.error('dj',er)}});
 sec.addEventListener('change',e=>{const t=e.target,k=st.k;try{
+ if(t.dataset.calm!==undefined||t.dataset.caly!==undefined){if(st.cal){const m=t.dataset.calm!==undefined?+t.value:st.cal.m,y=t.dataset.caly!==undefined?+t.value:st.cal.y;if(jiso(y,m,1))st.cal={y,m};render()}return}
  if(t.dataset.f){const s=ensureSes(k,st.b);
   if(t.dataset.f==='course'){s.c=+t.value;st.item=null;save();render()}
   else if(t.dataset.f==='topic'){s.tp=t.value.trim();save()}
@@ -269,6 +301,7 @@ function homeCard(){const sm=$('smart');if(!sm)return;const old=$('djHome');if(o
  ${cur?`<button class="dj-hb" data-djh="${t}:${cur.i}">ثبت همین زنگ</button>`:''}<button class="dj-hb" data-djh="open">باز کردن دفتر</button></div>`)}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-djh]');if(!t)return;const v=t.dataset.djh;if(v==='open'){const f=pending(3)[0];djApi.open(f?f.k:todayK(),f?f.b:null)}else{const a=v.split(':');djApi.open(a[0],a[1])}});
 
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.cal){st.cal=null;render()}});
 const _show=window.show;window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='dj'){if(!st.keep){st.k=todayK();st.b=null;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}st.keep=false;render()}else if(id==='home')homeCard()}catch(e){console.warn('dj',e)}return r};
 try{const h=$('home');if(h&&h.classList.contains('on'))homeCard()}catch(e){}
 }catch(e){console.error('daily-journal',e)}})();

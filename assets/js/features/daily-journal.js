@@ -498,7 +498,7 @@ const MXCSS=`
 .dj-modal-opt{display:flex;gap:8px;flex-wrap:wrap}
 .dj-modal-opt button{flex:1;min-width:120px;padding:9px 12px;border-radius:10px;border:1.5px solid var(--line,#cbd5e1);background:var(--card,#fff);color:var(--tx,#333);font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 .dj-modal-opt button.on{border-color:#2563eb;background:#2563eb12;color:#1d4ed8}
-.dj-modal-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;border-top:1px solid var(--line,#e2e8f0);padding-top:12px}`;
+.dj-modal-ft{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;border-top:1px solid var(--line,#e2e8f0);padding-top:12px}.dj-modal-ft .dj-sm{white-space:nowrap;flex:none}.dj-modal-ft .big{flex:1}`;
 const cs=document.createElement('style');cs.textContent=CSS+PENDCSS+MXCSS;document.head.appendChild(cs);
 
 /* داده‌های اولیه نمونه بر اساس کلاس و تصویر کاربر */
@@ -616,6 +616,22 @@ function calHtml(){
  return h+`<div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · ★ تعطیل رسمی · قرمز: تعطیل هفتگی · نارنجی: تعطیلی اختصاصی (قاب قرمز = اضطراری) · روزهای تعطیل قابل انتخاب نیستند${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
 }
 
+/* ثبت‌های «فعالیت کلاسی» (S.activities) برای یک روز */
+const caDay=k=>(S.activities||[]).filter(x=>x&&x.date===k).sort((a,b)=>(a.ts||a.id||0)-(b.ts||b.id||0));
+function caLabel(x){const A=window.ACTX,ac=A&&A.isAcad?A.isAcad(x.kind):false;return ac?(x.type==='positive'?['✅ مسلط','#1a8f55','#e6f6ee']:['🔄 نیاز به تمرین','#b26a00','#fff4dc']):(x.type==='positive'?['🌟 مثبت','#1a8f55','#e6f6ee']:['💪 نیاز به تلاش بیشتر','#b26a00','#fff4dc'])}
+function classActsHtml(k){
+ const A=caDay(k),X=window.ACTX||{};
+ const head=`<div class="dj-ph"><b style="font-size:15px;color:#1e3a8a">🌟 فعالیت‌های کلاسی دانش‌آموزان در این روز</b><button type="button" class="dj-sm" data-dj="gotoact">↗ ثبت در صفحه‌ی فعالیت کلاسی</button></div>`;
+ if(!A.length)return `<div class="card dj-ca-card">${head}<div class="dj-mxem" style="padding:14px">برای این روز هنوز فعالیت کلاسی (پاسخ به سؤال، ارائه، مشارکت و…) ثبت نشده است. این ثبت‌ها از صفحه‌ی «فعالیت کلاسی» می‌آیند و اینجا یک‌جا کنار دفتر روزانه دیده می‌شوند.</div></div>`;
+ const pos=A.filter(x=>x.type==='positive').length,eff=A.length-pos,stu=new Set(A.map(x=>x.sid)).size;
+ const nm=sid=>((sts().find(z=>z.id===sid)||{}).name)||'—';
+ const tm=x=>{try{return x.ts?new Date(x.ts).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}):''}catch(e){return''}};
+ const rows=A.map((x,i)=>{const L=caLabel(x),wh=X.where?X.where(x):(x.tl||'');
+  return `<tr><td style="text-align:center;font-weight:800">${fa(i+1)}</td><td style="font-weight:800">${esc(nm(x.sid))}</td><td>${esc(wh||'—')}</td><td>${esc(X.kl?X.kl(x):(x.kind||'سایر'))}</td><td style="text-align:center"><span style="padding:2px 8px;border-radius:6px;font-size:11px;font-weight:900;color:${L[1]};background:${L[2]}">${L[0]}</span></td><td>${esc(x.note||'')}</td><td style="text-align:center;color:var(--mut,#64748b);font-size:11.5px">${esc(tm(x))}</td></tr>`}).join('');
+ return `<div class="card dj-ca-card">${head}
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px;font-size:12px;font-weight:800"><span style="background:#eef2ff;color:#3730a3;padding:3px 10px;border-radius:8px">${fa(A.length)} ثبت</span><span style="background:#eef2ff;color:#3730a3;padding:3px 10px;border-radius:8px">${fa(stu)} دانش‌آموز</span><span style="background:#e6f6ee;color:#1a8f55;padding:3px 10px;border-radius:8px">${fa(pos)} مثبت / مسلط</span><span style="background:#fff4dc;color:#b26a00;padding:3px 10px;border-radius:8px">${fa(eff)} نیاز به تمرین / تلاش</span></div>
+  <div class="dj-acts-tbl-wrap" style="max-height:340px;overflow:auto"><table class="dj-acts-tbl"><thead><tr><th style="width:36px;text-align:center">ردیف</th><th>دانش‌آموز</th><th>درس / مبحث</th><th>نوع فعالیت</th><th style="text-align:center">نتیجه</th><th>یادداشت</th><th style="text-align:center">ساعت</th></tr></thead><tbody>${rows}</tbody></table></div></div>`}
+
 /* جدول فعالیت‌های آموزشی روز جاری (بخش چهارم - بند ۳) */
 function actsTableHtml(k, todayActs, pn){
   if(!todayActs.length){
@@ -678,51 +694,39 @@ function actModalHtml(){
   const curCourse = cList.find(c => String(c.id) === String(m.c)) || cList[0] || {id: 1, name: 'فارسی'};
   const subs = getCourseSubs(curCourse.name);
 
-  return `<div class="dj-modal-overlay" data-dj="closeactmodal"><div class="dj-modal-box" onclick="event.stopPropagation()">
+  const hwOn=!!m.hw;
+  return `<div class="dj-modal-overlay" data-dj="closeactmodal"><div class="dj-modal-box">
     <div class="dj-modal-hd">
       <b>${isEdit ? '✏️ ویرایش فعالیت آموزشی' : '➕ ثبت فعالیت آموزشی جدید'}</b>
       <button type="button" class="dj-sm" data-dj="closeactmodal">✕</button>
     </div>
     <div class="dj-modal-sec">
-      <label>درس:</label>
+      <label>درس: <b style="color:#d9534f">*</b></label>
       <select class="dj-in" data-act-field="c" style="width:100%">${cList.map(c => `<option value="${c.id}"${String(c.id)===String(m.c)?' selected':''}>${esc(c.name)}</option>`).join('')}</select>
     </div>
     <div class="dj-modal-sec">
-      <label>زیرمجموعه درس:</label>
-      <div style="display:flex;gap:6px">
-        <select class="dj-in" data-act-field="subSelect" style="max-width:150px">
-          <option value="">انتخاب از لیست…</option>
-          ${subs.map(s => `<option value="${esc(s)}"${m.sub===s?' selected':''}>${esc(s)}</option>`).join('')}
-        </select>
-        <input class="dj-in" data-act-field="sub" placeholder="زیرمجموعه درس (مثلاً: املا، حل مسئله، ...)" value="${esc(m.sub||'')}">
-      </div>
-    </div>
-    <div class="dj-modal-sec">
-      <label>عنوان فعالیت: <b style="color:#d9534f">*</b></label>
-      <input class="dj-in" data-act-field="n" placeholder="مثلاً: حل تمرین صفحه ۲۵ کتاب، املا تقریری درس ۴" value="${esc(m.n||'')}">
-    </div>
-    <div class="dj-modal-sec">
-      <label>نوع فعالیت آموزشی:</label>
-      <select class="dj-in" data-act-field="cg" style="width:100%">${ACT_TYPES.map(t => `<option value="${esc(t)}"${m.cg===t?' selected':''}>${esc(t)}</option>`).join('')}</select>
+      <label>زیرمجموعه درس (مثلاً املا، حل مسئله):</label>
+      <input class="dj-in" data-act-field="sub" list="djSubList" autocomplete="off" placeholder="انتخاب از فهرست یا نوشتن به‌دلخواه…" value="${esc(m.sub||'')}" style="width:100%">
+      <datalist id="djSubList">${subs.map(x => `<option value="${esc(x)}"></option>`).join('')}</datalist>
     </div>
     <div class="dj-modal-sec">
       <label>روش ارزشیابی:</label>
       <select class="dj-in" data-act-field="t" style="width:100%">
-        <option value="g"${m.t==='g'?' selected':''}>۴ سطحی توصیفی (خیلی خوب، خوب، قابل قبول، نیاز به تلاش بیشتر)</option>
-        <option value="d"${m.t==='d'?' selected':''}>انجام شد / نشد (چک‌لیست / تکلیفی)</option>
+        <option value="g"${m.t!=='d'?' selected':''}>۴ سطحی توصیفی (خیلی خوب تا نیاز به تلاش بیشتر)</option>
+        <option value="d"${m.t==='d'?' selected':''}>انجام شد / نشد</option>
       </select>
     </div>
     <div class="dj-modal-sec">
-      <label>توضیحات فرآیند تدریس (اختیاری):</label>
-      <textarea class="dj-in" data-act-field="d" rows="3" style="width:100%" placeholder="نکات آموزشی، روش تدریس، ابزارهای استفاده‌شده...">${esc(m.d||'')}</textarea>
+      <label>توضیحات (اختیاری):</label>
+      <textarea class="dj-in" data-act-field="d" rows="2" style="width:100%" placeholder="نکات آموزشی، روش تدریس، صفحه یا درس…">${esc(m.d||'')}</textarea>
     </div>
     <div class="dj-modal-sec">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
-        <input type="checkbox" data-act-field="hw"${m.hw?' checked':''} style="width:18px;height:18px">
-        <span>این فعالیت دارای تکلیف در منزل است (ثبت در گزارش تکالیف)</span>
+        <input type="checkbox" data-act-field="hw"${hwOn?' checked':''} style="width:18px;height:18px">
+        <span>تکلیف در منزل دارد</span>
       </label>
-      <div style="margin-top:6px;${m.hw?'':'display:none'}" id="djHwTitleWrap">
-        <input class="dj-in" data-act-field="hwt" placeholder="عنوان یا شرح تکلیف..." value="${esc(m.hwt||m.n||'')}">
+      <div style="margin-top:6px;${hwOn?'':'display:none'}" id="djHwTitleWrap">
+        <input class="dj-in" data-act-field="hwt" placeholder="شرح تکلیف (اختیاری)…" value="${esc(m.hwt||'')}" style="width:100%">
       </div>
     </div>
     <div class="dj-modal-ft">
@@ -732,7 +736,6 @@ function actModalHtml(){
   </div></div>`;
 }
 
-/* جدول مرتب دفترهای روزانه ثبت‌نشده یا ناقص (بخش دوم - بند ۴) */
 function pendCard(){
   const daysList = journalPendingDays(st.pendRange, st.pendFilter);
   const allDaysForCounts = journalPendingDays(st.pendRange, 'all');
@@ -859,7 +862,7 @@ function studentList(k,b,it,pn){
     return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${tn?tn[0]:(index%2===1?'#f8fafc':'#fff')};border:1px solid ${tn?tn[1]:'#f1f5f9'};transition:background .2s">
       ${st.sel&&!ab?`<input type="checkbox" data-dj="pick:${s.id}"${st.pick.has(s.id)?' checked':''} style="width:18px;height:18px;cursor:pointer">`:''}
       <div class="dj-nm" style="min-width:max-content;width:auto;white-space:nowrap !important;font-weight:800;font-size:13.5px;color:${v!=null?(it.t==='d'?(v===1?'#1a8f55':'#c0262c'):((LV.find(l=>l.v===v)||{}).c||'inherit')):'inherit'}">
-        ${esc(s.name)}${fn?` <small style="color:var(--mut,#888);font-weight:400">(${esc(fn)})</small>`:''}
+        ${esc(s.name)}${(()=>{const r=caDay(k).filter(x=>x.sid===s.id);if(!r.length)return'';const p=r.filter(x=>x.type==='positive').length,e=r.length-p;return ` <span title="ثبت‌های فعالیت کلاسی امروز" style="font-size:10.5px;font-weight:800;color:#3730a3;background:#eef2ff;padding:1px 6px;border-radius:6px">🌟${fa(p)}${e?' · 💪'+fa(e):''}</span>`})()}${fn?` <small style="color:var(--mut,#888);font-weight:400">(${esc(fn)})</small>`:''}
         ${ab?' <span style="font-size:11px;color:#c0262c;background:#fee2e2;padding:1px 6px;border-radius:4px;font-weight:700">غایب</span>':late(k,s.id)?' <span style="font-size:11px;color:#d97706;background:#fef3c7;padding:1px 6px;border-radius:4px;font-weight:700">⏰ تأخیر</span>':''}
       </div>
       <div class="dj-bt" style="display:flex;gap:4px;margin-right:auto">
@@ -924,7 +927,7 @@ function sessionCard(k,b,s){
     <div class="dj-it" style="display:flex;gap:6px;flex-wrap:wrap">
       ${items.map(it=>{
         const c=cnt(k,b,it.id);
-        return `<button type="button" class="dj-ch${it.id===st.item?' on':''}" data-dj="item:${esc(it.id)}">${esc(it.n)}${it.old?' <small>(قدیمی)</small>':''}${c?` <small style="font-weight:800">(${fa(c)}/${fa(pn)})</small>`:''}</button>`;
+        return `<button type="button" class="dj-ch${it.id===st.item?' on':''}" data-dj="item:${esc(it.id)}">${esc(it.n)}${it.old&&!/^act_/.test(it.id)?' <small>(قدیمی)</small>':''}${c?` <small style="font-weight:800">(${fa(c)}/${fa(pn)})</small>`:''}</button>`;
       }).join('')}
     </div>`;
 
@@ -957,6 +960,7 @@ function render(){const s=$('dj');if(!s)return;
  });
  const todayStudentsEvaluated=evaluatedStudentIds.size;
  const todayStatus=dayJournalStatus(k);
+ const caN=caDay(k).length;
  const schoolName=(S.profile&&S.profile.school)||'دبستان';
  const teacherName=(S.profile&&S.profile.teacher)||'آموزگار';
  const gradeName=(S.profile&&S.profile.grade)||'';
@@ -995,7 +999,7 @@ function render(){const s=$('dj');if(!s)return;
   <div class="dj-stat-c">
    <small>📝 فعالیت‌های آموزشی امروز</small>
    <b>${fa(todayActsCount)} فعالیت</b>
-   <span>ثبت‌شده در پایگاه داده</span>
+   <span>ثبت‌شده در دفتر${caN?' · '+fa(caN)+' ثبت فعالیت کلاسی':''}</span>
   </div>
   <div class="dj-stat-c">
    <small>👥 دانش‌آموزان دارای ارزشیابی</small>
@@ -1034,6 +1038,8 @@ function render(){const s=$('dj');if(!s)return;
   </div>
   ${actsTableHtml(k, todayActs, pn)}
  </div>`;
+
+ h+=classActsHtml(k);
 
  h+=calHtml();
 
@@ -1233,7 +1239,7 @@ function printMatrix(){const B=mxBuild();if(!B.cols.length){flash('در این �
  .dj-mx i{font-style:normal;display:inline-block;min-width:22px;text-align:center;border-radius:4px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}.sign{display:flex;justify-content:space-around;margin-top:16px}.sign span{border-top:1px solid #7b8794;padding:5px 30px 0}.noprint{text-align:center;margin:12px}@media print{.noprint{display:none}}
  ${MXCSS}</style></head><body><h1>جدول عملکرد دانش‌آموزان — گزارش ${B.R.kind}</h1><div class="meta"><span>بازه: ${esc(B.R.title)}</span><span>درس: ${esc(cn)}</span><span>تاریخ تهیه: ${esc(dshort(todayK()))}</span></div>
  <div class="dj-mx"><div class="dj-mxw">${mxTable(B)}</div>${mxLegend().replace('class="dj-mxlg"','style="font-size:10px;line-height:2.1;margin-top:6px"')}</div>
- <div class="sign"><span>نام و امضای آموزگار</span><span>مهر و تأیید مدیریت</span></div><div class="noprint"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
+ <div class="sign"><span>نام و امضای آموزگار</span><span>امضای مدیر</span></div><div class="noprint"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
  win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700)}
 
 /* گزارش رسمی دفتر روزانه؛ داده‌ها از Snapshot ثبت‌شده خوانده می‌شوند */
@@ -1261,7 +1267,7 @@ function printDailyReport(period){
  <h2>۱. خلاصه عملکرد هر دانش‌آموز</h2><div class="legend">سطوح ارزشیابی توصیفی بر اساس ثبت‌های انجام‌شده در بازه‌ی انتخابی؛ «انجام شد/نشد» جداگانه محاسبه شده است.</div>
  <table><thead><tr><th>ردیف</th><th>نام دانش‌آموز</th><th>خیلی خوب</th><th>خوب</th><th>قابل قبول</th><th>نیاز به تلاش</th><th>انجام شد</th><th>انجام نشد</th><th>مجموع</th></tr></thead><tbody>${tr||'<tr><td colspan="9">در این بازه سابقه‌ای ثبت نشده است.</td></tr>'}</tbody></table>
  <h2>۲. فراوانی فعالیت‌ها و درس‌ها</h2><table><thead><tr><th>درس و فعالیت</th><th>تعداد ثبت</th></tr></thead><tbody>${activityRows||'<tr><td colspan="2">بدون داده</td></tr>'}</tbody></table>
- <div class="sign"><span>نام و امضای آموزگار</span><span>مهر و تأیید مدیریت</span></div><div class="foot">این گزارش به‌صورت خودکار از سوابق ثبت‌شده در دفتر روزانه تهیه شده است. داده‌های ثبت‌نشده در محاسبات لحاظ نشده‌اند.</div><div class="noprint" style="text-align:center;margin:18px"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
+ <div class="sign"><span>نام و امضای آموزگار</span><span>امضای مدیر</span></div><div class="foot">این گزارش به‌صورت خودکار از سوابق ثبت‌شده در دفتر روزانه تهیه شده است. داده‌های ثبت‌نشده در محاسبات لحاظ نشده‌اند.</div><div class="noprint" style="text-align:center;margin:18px"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
  win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700);
 }
 
@@ -1270,7 +1276,7 @@ function teacherReportModalHtml(){
  const p=st.repModal.period||'month';
  const att=st.repModal.att||'inline';
  const opt=`<option value="all"${st.repModal.course==='all'?' selected':''}>همه‌ی درس‌ها</option>`+allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.repModal.course)?' selected':''}>${esc(c.name)}</option>`).join('');
- return`<div class="dj-modal-overlay" data-dj="closerepmodal"><div class="dj-modal-box" onclick="event.stopPropagation()">
+ return`<div class="dj-modal-overlay" data-dj="closerepmodal"><div class="dj-modal-box">
   <div class="dj-modal-hd">
     <b>📋 تنظیمات گزارش جامع دفتر روزانه معلم</b>
     <button type="button" class="dj-sm" data-dj="closerepmodal">✕</button>
@@ -1464,7 +1470,7 @@ function printTeacherJournalReport(){
 
  <div class="sign">
   <span>نام و امضای آموزگار: ${esc(teacherName)}</span>
-  <span>مهر و امضای مدیریت دبستان</span>
+  <span>امضای مدیر دبستان</span>
  </div>
 
  <div class="noprint">
@@ -1488,36 +1494,40 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='bell'){st.b=x;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}
  else if(c==='go'){st.k=x;st.b=y;st.item=null;st.note=null;st.pick=new Set()}
  else if(c==='goday'){if(isOffDay(x)){flash('این روز تعطیل است و قابل انتخاب نیست');return}st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
- else if(c==='opennewact'){const cs=allCourses();st.actModal={mode:'create',c:(cs[0]||{}).id||1,sub:'',n:'',cg:'تدریس',t:'g',d:'',hw:false,hwt:''}}
+ else if(c==='opennewact'){const cs=allCourses();st.actModal={mode:'create',c:(cs[0]||{}).id||1,sub:'',t:'g',d:'',hw:false,hwt:''}}
  else if(c==='editact'){const s=getSes(k,x);if(s&&s.it&&s.it[y]){const it=s.it[y];st.actModal={mode:'edit',b:x,id:y,c:s.c,sub:it.sub||'',n:it.n||'',cg:it.cg||'تدریس',t:it.t||'g',d:it.d||'',hw:!!it.hw,hwt:it.hwt||it.n||''}}}
  else if(c==='delact'){if(confirm('آیا از حذف این فعالیت و سوابق ثبت‌شده‌ی آن مطمئن هستید؟')){const s=getSes(k,x);if(s&&s.it)delete s.it[y];delete D().m[k+'|'+x+'|'+y];Object.keys(D().n||{}).forEach(nk=>{if(nk.indexOf(k+'|'+x+'|'+y+'|')===0)delete D().n[nk]});if(st.item===y)st.item=null;save();flash('فعالیت با موفقیت حذف شد 🗑️')}}
  else if(c==='evalact'){st.b=x;st.item=y;flash('فعالیت برای ارزشیابی انتخاب شد؛ فهرست دانش‌آموزان در زیر نمایش داده شد')}
  else if(c==='closeactmodal'){st.actModal=null}
  else if(c==='closeeval'){st.b=null;st.item=null}
  else if(c==='saveact'){
-   const box=document.querySelector('[data-act-field="n"]');
-   if(box){
-     const title=(box.value||'').trim();
-     if(!title){flash('لطفاً عنوان فعالیت را وارد کنید');return}
-     const courseId=+document.querySelector('[data-act-field="c"]').value;
-     const sub=(document.querySelector('[data-act-field="sub"]').value||'').trim();
-     const cg=document.querySelector('[data-act-field="cg"]').value;
-     const t=document.querySelector('[data-act-field="t"]').value;
-     const d=(document.querySelector('[data-act-field="d"]').value||'').trim();
-     const hw=document.querySelector('[data-act-field="hw"]').checked;
-     const hwt=(document.querySelector('[data-act-field="hwt"]').value||'').trim();
-     if(st.actModal.mode==='edit'){
-       const b=st.actModal.b,id=st.actModal.id,s=ensureSes(k,b);
-       s.c=courseId;s.it=s.it||{};s.it[id]=Object.assign(s.it[id]||{},{n:title,t,hw:hw?1:0,hwt,d,cg,sub});
-       st.actModal=null;save();flash('تغییرات فعالیت ذخیره شد ✅');
-     }else{
-       let b='m_act_'+Date.now();const s=ensureSes(k,b);
-       s.c=courseId;s.tp=sub;s.it=s.it||{};const id='act_'+Date.now();
-       s.it[id]={n:title,t,hw:hw?1:0,hwt,d,cg,sub};st.b=b;st.item=id;st.actModal=null;save();flash('فعالیت آموزشی جدید با موفقیت ثبت شد ✅');
-     }
-   }
- }
- else if(c==='pendrange'){st.pendRange=(x==='month'?'month':+x)}
+    const F=n=>document.querySelector('[data-act-field="'+n+'"]');
+    const cEl=F('c');
+    if(cEl){
+      const courseId=+cEl.value;
+      if(!courseId){flash('لطفاً درس را انتخاب کنید');return}
+      const sub=((F('sub')||{}).value||'').trim();
+      const t=((F('t')||{}).value)==='d'?'d':'g';
+      const d=((F('d')||{}).value||'').trim();
+      const hw=!!(F('hw')||{}).checked;
+      const hwt=((F('hwt')||{}).value||'').trim();
+      const title=sub||cname(courseId);
+      if(st.actModal.mode==='edit'){
+        const b=st.actModal.b,id=st.actModal.id,s=ensureSes(k,b),old=(s.it||{})[id]||{};
+        const auto=!old.n||old.n===old.sub||old.n===cname(s.c);
+        s.c=courseId;s.it=s.it||{};
+        s.it[id]=Object.assign(old,{n:auto?title:old.n,t,hw:hw?1:0,hwt,d,cg:old.cg||'تدریس',sub});
+        syncHw(k,b,id,s);
+        st.actModal=null;save();flash('تغییرات فعالیت ذخیره شد ✅');
+      }else{
+        const dd=D();let n=1;while(dd.ses[sesKey(k,'m'+n)])n++;
+        const b='m'+n,s=ensureSes(k,b),id='act_'+Date.now();
+        s.c=courseId;s.tp=sub;s.it=s.it||{};
+        s.it[id]={n:title,t,hw:hw?1:0,hwt,d,cg:'تدریس',sub};st.b=b;st.item=id;st.actModal=null;save();flash('فعالیت جدید ثبت شد ✅ — حالا دانش‌آموزان را ارزشیابی کنید');
+      }
+    }
+  }
+  else if(c==='pendrange'){st.pendRange=(x==='month'?'month':+x)}
  else if(c==='item'){st.item=x;st.note=null;st.pick=new Set()}
  else if(c==='manual'){const d=D();let n=1;while(d.ses[sesKey(k,'m'+n)])n++;const b='m'+n;d.ses[sesKey(k,b)]={c:(courses()[0]||{}).id,tp:'',nt:''};save();st.b=b;st.item=null}
  else if(c==='skip'){const s=ensureSes(k,st.b);if(s.st==='skip')delete s.st;else s.st='skip';save()}
@@ -1527,7 +1537,8 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxnow')st.mx.k=null;
  else if(c==='mxprint'){printMatrix();return}
  else if(c==='teacherreport'){st.repModal={period:'month',att:'inline',course:st.mx.c||'all'};render();return}
- else if(c==='closerepmodal'){st.repModal=null;render();return}
+ else if(c==='gotoact'){try{show('act')}catch(e){}return}
+  else if(c==='closerepmodal'){st.repModal=null;render();return}
  else if(c==='repmodperiod'){if(st.repModal){st.repModal.period=x;render();return}}
  else if(c==='repmodatt'){if(st.repModal){st.repModal.att=x;render();return}}
  else if(c==='doreport'){printTeacherJournalReport();st.repModal=null;render();return}
@@ -1543,19 +1554,23 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='tpladd'){const n=($('djNewN').value||'').trim();if(!n){flash('نام فعالیت را بنویسید');return}const s=ensureSes(k,st.b),t=ownTpl(s.c);t.push({id:'u'+Date.now(),n,t:$('djNewT').value==='d'?'d':'g',hw:0});save()}
  else if(c==='tpldel'){const s=ensureSes(k,st.b),t=ownTpl(s.c),i=t.findIndex(q=>q.id===x);if(i>=0){t.splice(i,1);if(st.item===x)st.item=null;save()}}
  render()}
-sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.disabled)return;if(t.dataset.dj==='calbg'&&e.target!==t)return;if(t.type==='checkbox'){const id=+t.dataset.dj.split(':')[1];st.pick.has(id)?st.pick.delete(id):st.pick.add(id);return}
+sec.addEventListener('click',e=>{const t=e.target.closest('[data-dj]');if(!t||t.disabled)return;if(t.dataset.dj==='calbg'&&e.target!==t)return;if(t.classList.contains('dj-modal-overlay')&&e.target!==t)return;if(t.type==='checkbox'){const id=+t.dataset.dj.split(':')[1];st.pick.has(id)?st.pick.delete(id):st.pick.add(id);return}
  try{act(t.dataset.dj)}catch(er){console.error('dj',er)}});
 sec.addEventListener('change',e=>{const t=e.target,k=st.k;try{
  if(t.hasAttribute('data-mxc')){st.mx.c=t.value;render();return}
  if(t.hasAttribute('data-dj-pendfilter')){st.pendFilter=t.value;render();return}
- if(t.dataset.actField==='subSelect'){if(t.value){const inp=t.parentNode.querySelector('[data-act-field="sub"]');if(inp)inp.value=t.value;}return}
- if(t.dataset.actField==='c'){const subSel=document.querySelector('[data-act-field="subSelect"]');if(subSel){const cObj=allCourses().find(q=>String(q.id)===String(t.value));const subs=getCourseSubs(cObj?cObj.name:'');subSel.innerHTML='<option value="">انتخاب از لیست…</option>'+subs.map(s=>'<option value="'+esc(s)+'">'+esc(s)+'</option>').join('');}return}
+ if(t.dataset.actField==='c'){const dl=document.getElementById('djSubList');if(dl){const cObj=allCourses().find(q=>String(q.id)===String(t.value));dl.innerHTML=getCourseSubs(cObj?cObj.name:'').map(x=>'<option value="'+esc(x)+'"></option>').join('')}return}
  if(t.dataset.actField==='hw'){const w=document.getElementById('djHwTitleWrap');if(w)w.style.display=t.checked?'block':'none';return}
  if(t.hasAttribute('data-repmodcourse')){if(st.repModal){st.repModal.course=t.value;}return}
  if(t.hasAttribute('data-report-period')){st.reportPeriod=t.value;return}
  if(t.dataset.calm!==undefined||t.dataset.caly!==undefined){if(st.cal){const m=t.dataset.calm!==undefined?+t.value:st.cal.m,y=t.dataset.caly!==undefined?+t.value:st.cal.y;if(jiso(y,m,1))st.cal={y,m};render()}return}
  if(t.dataset.f){if(!offGuard(k)){render();return}const s=ensureSes(k,st.b);
-  if(t.dataset.f==='course'){s.c=+t.value;st.item=null;save();render()}
+  if(t.dataset.f==='course'){const nc=+t.value;
+    if(nc!==s.c&&s.it&&Object.keys(s.it).length){/* این زنگ قبلاً فعالیتی دارد: درس آن را عوض نمی‌کنیم؛ برای درس جدید یک بخش مستقل می‌سازیم */
+     const dd=D();let n=1;while(dd.ses[sesKey(k,'m'+n)])n++;const nb='m'+n;dd.ses[sesKey(k,nb)]={c:nc,tp:'',nt:''};
+     st.b=nb;st.item=null;st.note=null;st.pick=new Set();st.tpl=false;save();flash('برای «'+cname(nc)+'» یک بخش جدید ساخته شد؛ فعالیت‌های قبلی دست‌نخورده ماندند ✅')}
+    else{s.c=nc;st.item=null;save()}
+    render()}
   else if(t.dataset.f==='topic'){s.tp=t.value.trim();save()}
   else if(t.dataset.f==='snote'){s.nt=t.value.trim();save()}}
  else if(t.dataset.nt){if(!offGuard(k)){render();return}const sid=+t.dataset.nt,d=D(),key=k+'|'+st.b+'|'+st.item+'|'+sid,v=t.value.trim();if(v)d.n[key]=v;else delete d.n[key];save();render()}

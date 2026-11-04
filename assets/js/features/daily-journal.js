@@ -319,6 +319,11 @@ function dayJournalStatus(k){
 }
 
 /* دریافت همه فعالیت‌های آموزشی یک روز */
+/* ───── آزمون‌ها: «درس‌ها و آزمون‌ها ← ثبت ارزشیابی یا آزمون» (S.exams) خودکار در دفتر همان روز دیده می‌شوند؛ منبع داده یکی است (بدون کپی) ───── */
+const examsOn=k=>(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.date===k);
+const examName=e=>String(e.type||'آزمون')+(e.title?' — '+e.title:'');
+function examLevel(e,sid){try{const v=typeof nrm==='function'?nrm(e,sid):null;if(v==null||isNaN(v))return null;return Math.max(1,Math.min(4,Math.round(v)))}catch(x){return null}}
+function examMk(e){const m={};sts().forEach(s0=>{const l=examLevel(e,s0.id);if(l!=null)m[s0.id]=l});return m}
 function getDayActivities(k){
   const d=D(), out=[];
   const bellsList=dayBells(k);
@@ -349,6 +354,11 @@ function getDayActivities(k){
         });
       });
     }
+  });
+  examsOn(k).forEach(e=>{
+    const mk=examMk(e);
+    out.push({exam:true,b:'exam',itId:'x'+e.id,exId:e.id,fullKey:'exam|'+e.id,courseId:e.course,courseName:cname(e.course),topic:'',
+      sub:e.title||'—',n:examName(e),t:'x',cg:'آزمون',d:'',hw:0,count:Object.keys(mk).length,session:null,item:null});
   });
   return out;
 }
@@ -471,6 +481,17 @@ const PENDCSS=`
 #dj .dj-mxpk{max-height:150px;overflow-y:auto}
 #dj .dj-mxmh{font-size:12px;font-weight:900;color:var(--p,#5b3fd6);background:#ede9fe;padding:3px 10px;border-radius:8px}
 #dj .dj-mxpk .dj-sm.on{background:var(--p,#5b3fd6);color:#fff;border-color:transparent}
+#dj td.dj-atc{cursor:pointer;user-select:none}#dj td.dj-atc:hover{outline:2px solid #6366f1;outline-offset:-2px}
+#dj .dj-fch{display:flex;flex-direction:column;gap:5px;margin:10px 0}
+#dj .dj-fr{display:grid;grid-template-columns:minmax(110px,190px) 1fr 44px;align-items:center;gap:8px;padding:3px 6px;border-radius:8px}
+#dj .dj-fr.lo{background:#fff1f2;outline:1px solid #fecdd3}#dj .dj-fr.na{opacity:.5}
+#dj .dj-fn{font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dj .dj-fb{display:flex;height:16px;background:#eef2f7;border-radius:8px;overflow:hidden;direction:ltr}
+#dj .dj-fb i,#dj .dj-fleg i{display:block;height:100%}#dj .dj-fb i.j,#dj .dj-fleg i.j{background:#3b82f6}#dj .dj-fb i.c,#dj .dj-fleg i.c{background:#1a8f55}
+#dj .dj-fv{font-size:13px;text-align:center;font-variant-numeric:tabular-nums}
+#dj .dj-fleg{font-size:12px;color:#475569;display:flex;gap:6px;align-items:center;flex-wrap:wrap}#dj .dj-fleg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+#dj .dj-fsug{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 14px;margin-top:6px;font-size:13px;line-height:2}#dj .dj-fsug ul{margin:4px 18px 8px}
+#dj .dj-ftop{margin-top:8px;font-size:12px;color:#1a8f55;font-weight:800}
 #dj .dj-seg{display:inline-flex;border:1px solid var(--line,#ddd);border-radius:11px;overflow:hidden}
 #dj .dj-seg button{border:0;background:var(--card,#fff);color:var(--tx,#222);padding:8px 14px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #dj .dj-seg button.on{background:var(--p,#5b3fd6);color:#fff}
@@ -724,6 +745,16 @@ function actsTableHtml(k, todayActs, pn){
   }
   const rows = todayActs.map((a, i) => {
     const isDone = pn > 0 && a.count >= pn;
+    if(a.exam){return `<tr style="background:#fffbeb">
+      <td style="text-align:center;font-weight:800">${fa(i+1)}</td>
+      <td style="font-weight:900;color:#1e3a8a"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#e0e7ff;color:#3730a3">${esc(a.courseName)}</span></td>
+      <td style="font-weight:700">${esc(a.sub)}</td>
+      <td style="font-weight:800">${esc(a.n)} <span style="font-size:11px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px">📝 آزمون</span></td>
+      <td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#92400e;font-size:11px">آزمون</span></td>
+      <td style="text-align:center;font-weight:800;font-variant-numeric:tabular-nums">${fa(a.count)} / ${fa(pn)}</td>
+      <td style="text-align:center"><span class="dj-act-status-pill ${isDone?'done':'part'}">${isDone?'✅ نمره‌ها ثبت شد':'🟡 نمره‌ها ناقص'}</span></td>
+      <td style="text-align:center"><button type="button" class="dj-sm on" style="background:#b45309;color:#fff;border-color:transparent" data-dj="examgo:${esc(a.exId)}" title="ورود یا ویرایش نمره‌ها در «درس‌ها و آزمون‌ها»">📝 نمره‌ها</button></td>
+    </tr>`}
     const isSelected = st.b === a.b && st.item === a.itId;
     return `<tr style="${isSelected?'background:#eff6ff;outline:2px solid #3b82f644;':''}">
       <td style="text-align:center;font-weight:800">${fa(i+1)}</td>
@@ -1050,7 +1081,7 @@ function render(){const s=$('dj');if(!s)return;
  const todayActsCount=todayActs.length;
  const evaluatedStudentIds=new Set();
  todayActs.forEach(a=>{
-  const m=D().m[a.fullKey]||{};
+  const m=a.exam?examMk((S.exams||[]).find(e=>e.id===a.exId)||{}):(D().m[a.fullKey]||{});
   Object.keys(m).forEach(sid=>{if(m[sid]!=null)evaluatedStudentIds.add(+sid)});
  });
  const todayStudentsEvaluated=evaluatedStudentIds.size;
@@ -1148,6 +1179,7 @@ function render(){const s=$('dj');if(!s)return;
 
  // ۷) جدول ماتریسی عملکرد دانش‌آموزان
  h+=mxCard();
+ h+=focusCard();
 
  // ۸) مودال‌ها
  h+=teacherReportModalHtml();
@@ -1180,6 +1212,10 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
   if(cf!=='all'&&String(ses.c)!==String(cf))return;
   const t=it.t==='d'?'d':(it.t==='p'?'p':'g');
   acts.push({kind:'act',key,k,b:p[1],id:p[2],c:ses.c,t,n:it.n,mk,pm:t==='p'?(d.pm[key]||{}):null})});
+ (Array.isArray(S.exams)?S.exams:[]).forEach(e=>{if(!e||!e.date||!from||e.date<from||e.date>to||mxOff(e.date))return;
+  if(cf!=='all'&&String(e.course)!==String(cf))return;
+  const mk=examMk(e);if(!Object.keys(mk).length)return;
+  acts.push({kind:'act',key:'exam|'+e.id,k:e.date,b:'x99',id:'x'+e.id,c:e.course,t:'x',n:'📝 '+examName(e),mk,pm:null})});
  const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
  acts.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
  const days=new Set(acts.map(a=>a.k));
@@ -1238,14 +1274,14 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
   const jp=jparts(c.k),dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1];
   if(c.kind==='att'){maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+12);
    return`<th class="h at${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(dlab(c.k)+' — حضور و غیاب')}"><span>${isNewDate?`<b>${esc(dt)}</b> | `:''}حضور و غیاب</span></th>`}
-  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
+  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+(c.t==='x'?'آزمون':bellLabel(c.k,c.b))+' — '+cname(c.c)+' — '+c.n;
   const mxT=isNewDate?cap-dt.length:cap,txs=tx.length>mxT?tx.slice(0,Math.max(10,mxT-1))+'…':tx;
   maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+txs.length);
   return`<th class="h${c.t==='p'?' pnh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs)}</span></th>`}).join('');
  const hh=Math.min(pr?200:190,Math.max(64,Math.ceil(maxH*(pr?4.7:6.1))+14));
  const body=sts().map((s,i)=>{
   const tds=cols.map(c=>{
-   if(c.kind==='att'){const a=attCell(c.k,s.id);return`<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`}
+   if(c.kind==='att'){const a=attCell(c.k,s.id);return pr?`<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`:`<td class="c at ${a.c} dj-atc" title="${a.tt} — برای تغییر (حاضر ← غایب ← تأخیر ← موجه ← خالی) کلیک کنید" data-dj="attcyc:${c.k}:${s.id}" role="button" tabindex="0">${a.t||'·'}</td>`}
    if(absent(c.k,s.id))return`<td class="c em"></td>`;
    const v=c.mk[s.id];
    if(v==null)return`<td class="c em"></td>`;
@@ -1256,7 +1292,7 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
  const tw=pr?`max-width:${nmW+(o.num?24:0)+cols.length*46}px;`:'';
  return`<table data-noresp="1" class="${pr?'pr':''}" style="${tw}--nmw:${nmW}px;--hh:${hh}px"><thead><tr>${o.num?'<th class="rn">ردیف</th>':''}<th class="nm">نام دانش‌آموز</th>${head}</tr></thead><tbody>${body}</tbody></table>`}
 function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
-function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز · خانه‌ی خالی = ثبت نشده</div>`}
+function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز (برای تغییر، روی خانه کلیک کنید) · ستون 📝 = آزمونِ ثبت‌شده در «درس‌ها و آزمون‌ها» · خانه‌ی خالی = ثبت نشده</div>`}
 
 /* ───── داشبورد تحلیلی و نمودار وضعیت دانش‌آموزان در انتهای صفحه ───── */
 function classAnalyticsDashboard(B){
@@ -1466,6 +1502,42 @@ function mxCard(){
     ${classAnalyticsDashboard(B)}
   </div>`;
 }
+
+/* ───── توزیع توجه معلم: چه دانش‌آموزی بیشتر مورد پرسش/ارزشیابی بوده و چه کسی کمتر دیده شده ───── */
+function focusStats(range){
+ const d=D(),end=(st.k&&st.k<=todayK())?st.k:todayK(),n=range==='all'?3650:(+range||14),from=addD(end,-(n-1));
+ const inR=k=>k>=from&&k<=end&&!mxOff(k);
+ const T={};sts().forEach(x=>{T[x.id]={s:x,j:0,c:0,pres:0,last:''}});
+ Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(k>end||mxOff(k))return;
+  const ses=d.ses[k+'|'+p[1]],it=ses&&(ses.it||{})[p[2]],mk=d.m[key];if(!it||!mk)return;
+  Object.keys(mk).forEach(sid=>{const r=T[sid];if(!r||mk[sid]==null)return;
+   if(k>r.last)r.last=k;
+   if(!inR(k))return;
+   if(it.t==='p'){const q=(d.pm[key]||{})[sid];r.j+=q?(q[0]+q[1]):1}else r.j+=1})});
+ (S.activities||[]).forEach(x=>{const r=x&&T[x.sid];if(!r||!x.date||x.date>end||mxOff(x.date))return;if(x.date>r.last)r.last=x.date;if(inR(x.date))r.c++});
+ Object.keys(S.att||{}).forEach(k=>{if(!inR(k))return;const a=S.att[k];if(!a||!Object.keys(a).length)return;
+  Object.keys(T).forEach(id=>{if(a[id]!=='a')T[id].pres++})});
+ const L=Object.values(T).map(r=>Object.assign(r,{t:r.j+r.c,ago:r.last?Math.round((new Date(end+'T12:00:00Z')-new Date(r.last+'T12:00:00Z'))/864e5):null,rate:r.pres?(r.j+r.c)/r.pres:null}));
+ const act=L.filter(r=>r.pres>0||r.t>0);
+ const mean=act.length?act.reduce((a,r)=>a+(r.rate!=null?r.rate:r.t),0)/act.length:0;
+ const sug=act.filter(r=>r.pres>0&&(r.t===0||(r.rate!=null&&r.rate<mean*.6))).sort((a,b)=>(a.rate||0)-(b.rate||0)||((b.ago==null?9999:b.ago)-(a.ago==null?9999:a.ago))).slice(0,6);
+ return{from,end,L:L.sort((a,b)=>b.t-a.t||(a.s.name<b.s.name?-1:1)),mean,sug,max:Math.max(1,...L.map(r=>r.t))}}
+function focusCard(){
+ const R=st.fc||'14',F=focusStats(R),sug=new Set(F.sug.map(r=>r.s.id));
+ const rg=(v,l)=>`<button type="button" class="dj-sm${R===v?' on':''}" data-dj="fcrange:${v}">${l}</button>`;
+ if(!F.L.length)return'';
+ const total=F.L.reduce((a,r)=>a+r.t,0);
+ const rows=F.L.map(r=>{const w1=r.j/F.max*100,w2=r.c/F.max*100,noPres=r.pres===0&&r.t===0;
+  return `<div class="dj-fr${sug.has(r.s.id)?' lo':''}${noPres?' na':''}"><span class="dj-fn">${esc(r.s.name)}</span><span class="dj-fb">${w1?`<i class="j" style="width:${w1}%"></i>`:''}${w2?`<i class="c" style="width:${w2}%"></i>`:''}</span><b class="dj-fv">${noPres?'غایب':fa(r.t)}</b></div>`}).join('');
+ const top=F.L.filter(r=>r.t>0).slice(0,3);
+ const sugH=F.sug.length?F.sug.map(r=>`<li><b>${esc(r.s.name)}</b> — ${r.t?fa(r.t)+' نوبت در '+fa(r.pres)+' روز حضور':'در این بازه هیچ نوبتی ثبت نشده'}${r.ago!=null?` · آخرین نوبت: ${r.ago?fa(r.ago)+' روز پیش':'امروز'}`:' · تاکنون نوبتی نداشته'}</li>`).join(''):'<li style="list-style:none">✅ توزیع نوبت‌ها در این بازه متعادل است؛ دانش‌آموزِ مغفول‌مانده‌ای دیده نمی‌شود.</li>';
+ return `<div class="card dj-fc" id="djFc"><div class="dj-ph"><b>🎯 توزیع توجه به دانش‌آموزان <span class="dj-live">پیشنهاد هوشمند</span></b><small>${fa(total)} نوبت ارزشیابی/پرسش · ${esc(dshort(F.from))} تا ${esc(dshort(F.end))}</small></div>
+  <div class="dj-mxbar">${rg('7','۷ روز اخیر')}${rg('14','۱۴ روز اخیر')}${rg('30','۳۰ روز اخیر')}${rg('all','کل سال')}</div>
+  <div class="dj-fleg"><i class="j"></i>ارزشیابی دفتر روزانه <i class="c"></i>فعالیت کلاسی (پاسخ به سؤال، ارائه و…) · هر ارزشیابی یا پاسخ = یک نوبت؛ روزهای تعطیل حساب نمی‌شوند</div>
+  <div class="dj-fch">${rows}</div>
+  <div class="dj-fsug"><b>💡 پیشنهاد برای معلم: امروز به این دانش‌آموزان فرصت پرسش بدهید</b><ul>${sugH}</ul>${F.sug.length?'<button type="button" class="dj-sm" data-dj="gotoact">↗ ثبت پاسخ در «فعالیت کلاسی»</button>':''}</div>
+  ${top.length?`<div class="dj-ftop">🌟 فعال‌ترین‌ها: ${top.map(r=>esc(r.s.name)+' ('+fa(r.t)+')').join('، ')}</div>`:''}
+ </div>`}
 function mxShift(dir){const a=mxAnchor();
   if(st.mx.m==='month'){
     const p=jparts(a);
@@ -1858,6 +1930,9 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
+ else if(c==='attcyc'){if(!/^\d{4}-\d{2}-\d{2}$/.test(x||'')||mxOff(x))return;if(typeof window.cyc==='function'){window.cyc(isNaN(+y)?y:+y,x);try{save()}catch(e){}}}
+ else if(c==='examgo'){try{show('crs');setTimeout(()=>{try{window.openExNow&&window.openExNow(isNaN(+x)?x:+x)}catch(e){}},60)}catch(e){}return}
+ else if(c==='fcrange'){st.fc=x||'14'}
  else if(c==='mxpick'){if(/^\d{4}-\d{2}-\d{2}$/.test(x||''))st.mx.k=x}
  else if(c==='mxprint'){printTeacherJournalReport(false,true);return}
  else if(c==='mxpdf'){printTeacherJournalReport(true,true);return}

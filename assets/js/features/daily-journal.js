@@ -468,7 +468,8 @@ const PENDCSS=`
 #dj .dj-pf .lg{font-size:11px;color:var(--mut,#888)}
 @media(max-width:520px){#dj .dj-pd{flex-direction:column;gap:5px}#dj .dj-pdl{flex:none;flex-direction:row;gap:8px;align-items:baseline}}
 #dj .dj-mxbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
-#dj .dj-mxpk{max-height:132px;overflow-y:auto}
+#dj .dj-mxpk{max-height:150px;overflow-y:auto}
+#dj .dj-mxmh{font-size:12px;font-weight:900;color:var(--p,#5b3fd6);background:#ede9fe;padding:3px 10px;border-radius:8px}
 #dj .dj-mxpk .dj-sm.on{background:var(--p,#5b3fd6);color:#fff;border-color:transparent}
 #dj .dj-seg{display:inline-flex;border:1px solid var(--line,#ddd);border-radius:11px;overflow:hidden}
 #dj .dj-seg button{border:0;background:var(--card,#fff);color:var(--tx,#222);padding:8px 14px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
@@ -1187,6 +1188,14 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
  [...days].sort().forEach(k=>{if(withAtt)out.push({kind:'att',k,key:'att|'+k});acts.filter(a=>a.k===k).forEach(a=>out.push(a))});
  return out}
 /* هفته‌ها/ماه‌های دارای داده (بدون روزهای تعطیل) برای انتخاب سریع — مثل «هفته‌های ثبت‌شده» در حضور و غیاب */
+const WK_ORD=['اول','دوم','سوم','چهارم','پنجم','ششم','هفتم'];
+/* مالک هفته (شنبه تا جمعه) = ماهِ اولین روز آموزشیِ آن هفته؛ شماره = ترتیب هفته‌های آموزشی همان ماه */
+function mxWeekOwner(w){for(let i=0;i<7;i++){const k=addD(w,i);if(mxOff(k))continue;const p=jparts(k);if(p&&isAcademicMonth(p.m))return{y:p.y,m:p.m,first:k}}return null}
+function mxWeekMeta(w){const o=mxWeekOwner(w);if(!o)return null;
+ let ws=addD(o.first,-dow(o.first)),n=0,g=0;const first1=jiso(o.y,o.m,1);ws=addD(first1,-dow(first1));
+ while(ws<=w&&g++<8){const x=mxWeekOwner(ws);if(x&&x.y===o.y&&x.m===o.m)n++;ws=addD(ws,7)}
+ let last=o.first;for(let i=0;i<7;i++){const k=addD(w,i);if(!mxOff(k)&&k>=o.first)last=k}
+ return{y:o.y,m:o.m,n:Math.max(1,n),first:o.first,last}}
 function mxRegistered(){const d=D(),days=new Set();
  Object.keys(d.m).forEach(key=>{const mk=d.m[key];if(mk&&Object.keys(mk).length)days.add(key.split('|')[0])});
  Object.keys(S.att||{}).forEach(k=>{const a=S.att[k];if(a&&Object.keys(a).length)days.add(k)});
@@ -1194,12 +1203,16 @@ function mxRegistered(){const d=D(),days=new Set();
  [...days].sort().forEach(k=>{if(mxOff(k))return;const p=jparts(k);if(!p||!isAcademicMonth(p.m))return;
   const w=addD(k,-dow(k));(weeks[w]=weeks[w]||[]).push(k);
   const mk=p.y+'-'+p.m;(months[mk]=months[mk]||{y:p.y,m:p.m,first:k});if(k<months[mk].first)months[mk].first=k});
- return{weeks:Object.keys(weeks).sort().reverse().map(w=>({w,first:weeks[w][0],last:weeks[w][weeks[w].length-1]})),months:Object.values(months).sort((a,b)=>b.y*100+b.m-(a.y*100+a.m))}}
+ const W=Object.keys(weeks).sort().map(w=>{const mt=mxWeekMeta(w);return mt?Object.assign({w,days:weeks[w]},mt):null}).filter(Boolean);
+ return{weeks:W,months:Object.values(months).sort((a,b)=>a.y*100+a.m-(b.y*100+b.m))}}
 function mxPicker(B){const R=mxRegistered(),a=mxAnchor();
  if(st.mx.m==='month'){const p=jparts(a);
   return `<div class="dj-mxbar dj-mxpk"><b style="width:100%;font-size:13px">📅 ماه‌های ثبت‌شده (${fa(R.months.length)})</b>`+(R.months.map(x=>`<button type="button" class="dj-sm${x.m===p.m&&x.y===p.y?' on':''}" data-dj="mxpick:${x.first}">${JMN[x.m-1]} ${fa(x.y)}</button>`).join('')||'<span class="sub">هنوز ماهی با داده ثبت نشده</span>')+'</div>'}
- const cw=addD(a,-dow(a));
- return `<div class="dj-mxbar dj-mxpk"><b style="width:100%;font-size:13px">📅 هفته‌های ثبت‌شده (${fa(R.weeks.length)})</b>`+(R.weeks.map(x=>{const pa=jparts(x.first),pb=jparts(x.last);return `<button type="button" class="dj-sm${x.w===cw?' on':''}" data-dj="mxpick:${x.first}">${fa(pa.m+'/'+pa.d)} تا ${fa(pb.m+'/'+pb.d)}</button>`}).join('')||'<span class="sub">هنوز هفته‌ای با داده ثبت نشده</span>')+'</div>'}
+ const cw=addD(a,-dow(a));let cur='',h='';
+ R.weeks.forEach(x=>{const mk=x.y+'-'+x.m;if(mk!==cur){cur=mk;h+=`<span class="dj-mxmh">${JMN[x.m-1]} ${fa(x.y)}</span>`}
+  const pa=jparts(x.first),pb=jparts(x.last);
+  h+=`<button type="button" class="dj-sm${x.w===cw?' on':''}" data-dj="mxpick:${x.first}" title="${fa(pa.m+'/'+pa.d)} تا ${fa(pb.m+'/'+pb.d)}">هفته ${WK_ORD[x.n-1]||fa(x.n)}</button>`});
+ return `<div class="dj-mxbar dj-mxpk"><b style="width:100%;font-size:13px">📅 هفته‌های ثبت‌شده (${fa(R.weeks.length)})</b>${h||'<span class="sub">هنوز هفته‌ای با داده ثبت نشده</span>'}</div>`}
 function mxBuild(){const R=mxRange();return{R,cols:mxCols(R.from,R.to,st.mx.c,true)}}
 const MXS={4:['خ خ','l4','خیلی خوب'],3:['خ','l3','خوب'],2:['ق ق','l2','قابل قبول'],1:['ن ت','l1','نیاز به تلاش بیشتر']};
 /* ───── جدول عملکرد: ساخت جدول (صفحه + چاپ + PDF با یک کد) ───── */
@@ -1733,6 +1746,18 @@ function printTeacherJournalReport(directDownloadPdf,fromPreview){
  djPrintWin({title:o.name,land:o.land,body:mxPagesHtml(o)})}
 
 /* رویدادها */
+/* پنجره‌ی تأیید داخل برنامه — confirm() مرورگر در پیش‌نمایش/PWA/iframe ممکن است بی‌صدا مسدود شود و کار (حذف، تغییر روش ارزشیابی) انجام نشود */
+function djConfirm(msg,onYes,yesLabel){
+ try{const old=document.getElementById('djCfm');if(old)old.remove()}catch(e){}
+ const o=document.createElement('div');o.id='djCfm';o.setAttribute('dir','rtl');
+ o.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:2147483000;display:grid;place-items:center;padding:14px;font-family:Vazirmatn,Tahoma,sans-serif';
+ o.innerHTML='<div role="alertdialog" aria-modal="true" style="background:var(--card,#fff);color:var(--tx,#1e293b);border-radius:16px;max-width:420px;width:100%;padding:20px;box-shadow:0 20px 50px rgba(0,0,0,.35)"><div data-m style="font-weight:800;line-height:1.9;font-size:14px;margin-bottom:16px"></div><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" data-n style="padding:9px 16px;border-radius:10px;border:1px solid #cbd5e1;background:transparent;color:inherit;font:700 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer">انصراف</button><button type="button" data-y style="padding:9px 16px;border-radius:10px;border:0;background:#dc262c;color:#fff;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer"></button></div></div>';
+ o.querySelector('[data-m]').textContent=msg;o.querySelector('[data-y]').textContent=yesLabel||'بله، ادامه';
+ const close=()=>o.remove();
+ o.addEventListener('click',e=>{if(e.target===o)close()});
+ o.querySelector('[data-n]').onclick=close;
+ o.querySelector('[data-y]').onclick=()=>{close();try{onYes()}catch(er){console.error('dj',er)}};
+ document.body.appendChild(o);return o}
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
  if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
  else if(c==='setwk'){st.cal=null;try{show('set')}catch(e){}return}
@@ -1776,7 +1801,7 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='goday'){if(isOffDay(x)){flash('این روز تعطیل است و قابل انتخاب نیست');return}st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
  else if(c==='opennewact'){const cs=allCourses();st.actModal={mode:'create',c:(cs[0]||{}).id||1,sub:'',t:'g',d:'',hw:false,hwt:''}}
  else if(c==='editact'){const s=getSes(k,x);if(s&&s.it&&s.it[y]){const it=s.it[y];st.actModal={mode:'edit',b:x,id:y,c:s.c,sub:it.sub||'',n:it.n||'',cg:it.cg||'تدریس',t:it.t||'g',d:it.d||'',hw:!!it.hw,hwt:it.hwt||it.n||''}}}
- else if(c==='delact'){if(confirm('آیا از حذف این فعالیت و سوابق ثبت‌شده‌ی آن مطمئن هستید؟')){const s=getSes(k,x);if(s&&s.it)delete s.it[y];delete D().m[k+'|'+x+'|'+y];delete D().pm[k+'|'+x+'|'+y];Object.keys(D().n||{}).forEach(nk=>{if(nk.indexOf(k+'|'+x+'|'+y+'|')===0)delete D().n[nk]});if(st.item===y)st.item=null;save();flash('فعالیت با موفقیت حذف شد 🗑️')}}
+ else if(c==='delact'){djConfirm('آیا از حذف این فعالیت و سوابق ثبت‌شده‌ی آن مطمئن هستید؟',()=>{const s=getSes(k,x);if(s&&s.it)delete s.it[y];delete D().m[k+'|'+x+'|'+y];delete D().pm[k+'|'+x+'|'+y];Object.keys(D().n||{}).forEach(nk=>{if(nk.indexOf(k+'|'+x+'|'+y+'|')===0)delete D().n[nk]});if(st.item===y){st.item=null;st.b=null}if(S.hwl){const hi=S.hwl.findIndex(h=>h.id==='dj:'+k+'|'+x+'|'+y);if(hi>=0)S.hwl.splice(hi,1)}save();flash('فعالیت با موفقیت حذف شد 🗑️');render()},'حذف');return}
  else if(c==='pn'){setPN(k,st.b,st.item,+x,y==='p'?1:0,y==='n'?1:0,false)}
  else if(c==='pnd'){setPN(k,st.b,st.item,+x,y==='p'?-1:0,y==='n'?-1:0,false)}
  else if(c==='pnr'){setPN(k,st.b,st.item,+x,0,0,true)}
@@ -1799,7 +1824,7 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
         const b0=st.actModal.b,id=st.actModal.id,s0=ensureSes(k,b0),old=(s0.it||{})[id]||{};
         const oldT=old.t==='d'?'d':(old.t==='p'?'p':'g'),key0=k+'|'+b0+'|'+id;
         if(oldT!==t&&Object.keys(D().m[key0]||{}).length){
-          if(!confirm('با تغییر روش ارزشیابی، نمره‌های قبلی این فعالیت پاک می‌شود. ادامه می‌دهید؟'))return;
+          if(!st.actModal.okType){djConfirm('با تغییر روش ارزشیابی، نمره‌های قبلی این فعالیت پاک می‌شود. ادامه می‌دهید؟',()=>{if(st.actModal){st.actModal.okType=true;act('saveact');render()}},'تغییر و پاک‌کردن نمره‌ها');return}
           delete D().m[key0];delete D().pm[key0];}
         let b=b0;
         if(String(s0.c)!==String(courseId)){

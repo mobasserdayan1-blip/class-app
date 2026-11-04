@@ -123,10 +123,18 @@ function renderAtt(){
  SEL.d.style.display=mode==='d'?'':'none';SEL.m.style.display=mode==='m'?'none':'';
  let pk='';
  if(mode==='w'){const ws0=d=>addD(d,-((d.getUTCDay()+1)%7)),rg=rangeY(),a0=iso(rg.a),b0=iso(rg.b),seen={};
+ const ORD=['اول','دوم','سوم','چهارم','پنجم','ششم','هفتم'];
+ const openD=(d)=>{const k=iso(d);if(k<a0||k>b0||hol(d)||S.closed[k])return false;try{if(window.dayStatus&&window.dayStatus(k).off===true)return false}catch(e){}return true};
+ const owner=ws=>{for(let i=0;i<7;i++){const d=addD(ws,i);if(openD(d)){const q=jp(d);return{y:q.y,m:q.m,first:d}}}return null};
+ const meta=w=>{const o=owner(w);if(!o)return null;let x=ws0(fromJ(o.y,o.m,1)),n=0,g=0;while(iso(x)<=iso(w)&&g++<8){const q=owner(x);if(q&&q.y===o.y&&q.m===o.m)n++;x=addD(x,7)}
+  let last=o.first;for(let i=0;i<7;i++){const d=addD(w,i);if(openD(d)&&iso(d)>=iso(o.first))last=d}return{y:o.y,m:o.m,n:Math.max(1,n),first:o.first,last}};
  const add=k=>{const d=new Date(k+'T12:00:00Z');if(k<a0||k>b0||hol(d)||S.closed[k])return;const w=iso(ws0(d));if(!seen[w]||k<seen[w])seen[w]=k};
  Object.keys(S.att).forEach(k=>{if(st.some(s=>(S.att[k]||{})[s.id]))add(k)});S.exams.forEach(e=>add(e.date));
- const cw=iso(ws0(cur)),ks=Object.keys(seen).sort().reverse();
- pk=`<b style="width:100%;font-size:14px">📅 هفته‌های ثبت‌شده (${fa(ks.length)})</b>`+(ks.map(w=>{const a=new Date(w+'T12:00:00Z'),pa=jp(a),pb=jp(addD(a,4));return `<button class="${w===cw?'on':''}" onclick="pickW('${seen[w]}')">${fa(pa.m+'/'+pa.d)} تا ${fa(pb.m+'/'+pb.d)}</button>`}).join('')||'<span class="sub">هنوز هفته‌ای با داده ثبت نشده</span>')}
+ const cw=iso(ws0(cur)),ks=Object.keys(seen).sort();let curM='',bh='';
+ ks.forEach(w=>{const wd0=new Date(w+'T12:00:00Z'),mt=meta(wd0);if(!mt)return;const mk=mt.y+'-'+mt.m;
+  if(mk!==curM){curM=mk;bh+=`<span style="font-size:12px;font-weight:900;padding:3px 10px;border-radius:8px;background:#ede9fe;color:#5b3fd6">${MN[mt.m-1]} ${fa(mt.y)}</span>`}
+  const pa=jp(mt.first),pb=jp(mt.last);bh+=`<button class="${w===cw?'on':''}" title="${fa(pa.m+'/'+pa.d)} تا ${fa(pb.m+'/'+pb.d)}" onclick="pickW('${seen[w]}')">هفته ${ORD[mt.n-1]||fa(mt.n)}</button>`});
+ pk=`<b style="width:100%;font-size:14px">📅 هفته‌های ثبت‌شده (${fa(ks.length)})</b>`+(bh||'<span class="sub">هنوز هفته‌ای با داده ثبت نشده</span>')}
  else if(mode==='m')pk=SM.map(m=>`<button class="${m===p.m?'on':''}" onclick="pickM(${m})">${MN[m-1]}</button>`).join('');
  $('pk').innerHTML=pk;$('pk').style.display=pk?'':'none';
  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.m===mode));

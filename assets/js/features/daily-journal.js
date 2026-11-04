@@ -125,6 +125,9 @@ function bells(k){const w=S.wsc;if(!w||typeof w!=='object'||!w.cell||isOff(k))re
    else if(x.k!=null){const kd=(w.kinds||[]).find(q=>q.id===x.k);if(kd&&kd.cn){const c=courses().find(q=>q.name===kd.cn);if(c)cids.push(c.id)}}});
   if(cids.length)out.push({i:String(i),s:(w.per&&w.per[i]&&w.per[i].s)||'',cids:[...new Set(cids)]})}
  return out}
+/* نام مدرسه/آموزگار/پایه از «تنظیمات ← مشخصات» (S.prof) */
+function profInfo(){const P=(typeof S!=='undefined'&&S&&(S.prof||S.profile))||{};let sc='';try{sc=P.school?(typeof window.schoolFull==='function'?window.schoolFull(P):P.school):''}catch(e){sc=P.school||''}
+ return{school:sc||'دبستان',teacher:String(P.teacher||'').trim(),grade:String(P.grade||'').trim(),sec:String(P.sec||'').trim()}}
 const sesKey=(k,b)=>k+'|'+b;
 const getSes=(k,b)=>D().ses[sesKey(k,b)]||null;
 function ensureSes(k,b){const d=D(),key=sesKey(k,b);if(!d.ses[key]){const bl=bells(k).find(x=>x.i===String(b));d.ses[key]={c:bl?bl.cids[0]:(courses()[0]||{}).id,tp:'',nt:''}}return d.ses[key]}
@@ -133,7 +136,8 @@ function dayBells(k){const L=bells(k).map(x=>({b:x.i,s:x.s,cids:x.cids,man:false
  return L.sort((a,b)=>(a.man-b.man)||(+String(a.b).replace(/\D/g,'')||0)-(+String(b.b).replace(/\D/g,'')||0))}
 const bellName=(k,x)=>{const s=getSes(k,x.b);const c=s?[s.c]:x.cids;const nm=c.map(cname).join(' + ');return(x.man?(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||'')):'زنگ '+ORD[+x.b])+' · '+nm}
 /* فعالیت‌هایی که در این زنگ سابقه دارند اما بعداً از فهرست پیشنهادی حذف شده‌اند همچنان با نام و نوعِ ثبت‌شده (Snapshot) نمایش داده می‌شوند */
-function itemsOf(s){if(!s)return[];const t=tplOf(s.c),ids=new Set(t.map(x=>x.id));const old=Object.keys(s.it||{}).filter(id=>!ids.has(id)&&s.it[id]).map(id=>({id,n:s.it[id].n,t:s.it[id].t==='d'?'d':(s.it[id].t==='p'?'p':'g'),hw:s.it[id].hw?1:0,old:1}));return t.concat(old)}
+function itemsOf(s){if(!s)return[];const t=tplOf(s.c),ids=new Set(t.map(x=>x.id));const old=Object.keys(s.it||{}).filter(id=>!ids.has(id)&&s.it[id]).map(id=>({id,n:s.it[id].n,t:s.it[id].t==='d'?'d':(s.it[id].t==='p'?'p':'g'),hw:s.it[id].hw?1:0,old:1}));const ov=x=>{const r=s.it&&s.it[x.id];return(r&&r.t)?Object.assign({},x,{t:r.t==='d'?'d':(r.t==='p'?'p':'g'),hw:r.t==='p'?0:(r.hw?1:0)}):x};
+ return t.map(ov).concat(old)}
 const cnt=(k,b,id)=>Object.keys(D().m[k+'|'+b+'|'+id]||{}).filter(sid=>!absent(k,+sid)).length;
 const presN=k=>sts().filter(s=>!absent(k,s.id)).length;
 function stat(k,b){const s=getSes(k,b);if(s&&s.st==='skip')return'skip';const ids=Object.keys((s&&s.it)||{});if(!ids.length)return'none';const p=presN(k);return ids.every(id=>cnt(k,b,id)>=p)?'full':'part'}
@@ -584,7 +588,7 @@ function seedInitialData(){
     const d=D();
     if(Object.keys(d.m||{}).length>0)return;
     if(typeof S==='undefined'||!S)return;
-    S.prof=Object.assign({school:'دبستان شاهد',teacher:'آموزگار محترم',grade:'چهارم',sec:'الف'},S.prof||{});
+    /* مشخصات مدرسه/آموزگار فقط از «تنظیمات» می‌آید؛ مقدار پیش‌فرض ساختگی نمی‌نویسیم (cl-v154) */
     const REAL_NAMES=[
       'ابوالفضل نورمحمد اوغلی',
       'بردیا پوربابا',
@@ -1051,10 +1055,7 @@ function render(){const s=$('dj');if(!s)return;
  const todayStudentsEvaluated=evaluatedStudentIds.size;
  const todayStatus=dayJournalStatus(k);
  const caN=caDay(k).length;
- const schoolName=(S.profile&&S.profile.school)||'دبستان';
- const teacherName=(S.profile&&S.profile.teacher)||'آموزگار';
- const gradeName=(S.profile&&S.profile.grade)||'';
- const sectionName=(S.profile&&S.profile.sec)||'';
+ const PI=profInfo(),schoolName=PI.school,teacherName=PI.teacher||'— (در تنظیمات وارد کنید)',gradeName=PI.grade,sectionName=PI.sec;
  const pn=presN(k);
 
  let h=`<h2>📓 دفتر روزانه معلم</h2><p class="sub">ثبت سریع عملکرد دانش‌آموزان، مدیریت فعالیت‌های آموزشی و رهگیری وضعیت دفترهای کلاسی.</p>`;
@@ -1485,9 +1486,7 @@ function printDashboardReport(){
   const win = window.open('', '_blank');
   if(!win){ flash('پنجره گزارش مسدود شد؛ باز شدن پنجره را تأیید کنید'); return; }
   const u = f => { try { return new URL('assets/fonts/' + f, location.href).href; } catch(e){ return 'assets/fonts/' + f; } };
-  const schoolName = (S.prof && S.prof.school) || (S.profile && S.profile.school) || 'دبستان';
-  const teacherName = (S.prof && S.prof.teacher) || (S.profile && S.profile.teacher) || 'آموزگار';
-  const gradeName = (S.prof && S.prof.grade) || (S.profile && S.profile.grade) || '';
+  const PI = profInfo(), schoolName = PI.school, teacherName = PI.teacher || 'آموزگار', gradeName = PI.grade + (PI.sec ? ' ('+PI.sec+')' : '');
   const clone = dashEl.cloneNode(true);
   const btn = clone.querySelector('button[data-dj="printdash"]');
   if(btn) btn.remove();
@@ -1712,7 +1711,7 @@ async function mxPdf(o){const land=!!o.land;let fr=null;flash('⏳ در حال �
  finally{if(fr)fr.remove()}}
 /* تنظیمات گزارش: fromPreview=true یعنی دقیقاً همان بازه و درس جدولِ پیش‌نمایش؛ وگرنه تنظیمات پنجره‌ی گزارش */
 function teacherReportOpts(fromPreview){
- const P=S.prof||S.profile||{},schoolName=P.school||'دبستان',teacherName=P.teacher||'آموزگار کلاس',gradeName=P.grade||'',today=todayK();
+ const PI=profInfo(),schoolName=PI.school,teacherName=PI.teacher||'آموزگار کلاس',gradeName=PI.grade+(PI.sec?' ('+PI.sec+')':''),today=todayK();
  let title,kind,cols,cf,withAtt;
  if(fromPreview){const B=mxBuild();kind=st.mx.m==='month'?'month':'week';title=(kind==='month'?'ماهانه — ':'هفتگی — ')+B.R.title;cols=B.cols;cf=st.mx.c||'all';withAtt=true}
  else{const cfg=st.repModal||{period:'month',att:'inline',course:'all'},anchor=st.mx.k||st.k||today,jp0=jparts(anchor);let from,to;

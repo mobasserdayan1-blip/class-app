@@ -32,7 +32,10 @@
  function ctx(){const c=cfg(),cid=+c.course||0;if(!crs().some(x=>x.id===cid))return{};const[h,p]=String(c.tp||'').split(':').map(Number);const ok=CHs(cid).some(H=>H.id===h&&(H.tp||[]).some(T=>T.id===p));return ok?{course:cid,ch:h,tp:p}:{course:cid}}
  const where=x=>{if(!x.course)return x.tl||'';const c=crs().find(z=>z.id===x.course);if(!c)return x.tl||'';let s=c.name;if(x.tp){const H=CHs(x.course).find(h=>h.id===x.ch),T=H&&(H.tp||[]).find(t=>t.id===x.tp);if(T)s+=' ← '+T.name;else if(x.tl)return x.tl}return s};
  const kl=x=>(x.kind||'سایر')+(x.sub?' ('+x.sub+')':'');
- const oral=id=>{let m=0,e=0;S.activities.forEach(x=>{if(x.sid===id&&isAcad(x.kind)){if(x.type==='positive')m++;else if(x.type==='effort')e++}});const t=m+e;return{m,e,t,mast:t?m/t:null,score:t?(m*4+e*2)/t:null}};
+ const oral=id=>{let m=0,e=0;S.activities.forEach(x=>{if(x.sid===id&&isAcad(x.kind)){if(x.type==='positive')m++;else if(x.type==='effort')e++}});
+  /* پاسخ‌های «مثبت / منفی» ثبت‌شده در دفتر روزانه هم در ارزشیابی مستمر حساب می‌شوند */
+  try{const q=window.djApi&&window.djApi.oralOf?window.djApi.oralOf(id):null;if(q){m+=q.p||0;e+=q.n||0}}catch(_){}
+  const t=m+e;return{m,e,t,mast:t?m/t:null,score:t?(m*4+e*2)/t:null}};
  function partScore(id){const c=cfg(),T=today(),A=S.activities;if(!A.length)return null;
   let first=T;A.forEach(x=>{if(x.date<first)first=x.date});
   const lim=addD(T,-27),start=first>lim?first:lim,days=dayDiff(start,T)+1;if(days<7)return null;

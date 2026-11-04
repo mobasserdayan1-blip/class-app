@@ -75,7 +75,7 @@ const LV=[{v:4,s:'خیلی خوب',t:'خیلی خوب',c:'#1a8f55'},{v:3,s:'خو
 const DEF=[
 ['قرآن',[['روان‌خوانی قرآن','g'],['روخوانی آیات','g'],['صحیح‌خوانی و رعایت قواعد','g'],['حفظ سوره یا آیات','g'],['مشارکت در فعالیت قرآنی','g']]],
 ['ریاضی',[['حل تمرین کتاب','d',1],['حل مسئله','g'],['فعالیت روی تخته','g'],['انجام تمرین در دفتر','d',1],['درک مفاهیم','g'],['مشارکت در فعالیت گروهی','g']]],
-['فارسی',[['روخوانی فارسی','g'],['روان‌خوانی','g'],['املا','g'],['جمله‌سازی','g'],['درک مطلب','g'],['نگارش','g'],['حفظ شعر','g']]],
+['فارسی',[['روخوانی فارسی','g'],['روان‌خوانی','g'],['املا','g'],['انشا','g'],['جمله‌سازی','g'],['درک مطلب','g'],['نگارش','g'],['حفظ شعر','g']]],
 ['املا',[['املا تقریری','g'],['املا تخته‌ای','g'],['تصحیح همسالان','g'],['املا آموزشی و خلاق','g'],['واژه‌آموزی و املا','g']]],
 ['انشا',[['بندنویسی موضوعی','g'],['خاطره‌نویسی و توصیف','g'],['نگارش خلاق','g'],['بازنویسی حکایت و ضرب‌المثل','g'],['تصویرخوانی و نگارش','g']]],
 ['نگارش',[['آموزش مهارت نگارش','g'],['فعالیت کتاب نگارش','d',1],['رعایت علائم نگارشی','g'],['درست‌نویسی و خوش‌نویسی','g']]],
@@ -86,6 +86,8 @@ const DEF=[
 ['تربیت',[['مشارکت در فعالیت ورزشی','g'],['انجام حرکات','g'],['رعایت نظم و قوانین','g']]]];
 const GEN=[['مشارکت در کلاس','g'],['پاسخ به پرسش','g'],['انجام فعالیت','d']];
 function defOf(cid){const n=cname(cid);const f=DEF.find(x=>n.includes(x[0]));return(f?f[1]:GEN).map((r,i)=>({id:'i'+i,n:r[0],t:r[1],hw:r[2]?1:0}))}
+/* مهاجرت یک‌باره: افزودن «انشا» به قالب‌های ویرایش‌شده‌ی درس فارسی (فقط یک بار؛ اگر معلم بعداً حذفش کرد برنمی‌گردد) */
+function migrateEnsha(){try{const d=D();if(d.ensha1)return;Object.keys(d.tpl).forEach(cid=>{const t=d.tpl[cid];if(!Array.isArray(t))return;const n=cname(cid)||'';if(n.includes('فارسی')&&!t.some(x=>String(x.n||'').includes('انشا')))t.push({id:'i_ensha',n:'انشا',t:'g',hw:0})});d.ensha1=1;save()}catch(e){}}
 const tplOf=cid=>{const t=D().tpl[cid];return Array.isArray(t)?t:defOf(cid)};
 function ownTpl(cid){const d=D();if(!Array.isArray(d.tpl[cid]))d.tpl[cid]=defOf(cid);return d.tpl[cid]}
 
@@ -372,6 +374,7 @@ const CSS=`#dj .dj-hd{display:flex;align-items:center;justify-content:space-betw
 #dj .dj-ho{background:#c0262c1a;color:#8a1219;border-radius:12px;padding:9px 12px;margin:8px 0;font-size:13px;border:1px solid #c0262c55}
 .dj-calgrid button.on.wk,.dj-calgrid button.on.ho{color:#fff}
 .dj-calgrid button{position:relative}
+.dj-calgrid button.blk,.dj-calgrid button:disabled{cursor:not-allowed;opacity:.5;filter:saturate(.7)}
 .dj-calgrid button.hd::after{content:'';position:absolute;bottom:4px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:#1a8f55}
 .dj-calgrid button.on.hd::after{background:#fff}
 .dj-calsel{display:flex;gap:6px;flex:1;justify-content:center}
@@ -442,7 +445,7 @@ const MXCSS=`
 .dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:5;text-align:center !important;vertical-align:middle !important;padding:8px 16px}
 .dj-mx tbody tr:nth-child(even) td.nm{background:var(--bg2,#f4f6fb)}
 .dj-mx th.h{width:36px;min-width:36px;vertical-align:middle !important;padding:8px 2px;text-align:center !important}
-.dj-mx th.h span{display:inline-flex !important;align-items:center !important;justify-content:center !important;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center !important;white-space:nowrap;max-height:220px;overflow:hidden;margin:0 auto !important;font-size:11px;line-height:1.6}
+.dj-mx th.h span{display:inline-flex !important;align-items:center !important;justify-content:center !important;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center !important;white-space:nowrap;max-height:300px;overflow:hidden;margin:0 auto !important;font-size:11px;line-height:1.6}
 .dj-mx th.h b{font-weight:900;color:#ffe08a}
 .dj-mx th.sm{background:#1d3470;min-width:40px;width:40px;text-align:center !important;vertical-align:middle !important}
 .dj-mx th.sm span{display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;width:100% !important;margin:0 auto !important}
@@ -588,6 +591,11 @@ function dayKind(k){/* فقط برای نمایش در تقویم — of: تعط
  if(S.closed&&S.closed[k])return{c:'ho cu',t:'تعطیلی مدرسه',off:2};
  {const ds=dstat(k);if(ds&&ds.status==='unknown'&&dow(k)>4)return{c:'uk',t:'وضعیت نامشخص (روزهای کاری مدرسه تنظیم نشده)'}}
  return null}
+/* روز غیرقابل‌انتخاب: تعطیل هفتگی، تعطیل رسمی، تعطیلی اختصاصی/اضطراری مدرسه */
+function isOffDay(k){try{const dk=dayKind(k);return !!(dk&&/(^|\s)(wk|ho)(\s|$)/.test(dk.c))}catch(e){return false}}
+/* نزدیک‌ترین روز غیرتعطیل از k به سمت dir (۱ یا ۱-)؛ اگر تا ۴۰ روز پیدا نشد null */
+function nextOpenDay(k,dir){let x=k;for(let i=0;i<40;i++){x=addD(x,dir);if(!isOffDay(x))return x}return null}
+function startDay(){const t=todayK();return isOffDay(t)?(nextOpenDay(t,-1)||t):t}
 /* مناسبت‌های رسمی/دستی یک ماه شمسی برای زیر تقویم */
 function monthHol(y,m){const out=[],n=jlen(y,m);for(let d=1;d<=n;d++){const k=jiso(y,m,d);if(!k)continue;const h=hinfo(k);if(h&&h.kind!=='work'&&h.kind!=='weekend'&&h.label)out.push({d,k,t:h.label+(h.emergency?' 🚨 اضطراری':'')+(h.reason?' — علت: '+h.reason:''),o:h.official})}return out}
 function calHtml(){
@@ -602,9 +610,10 @@ function calHtml(){
  h+='<i></i>'.repeat(off);
  for(let d=1;d<=days;d++){const k=jiso(y,m,d);if(!k){h+='<i></i>';continue}
   const dk=dayKind(k),c=[k===st.k?'on':'',k===t?'td':'',dk?dk.c:'',k>t?'fu':'',rec.has(k)?'hd':''].filter(Boolean).join(' ');
-  h+=`<button type="button" class="${c}" data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?(dk.off===1?' — تعطیل رسمی: ':' — ')+dk.t:'')+(rec.has(k)?' — دارای ثبت':''))}">${fa(d)}</button>`}
+  const blk=isOffDay(k);
+  h+=`<button type="button" class="${c}${blk?' blk':''}"${blk?' disabled aria-disabled="true"':''} data-dj="calday:${k}" title="${esc(WDN[dow(k)]+(dk&&dk.t?(dk.off===1?' — تعطیل رسمی: ':' — ')+dk.t:'')+(rec.has(k)?' — دارای ثبت':'')+(blk?' — غیرقابل انتخاب (تعطیل)':''))}">${fa(d)}</button>`}
  {const mh=monthHol(y,m),hi=hinfo(first);h+=`</div><div class="dj-hol">${mh.length?mh.map(x=>`<div>${x.o?'<b>★</b>':'▪'} ${fa(x.d)} ${JMN[m-1]} — ${esc(x.t)}</div>`).join(''):'<div>مناسبت یا تعطیلی ثبت‌شده‌ای در این ماه نیست.</div>'}${hi&&hi.lunarUnknown?`<div class="cov">⚠️ مناسبت‌های قمری سال ${fa(y)} هنوز در برنامه ثبت نشده (نامعلوم، نه «تعطیل نیست»)؛ فقط تعطیلات ثابت شمسی دیده می‌شوند.</div>`:''}</div>`}
- return h+`<div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · ★ تعطیل رسمی · قرمز: تعطیل هفتگی · نارنجی: تعطیلی اختصاصی (قاب قرمز = اضطراری)${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
+ return h+`<div class="dj-calft"><button type="button" class="p" data-dj="caltoday">امروز</button><small>● ثبت‌شده · ★ تعطیل رسمی · قرمز: تعطیل هفتگی · نارنجی: تعطیلی اختصاصی (قاب قرمز = اضطراری) · روزهای تعطیل قابل انتخاب نیستند${wkSet()?'':' · <button type="button" class="dj-sm" data-dj="setwk">تنظیم روزهای کاری</button>'}</small><button type="button" data-dj="calclose">بستن</button></div></div></div>`;
 }
 
 /* جدول فعالیت‌های آموزشی روز جاری (بخش چهارم - بند ۳) */
@@ -842,9 +851,12 @@ function studentList(k,b,it,pn){
   </div>`;
 
   h+=`<div class="dj-stu-list" style="display:grid;gap:6px">`;
-  h+=sts().map((s,index)=>{
+  const ordered=sts().map((s,i)=>({s,i})).sort((a,b)=>(absent(k,a.s.id)-absent(k,b.s.id))||(a.i-b.i)).map(x=>x.s);
+  const TINT={4:['#e9f7ef','#d3eedf'],3:['#f0f8e9','#dfefd0'],2:['#fff7e6','#fbe8bd'],1:['#fdeded','#f6d0d2']};
+  h+=ordered.map((s,index)=>{
     const ab=absent(k,s.id),v=m[s.id],nk=key+'|'+s.id,nt=d.n[nk],fn=((S.info||{})[s.id]||{}).fn||'';
-    return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${index%2===1?'#f8fafc':'#fff'};border:1px solid #f1f5f9">
+    const tk=ab||v==null?null:(it.t==='d'?(v===1?4:1):v),tn=tk&&TINT[tk];
+    return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${tn?tn[0]:(index%2===1?'#f8fafc':'#fff')};border:1px solid ${tn?tn[1]:'#f1f5f9'};transition:background .2s">
       ${st.sel&&!ab?`<input type="checkbox" data-dj="pick:${s.id}"${st.pick.has(s.id)?' checked':''} style="width:18px;height:18px;cursor:pointer">`:''}
       <div class="dj-nm" style="min-width:max-content;width:auto;white-space:nowrap !important;font-weight:800;font-size:13.5px;color:${v!=null?(it.t==='d'?(v===1?'#1a8f55':'#c0262c'):((LV.find(l=>l.v===v)||{}).c||'inherit')):'inherit'}">
         ${esc(s.name)}${fn?` <small style="color:var(--mut,#888);font-weight:400">(${esc(fn)})</small>`:''}
@@ -1065,8 +1077,8 @@ function mxTable(B){const cols=B.cols;if(!cols.length)return'';
   const isNewDate=(c.k!==prevDate);
   if(isNewDate){alt^=1;prevDate=c.k}
   c.alt=alt;
-  const jp=jparts(c.k),dt=fa(jp.d)+' '+JMN[jp.m-1],tx=cname(c.c)+' · '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
-  const titleHtml=isNewDate?`<b>${esc(dt)}</b> | ${esc(tx.length>34?tx.slice(0,33)+'…':tx)}`:`${esc(tx.length>34?tx.slice(0,33)+'…':tx)}`;
+  const jp=jparts(c.k),dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1],tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
+  const mxT=isNewDate?44-dt.length:44,txs=tx.length>mxT?tx.slice(0,Math.max(10,mxT-1))+'…':tx,titleHtml=isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs);
   return`<th class="h${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${titleHtml}</span></th>`}).join('');
  const sumH=[['خ خ','#1a8f55','خیلی خوب'],['خ','#3f8f2a','خوب'],['ق ق','#b26a00','قابل قبول'],['ن ت','#c0262c','نیاز به تلاش'],['انجام','#1a8f55','انجام شد'],['نشد','#c0262c','انجام نشد']].map(x=>`<th class="h sm" title="${x[2]}"><span style="color:#fff">${x[0]}</span></th>`).join('');
  const body=sts().map(s=>{const sum={4:0,3:0,2:0,1:0,ok:0,no:0};
@@ -1340,9 +1352,9 @@ function printTeacherJournalReport(){
  const colHeaders=cols.map(c=>{
   const isNewDate=(c.k!==prevDate);
   if(isNewDate) prevDate=c.k;
-  const jp=jparts(c.k), dt=fa(jp.d)+' '+JMN[jp.m-1];
-  const tx=cname(c.c)+' · '+c.n;
-  return `<th><div style="writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;max-height:160px;font-size:10px;padding:4px 0">${isNewDate?`<b>${esc(dt)}</b> | `:''}${esc(tx)}</div></th>`;
+  const jp=jparts(c.k), dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1];
+  const tx=cname(c.c)+' | '+c.n;
+  return `<th><div style="writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;max-height:230px;font-size:10px;padding:4px 0">${isNewDate?`<b>${esc(dt)}</b> | `:''}${esc(tx)}</div></th>`;
  }).join('');
 
  const summaryHeaders=`
@@ -1468,14 +1480,14 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  if(c==='calendar'){const p=jparts(k);st.cal={y:p.y,m:p.m}}
  else if(c==='setwk'){st.cal=null;try{show('set')}catch(e){}return}
  else if(c==='calclose'||c==='calbg')st.cal=null;
- else if(c==='caltoday'){st.k=todayK();st.cal=null;st.b=null;st.item=null;st.note=null;st.pick=new Set()}
+ else if(c==='caltoday'){st.k=startDay();st.cal=null;st.b=null;st.item=null;st.note=null;st.pick=new Set()}
  else if(c==='calprev'||c==='calnext'){if(st.cal){let m=st.cal.m+(c==='calnext'?1:-1),y=st.cal.y;if(m<1){m=12;y--}if(m>12){m=1;y++}st.cal={y,m}}}
- else if(c==='calday'){st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
- else if(c==='nav'){st.cal=null;st.k=addD(k,+x);st.b=null;st.item=null;st.note=null;st.pick=new Set()}
- else if(c==='today'){st.k=todayK();st.b=null;st.item=null}
+ else if(c==='calday'){if(isOffDay(x)){flash('این روز تعطیل است و قابل انتخاب نیست');return}st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
+ else if(c==='nav'){st.cal=null;{const nx=nextOpenDay(k,+x>0?1:-1);if(!nx){flash('روز غیرتعطیلی در این جهت پیدا نشد');return}st.k=nx}st.b=null;st.item=null;st.note=null;st.pick=new Set()}
+ else if(c==='today'){st.k=startDay();st.b=null;st.item=null}
  else if(c==='bell'){st.b=x;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}
  else if(c==='go'){st.k=x;st.b=y;st.item=null;st.note=null;st.pick=new Set()}
- else if(c==='goday'){st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
+ else if(c==='goday'){if(isOffDay(x)){flash('این روز تعطیل است و قابل انتخاب نیست');return}st.k=x;st.b=null;st.item=null;st.note=null;st.pick=new Set();st.cal=null}
  else if(c==='opennewact'){const cs=allCourses();st.actModal={mode:'create',c:(cs[0]||{}).id||1,sub:'',n:'',cg:'تدریس',t:'g',d:'',hw:false,hwt:''}}
  else if(c==='editact'){const s=getSes(k,x);if(s&&s.it&&s.it[y]){const it=s.it[y];st.actModal={mode:'edit',b:x,id:y,c:s.c,sub:it.sub||'',n:it.n||'',cg:it.cg||'تدریس',t:it.t||'g',d:it.d||'',hw:!!it.hw,hwt:it.hwt||it.n||''}}}
  else if(c==='delact'){if(confirm('آیا از حذف این فعالیت و سوابق ثبت‌شده‌ی آن مطمئن هستید؟')){const s=getSes(k,x);if(s&&s.it)delete s.it[y];delete D().m[k+'|'+x+'|'+y];Object.keys(D().n||{}).forEach(nk=>{if(nk.indexOf(k+'|'+x+'|'+y+'|')===0)delete D().n[nk]});if(st.item===y)st.item=null;save();flash('فعالیت با موفقیت حذف شد 🗑️')}}
@@ -1577,7 +1589,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.cal){st.cal=null;render()}});
 window.renderDj=render;
-const _show=window.show;window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='dj'){if(!st.keep){st.k=todayK();st.b=null;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}st.keep=false;render()}else if(id==='home')homeCard()}catch(e){console.warn('dj',e)}return r};
+const _show=window.show;window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='dj'){migrateEnsha();if(!st.keep){st.k=startDay();st.b=null;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}st.keep=false;render()}else if(id==='home')homeCard()}catch(e){console.warn('dj',e)}return r};
 try{render()}catch(e){console.warn('initial dj render',e)}
 try{const h=$('home');if(h&&h.classList.contains('on'))homeCard()}catch(e){}
 }catch(e){console.error('daily-journal',e)}})();

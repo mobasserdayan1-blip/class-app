@@ -464,6 +464,8 @@ const PENDCSS=`
 #dj .dj-pf .lg{font-size:11px;color:var(--mut,#888)}
 @media(max-width:520px){#dj .dj-pd{flex-direction:column;gap:5px}#dj .dj-pdl{flex:none;flex-direction:row;gap:8px;align-items:baseline}}
 #dj .dj-mxbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#dj .dj-mxpk{max-height:132px;overflow-y:auto}
+#dj .dj-mxpk .dj-sm.on{background:var(--p,#5b3fd6);color:#fff;border-color:transparent}
 #dj .dj-seg{display:inline-flex;border:1px solid var(--line,#ddd);border-radius:11px;overflow:hidden}
 #dj .dj-seg button{border:0;background:var(--card,#fff);color:var(--tx,#222);padding:8px 14px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer}
 #dj .dj-seg button.on{background:var(--p,#5b3fd6);color:#fff}
@@ -1167,8 +1169,11 @@ function attCell(k,sid){const v=((S.att||{})[k]||{})[sid];
  if(v==='a')return isExcX(k,sid)?{t:'غ م',c:'ax',tt:'غایب موجه'}:{t:'غ',c:'ab',tt:'غایب'};
  if(v==='l')return{t:'تأ',c:'lt',tt:'تأخیر'};
  return{t:'ح',c:'pr',tt:'حاضر'}}
+/* روز غیرآموزی برای جدول عملکرد: تعطیل رسمی، تعطیلی مدرسه/اضطراری، تعطیل هفتگی طبق «روزهای کاری مدرسه»؛
+   اگر روزهای کاری تنظیم نشده باشد، پنجشنبه و جمعه (مثل بخش حضور و غیاب) تعطیل حساب می‌شود. */
+function mxOff(k){try{if(isOffDay(k)||isOff(k))return true;if(!wkSet()&&dow(k)>4)return true}catch(e){}return false}
 function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
- Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(!from||k<from||k>to)return;
+ Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(!from||k<from||k>to||mxOff(k))return;
   const ses=d.ses[k+'|'+p[1]],it=ses&&(ses.it||{})[p[2]],mk=d.m[key];if(!it||!mk||!Object.keys(mk).length)return;
   if(cf!=='all'&&String(ses.c)!==String(cf))return;
   const t=it.t==='d'?'d':(it.t==='p'?'p':'g');
@@ -1176,10 +1181,24 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
  const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
  acts.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
  const days=new Set(acts.map(a=>a.k));
- if(withAtt&&cf==='all')Object.keys(S.att||{}).forEach(k=>{if(from&&k>=from&&k<=to&&!(S.closed||{})[k]&&S.att[k]&&Object.keys(S.att[k]).length)days.add(k)});
+ if(withAtt&&cf==='all')Object.keys(S.att||{}).forEach(k=>{if(from&&k>=from&&k<=to&&!mxOff(k)&&S.att[k]&&Object.keys(S.att[k]).length)days.add(k)});
  const out=[];
  [...days].sort().forEach(k=>{if(withAtt)out.push({kind:'att',k,key:'att|'+k});acts.filter(a=>a.k===k).forEach(a=>out.push(a))});
  return out}
+/* هفته‌ها/ماه‌های دارای داده (بدون روزهای تعطیل) برای انتخاب سریع — مثل «هفته‌های ثبت‌شده» در حضور و غیاب */
+function mxRegistered(){const d=D(),days=new Set();
+ Object.keys(d.m).forEach(key=>{const mk=d.m[key];if(mk&&Object.keys(mk).length)days.add(key.split('|')[0])});
+ Object.keys(S.att||{}).forEach(k=>{const a=S.att[k];if(a&&Object.keys(a).length)days.add(k)});
+ const weeks={},months={};
+ [...days].sort().forEach(k=>{if(mxOff(k))return;const p=jparts(k);if(!p||!isAcademicMonth(p.m))return;
+  const w=addD(k,-dow(k));(weeks[w]=weeks[w]||[]).push(k);
+  const mk=p.y+'-'+p.m;(months[mk]=months[mk]||{y:p.y,m:p.m,first:k});if(k<months[mk].first)months[mk].first=k});
+ return{weeks:Object.keys(weeks).sort().reverse().map(w=>({w,first:weeks[w][0],last:weeks[w][weeks[w].length-1]})),months:Object.values(months).sort((a,b)=>b.y*100+b.m-(a.y*100+a.m))}}
+function mxPicker(B){const R=mxRegistered(),a=mxAnchor();
+ if(st.mx.m==='month'){const p=jparts(a);
+  return `<div class="dj-mxbar dj-mxpk"><b style="width:100%;font-size:13px">📅 ماه‌های ثبت‌شده (${fa(R.months.length)})</b>`+(R.months.map(x=>`<button type="button" class="dj-sm${x.m===p.m&&x.y===p.y?' on':''}" data-dj="mxpick:${x.first}">${JMN[x.m-1]} ${fa(x.y)}</button>`).join('')||'<span class="sub">هنوز ماهی با داده ثبت نشده</span>')+'</div>'}
+ const cw=addD(a,-dow(a));
+ return `<div class="dj-mxbar dj-mxpk"><b style="width:100%;font-size:13px">📅 هفته‌های ثبت‌شده (${fa(R.weeks.length)})</b>`+(R.weeks.map(x=>{const pa=jparts(x.first),pb=jparts(x.last);return `<button type="button" class="dj-sm${x.w===cw?' on':''}" data-dj="mxpick:${x.first}">${fa(pa.m+'/'+pa.d)} تا ${fa(pb.m+'/'+pb.d)}</button>`}).join('')||'<span class="sub">هنوز هفته‌ای با داده ثبت نشده</span>')+'</div>'}
 function mxBuild(){const R=mxRange();return{R,cols:mxCols(R.from,R.to,st.mx.c,true)}}
 const MXS={4:['خ خ','l4','خیلی خوب'],3:['خ','l3','خوب'],2:['ق ق','l2','قابل قبول'],1:['ن ت','l1','نیاز به تلاش بیشتر']};
 /* ───── جدول عملکرد: ساخت جدول (صفحه + چاپ + PDF با یک کد) ───── */
@@ -1420,6 +1439,7 @@ function mxCard(){
       <button type="button" class="dj-sm" data-dj="mxnext" aria-label="بعدی">بعدی ›</button>
       ${own ? `<button type="button" class="dj-sm" data-dj="mxnow">↻ هم‌گام با روز دفتر</button>` : ''}
     </div>
+    ${mxPicker(B)}
     <div class="dj-mxbar">
       <select class="dj-in" data-mxc aria-label="فیلتر درس" style="max-width:200px">${opt}</select>
       
@@ -1814,6 +1834,7 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
+ else if(c==='mxpick'){if(/^\d{4}-\d{2}-\d{2}$/.test(x||''))st.mx.k=x}
  else if(c==='mxprint'){printTeacherJournalReport(false,true);return}
  else if(c==='mxpdf'){printTeacherJournalReport(true,true);return}
   else if(c==='printdash'){printDashboardReport(); return}

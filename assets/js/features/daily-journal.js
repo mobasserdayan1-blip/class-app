@@ -38,6 +38,8 @@ function jlen(y,m){
   try{if(window.JDate)return window.JDate.monthLen(y,m)}catch(e){}
   return m<=6?31:m<=11?30:29;
 }
+/* سال تحصیلی: مهر تا خرداد */
+const isAcademicMonth=m=>m>=7||m<=3;
 const dlab=k=>{try{const p=jparts(k);if(p&&p.y&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]+' '+fa(p.y)}catch(e){}return fmtP(k,{weekday:'long',day:'numeric',month:'long',year:'numeric'})};
 const nowM=()=>{const n=new Date();return n.getHours()*60+n.getMinutes()};
 const tmin=s=>{const a=String(s||'0:0').split(':').map(Number);return(a[0]||0)*60+(a[1]||0)};
@@ -496,18 +498,14 @@ const MXCSS=`
 .dj-mx th,.dj-mx td{padding:0;text-align:center;vertical-align:middle;border-bottom:1px solid var(--line,#e6e9f2);border-left:1px solid var(--line,#e6e9f2)}
 .dj-mx thead th{background:#2b4a9b;color:#fff;font-weight:800;position:sticky;top:0;z-index:2;text-align:center !important;vertical-align:middle !important}
 .dj-mx thead th.d1{background:#3d63bd}
-.dj-mx th.nm,.dj-mx td.nm{position:sticky;right:0;z-index:3;text-align:right;padding:7px 16px;min-width:max-content;width:auto;max-width:none;white-space:nowrap !important;overflow:visible !important;text-overflow:clip !important;font-weight:900;font-size:13.5px;background:var(--card,#fff);color:var(--tx,#222);border-left:2px solid #c9d2ea}
-.dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:5;text-align:center !important;vertical-align:middle !important;padding:8px 16px}
+.dj-mx th.nm,.dj-mx td.nm{position:sticky;right:0;z-index:3;text-align:right;padding:5px 10px;min-width:var(--nmw,130px);width:var(--nmw,130px);max-width:none;white-space:nowrap !important;overflow:visible !important;text-overflow:clip !important;font-weight:900;font-size:12.5px;background:var(--card,#fff);color:var(--tx,#222);border-left:2px solid #c9d2ea}
+.dj-mx thead th.nm{background:#2b4a9b;color:#fff;z-index:5;text-align:center !important;vertical-align:middle !important;padding:6px 10px}
 .dj-mx tbody tr:nth-child(even) td.nm{background:var(--bg2,#f4f6fb)}
-.dj-mx th.h{width:36px;min-width:36px;vertical-align:middle !important;padding:8px 2px;text-align:center !important}
-.dj-mx th.h span.h-att{justify-content:flex-start !important;padding-right:4px !important}
-.dj-mx th.h span.h-act{justify-content:flex-start !important;padding-right:16px !important}
+.dj-mx th.h{width:28px;min-width:28px;vertical-align:middle !important;padding:6px 1px;text-align:center !important}
 .dj-mx td.c .c-txt{white-space:nowrap !important;display:inline-block !important}
-.dj-mx th.h span{display:inline-flex !important;align-items:center !important;justify-content:center !important;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center !important;white-space:nowrap;max-height:300px;overflow:hidden;margin:0 auto !important;font-size:11px;line-height:1.6}
+.dj-mx th.h span{display:inline-flex !important;align-items:center !important;justify-content:center !important;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center !important;white-space:nowrap;max-height:var(--hh,190px);overflow:hidden;margin:0 auto !important;font-size:10.5px;line-height:1.5}
 .dj-mx th.h b{font-weight:900;color:#ffe08a}
-.dj-mx th.sm{background:#1d3470;min-width:40px;width:40px;text-align:center !important;vertical-align:middle !important}
-.dj-mx th.sm span{display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;width:100% !important;margin:0 auto !important}
-.dj-mx td.c{width:34px;min-width:34px;height:30px;font-size:11.5px;font-weight:900;color:#fff;text-align:center !important;vertical-align:middle !important}
+.dj-mx td.c{width:28px;min-width:28px;height:26px;font-size:10.5px;font-weight:900;color:#fff;text-align:center !important;vertical-align:middle !important}
 .dj-mx td.l4{background:#1a8f55}.dj-mx td.l3{background:#55b043}.dj-mx td.l2{background:#e2a300}.dj-mx td.l1{background:#d9363e}
 .dj-mx td.ok{background:#1a8f55}.dj-mx td.no{background:#d9363e}
 .dj-mx td.ab{background:#fde7e8;color:#c0262c;font-weight:900;text-align:center !important}
@@ -516,17 +514,15 @@ const MXCSS=`
 .dj-mx td.c.at{font-size:11px;font-weight:900}
 .dj-mx td.at.pr{background:#e3f4ea;color:#1a8f55}.dj-mx td.at.lt{background:#fff1cf;color:#b26a00}.dj-mx td.at.ax{background:#ffe9d6;color:#b45309}.dj-mx td.at.ab{background:#fde7e8;color:#c0262c}
 .dj-mx td.at{border-left:2px solid #99d5cc}
-.dj-mx th.h.pnh{width:46px;min-width:46px}.dj-mx td.c.pnc{width:46px;min-width:46px;font-size:11px;white-space:nowrap}
+.dj-mx th.h.pnh{width:40px;min-width:40px}.dj-mx td.c.pnc{width:40px;min-width:40px;font-size:10px;white-space:nowrap}
 .dj-pn{border-radius:10px;padding:6px 12px;font-weight:800;border:2px solid transparent;cursor:pointer;background:var(--card,#fff);white-space:nowrap}
 .dj-bt .dj-pn.pos,.dj-pn.pos{border-color:#1a8f55 !important;color:#1a8f55 !important}.dj-bt .dj-pn.pos:hover{background:#e3f4ea}
 .dj-bt .dj-pn.neg,.dj-pn.neg{border-color:#c0262c !important;color:#c0262c !important}.dj-bt .dj-pn.neg:hover{background:#fde7e8}
 .dj-pn b{display:inline-block;min-width:18px;padding:0 5px;margin-right:4px;border-radius:9px;color:#fff !important}.dj-pn.pos b{background:#1a8f55}.dj-pn.neg b{background:#c0262c}
 .dj-pnx{border:0;background:#eef1f6;color:#64748b;border-radius:8px;width:24px;height:24px;cursor:pointer;font-size:11px;line-height:1}.dj-pnx:hover{background:#fde7e8;color:#c0262c}
 .dj-pn:disabled,.dj-pnx:disabled{opacity:.4;cursor:not-allowed}
-.dj-mx td.sm{min-width:40px;width:40px;font-size:12px;font-weight:900;background:var(--bg2,#f4f6fb);text-align:center !important;vertical-align:middle !important}
-.dj-mx td.sm.z{color:#a7afc0;font-weight:600}
-.dj-mx td.sm.s4{color:#1a8f55}.dj-mx td.sm.s3{color:#3f8f2a}.dj-mx td.sm.s2{color:#b26a00}.dj-mx td.sm.s1{color:#c0262c}
 .dj-mx tbody tr:hover td.nm{background:#e8edf9}
+@media(max-width:640px){.dj-mx th.nm,.dj-mx td.nm{white-space:normal !important;min-width:92px;width:92px;max-width:104px;font-size:11px;line-height:1.35;padding:4px 6px}.dj-mx th.h{width:26px;min-width:26px}.dj-mx td.c{width:26px;min-width:26px;height:24px;font-size:10px}}
 
 .dj-act-status-pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:900;padding:3px 8px;border-radius:8px;white-space:nowrap;cursor:help}.dj-act-status-pill.done{background:#1a8f5518;color:#1a8f55;border:1px solid #1a8f5533}.dj-act-status-pill.part{background:#d9770618;color:#b45309;border:1px solid #d9770633}
 .dj-course-chart{margin:14px 0;padding:12px;border-radius:12px;background:var(--bg2,#f8fafc);border:1px solid var(--line,#e2e8f0)}
@@ -1186,82 +1182,46 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
  return out}
 function mxBuild(){const R=mxRange();return{R,cols:mxCols(R.from,R.to,st.mx.c,true)}}
 const MXS={4:['خ خ','l4','خیلی خوب'],3:['خ','l3','خوب'],2:['ق ق','l2','قابل قبول'],1:['ن ت','l1','نیاز به تلاش بیشتر']};
-function mxTable(B, opts){
-  opts = opts || {};
-  const isPrint = !!opts.isPrint;
-  const hideSummary = opts.hideSummary !== undefined ? opts.hideSummary : (isPrint || !!st.mxHideSum);
-  const cols = B.cols;
-  if(!cols.length) return '';
-
-  const maxLen = sts().reduce((m,s)=>Math.max(m,(s.name||'').trim().length),0);
-  const nmW = Math.max(140, Math.ceil(maxLen*10.5)+40);
-  let alt = 0, prevDate = null;
-  const hasP = cols.some(c=>c.kind==='act'&&c.t==='p'), hasAtt = cols.some(c=>c.kind==='att');
-
-  const head = cols.map(c=>{
-    const isNewDate = (c.k !== prevDate);
-    if(isNewDate){ alt ^= 1; prevDate = c.k; }
-    c.alt = alt;
-    const jp = jparts(c.k), dt = WDN[dow(c.k)] + ' | ' + fa(jp.d) + ' ' + JMN[jp.m-1];
-    if(c.kind === 'att'){
-      return `<th class="h at${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(dlab(c.k)+' — حضور و غیاب')}"><span class="h-att"><b>${esc(dt)}</b> | حضور و غیاب</span></th>`;
-    }
-    const tx = cname(c.c) + ' | ' + c.n, tt = dlab(c.k) + ' — ' + bellLabel(c.k,c.b) + ' — ' + cname(c.c) + ' — ' + c.n;
-    const mxT = isNewDate ? 44 - dt.length : 44;
-    const txs = tx.length > mxT ? tx.slice(0, Math.max(10, mxT-1)) + '…' : tx;
-    const titleHtml = isNewDate ? `<b>${esc(dt)}</b> | ${esc(txs)}` : esc(txs);
-    return `<th class="h act${c.t==='p'?' pnh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span class="h-act">${titleHtml}</span></th>`;
-  }).join('');
-
-  let sumH = '';
-  const SUMD = [['خ خ','خیلی خوب',4,'s4'],['خ','خوب',3,'s3'],['ق ق','قابل قبول',2,'s2'],['ن ت','نیاز به تلاش',1,'s1'],['انجام','انجام شد','ok','s4'],['نشد','انجام نشد','no','s1']];
-  if(hasP) SUMD.push(['＋','پاسخ مثبت','pp','s4'],['−','پاسخ منفی','pn','s1']);
-  if(hasAtt) SUMD.push(['غ','تعداد غیبت','ab','s1'],['تأ','تعداد تأخیر','lt','s2']);
-  if(!hideSummary){
-    sumH = SUMD.map(x=>`<th class="h sm" title="${x[1]}"><span style="color:#fff">${x[0]}</span></th>`).join('');
-  }
-
-  const sortedStudents = sts();
-  const body = sortedStudents.map((s, idx)=>{
-    const sum = {4:0,3:0,2:0,1:0,ok:0,no:0,pp:0,pn:0,ab:0,lt:0};
-    const tds = cols.map(c=>{
-      if(c.kind === 'att'){
-        const a = attCell(c.k, s.id);
-        if(a.c === 'ab' || a.c === 'ax') sum.ab++;
-        else if(a.c === 'lt') sum.lt++;
-        return `<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`;
-      }
-      const v = c.mk[s.id];
-      if(v == null){
-        // Absence in activities: leave EMPTY as requested by user!
-        return `<td class="c em"></td>`;
-      }
-      if(c.t === 'd'){
-        if(v === 1){ sum.ok++; return `<td class="c ok" title="انجام شد">✓</td>`; }
-        sum.no++; return `<td class="c no" title="انجام نشد">✗</td>`;
-      }
-      if(c.t === 'p'){
-        const q = (c.pm || {})[s.id];
-        if(q){
-          sum.pp += q[0]; sum.pn += q[1];
-          return `<td class="c pnc l${v}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی">${pnHtml(q)}</td>`;
-        }
-      }
-      const m = MXS[v];
-      if(!m) return `<td class="c em"></td>`;
-      sum[v]++;
-      return `<td class="c ${m[1]}" title="${m[2]}"><span class="c-txt">${m[0]}</span></td>`;
-    }).join('');
-
-    let sm = '';
-    if(!hideSummary){
-      sm = SUMD.map(x=>`<td class="sm ${sum[x[2]]?x[3]:'z'}">${fa(sum[x[2]])}</td>`).join('');
-    }
-    return `<tr><td class="nm" style="min-width:${nmW}px;width:${nmW}px">${esc(s.name)}</td>${tds}${sm}</tr>`;
-  }).join('');
-
-  return `<table><thead><tr><th class="nm" style="min-width:${nmW}px;width:${nmW}px">نام دانش‌آموز</th>${head}${sumH}</tr></thead><tbody>${body}</tbody></table>`;
-}
+/* ───── جدول عملکرد: ساخت جدول (صفحه + چاپ + PDF با یک کد) ───── */
+/* تقسیم ستون‌ها به بخش‌های هم‌اندازه (هر بخش = یک صفحه)؛ ستون‌های یک روز تا حد امکان کنار هم می‌مانند */
+function mxChunk(cols,per){const nn=Math.max(1,Math.ceil(cols.length/per));per=Math.min(per,Math.ceil(cols.length/nn)+3);const days=[];
+ cols.forEach(c=>{const g=days[days.length-1];if(g&&g.k===c.k)g.c.push(c);else days.push({k:c.k,c:[c]})});
+ const out=[];let cur=[];
+ days.forEach(g=>{const c=g.c;
+  if(c.length>per){if(cur.length){out.push(cur);cur=[]}for(let i=0;i<c.length;i+=per)out.push(c.slice(i,i+per));return}
+  if(cur.length+c.length>per){out.push(cur);cur=[]}
+  cur=cur.concat(c)});
+ if(cur.length)out.push(cur);return out}
+/* o.cols: زیرمجموعه‌ی ستون‌ها (برای هر صفحه)؛ o.pr: حالت چاپ/PDF (ستون‌های هم‌عرض، بدون اسکرول)؛ o.num: ستون ردیف.
+   سرتیترها همیشه وسط‌چین افقی و عمودی‌اند. اگر دانش‌آموز در آن روز غایب بوده، خانه‌های فعالیت همان روز خالی می‌ماند. */
+function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return'';
+ const pr=!!o.pr,maxLen=sts().reduce((m,s)=>Math.max(m,(s.name||'').trim().length),0);
+ const nmW=pr?Math.min(185,Math.max(105,Math.ceil(maxLen*5.3)+20)):Math.max(120,Math.ceil(maxLen*7.2)+22);
+ const cap=pr?30:36;let alt=0,prevDate=null,maxH=0;
+ const head=cols.map(c=>{
+  const isNewDate=(c.k!==prevDate);
+  if(isNewDate){alt^=1;prevDate=c.k}
+  c.alt=alt;
+  const jp=jparts(c.k),dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1];
+  if(c.kind==='att'){maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+12);
+   return`<th class="h at${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(dlab(c.k)+' — حضور و غیاب')}"><span>${isNewDate?`<b>${esc(dt)}</b> | `:''}حضور و غیاب</span></th>`}
+  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+bellLabel(c.k,c.b)+' — '+cname(c.c)+' — '+c.n;
+  const mxT=isNewDate?cap-dt.length:cap,txs=tx.length>mxT?tx.slice(0,Math.max(10,mxT-1))+'…':tx;
+  maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+txs.length);
+  return`<th class="h${c.t==='p'?' pnh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs)}</span></th>`}).join('');
+ const hh=Math.min(pr?200:190,Math.max(64,Math.ceil(maxH*(pr?4.7:6.1))+14));
+ const body=sts().map((s,i)=>{
+  const tds=cols.map(c=>{
+   if(c.kind==='att'){const a=attCell(c.k,s.id);return`<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`}
+   if(absent(c.k,s.id))return`<td class="c em"></td>`;
+   const v=c.mk[s.id];
+   if(v==null)return`<td class="c em"></td>`;
+   if(c.t==='d')return v===1?`<td class="c ok" title="انجام شد">✓</td>`:`<td class="c no" title="انجام نشد">✗</td>`;
+   if(c.t==='p'){const q=(c.pm||{})[s.id];if(q)return`<td class="c pnc l${v}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی">${pnHtml(q)}</td>`}
+   const m=MXS[v];return m?`<td class="c ${m[1]}" title="${m[2]}"><span class="c-txt">${m[0]}</span></td>`:`<td class="c em"></td>`}).join('');
+  return`<tr>${o.num?`<td class="rn">${fa(i+1)}</td>`:''}<td class="nm">${esc(s.name)}</td>${tds}</tr>`}).join('');
+ const tw=pr?`max-width:${nmW+(o.num?24:0)+cols.length*46}px;`:'';
+ return`<table data-noresp="1" class="${pr?'pr':''}" style="${tw}--nmw:${nmW}px;--hh:${hh}px"><thead><tr>${o.num?'<th class="rn">ردیف</th>':''}<th class="nm">نام دانش‌آموز</th>${head}</tr></thead><tbody>${body}</tbody></table>`}
 function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
 function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز · خانه‌ی خالی = ثبت نشده</div>`}
 
@@ -1445,7 +1405,6 @@ function classAnalyticsDashboard(B){
 function mxCard(){
   const B = mxBuild(), tb = mxTable(B), own = st.mx.k != null;
   const opt = `<option value="all"${st.mx.c==='all'?' selected':''}>همه‌ی درس‌ها</option>` + allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.mx.c)?' selected':''}>${esc(c.name)}</option>`).join('');
-  const hideSum = !!st.mxHideSum;
   return `<div class="card dj-mx" id="djMx">
     <div class="dj-ph">
       <b>📊 جدول عملکرد دانش‌آموزان <span class="dj-live">پیش‌نمایش زنده</span></b>
@@ -1463,7 +1422,7 @@ function mxCard(){
     </div>
     <div class="dj-mxbar">
       <select class="dj-in" data-mxc aria-label="فیلتر درس" style="max-width:200px">${opt}</select>
-      <button type="button" class="dj-sm ${hideSum?'on':''}" data-dj="mxtogglesum" title="حذف یا نمایش ستون‌های جمع‌بندی انتهای جدول">${hideSum?'➕ نمایش ستون‌های جمع‌بندی':'➖ حذف ستون‌های جمع‌بندی'}</button>
+      
       <button type="button" class="dj-sm on" style="background:#1d4ed8;color:#fff;border-color:transparent" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 چند صفحه‌ای)</button>
       <button type="button" class="dj-sm" data-dj="mxprint">🖨️ چاپ مستقیم</button>
       <button type="button" class="dj-sm on" style="background:#059669;color:#fff;border-color:transparent" data-dj="mxpdf">📄 خروجی فایل PDF</button>
@@ -1586,21 +1545,6 @@ function printDashboardReport(){
   setTimeout(()=>{try{win.focus();win.print();}catch(e){}}, 700);
 }
 
-function printMatrix(){const B=mxBuild();if(!B.cols.length){flash('در این بازه عملکردی برای چاپ ثبت نشده است');return}
- const win=window.open('','_blank');if(!win){flash('پنجره‌ی گزارش مسدود شد؛ اجازه‌ی بازشدن پنجره را فعال کنید');return}
- const u=f=>{try{return new URL('assets/fonts/'+f,location.href).href}catch(e){return'assets/fonts/'+f}};
- const cn=st.mx.c==='all'?'همه‌ی درس‌ها':cname(st.mx.c);
- win.document.open();win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><title>جدول عملکرد ${B.R.kind}</title><style>
- @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
- @page{size:A4 landscape;margin:8mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#202a36;margin:0;font-size:11px}
- h1{font-size:17px;margin:0 0 3px;color:#17365d}.meta{display:flex;justify-content:space-between;gap:10px;color:#526477;border-bottom:2px solid #486581;padding-bottom:6px;margin-bottom:8px;font-size:11px}
- .dj-mx .dj-mxw{overflow:visible;border:0}.dj-mx table{width:100%;min-width:0}.dj-mx th.nm,.dj-mx td.nm{position:static;min-width:max-content;white-space:nowrap;font-size:11px;padding:4px 10px;text-align:right}.dj-mx thead th{position:static;text-align:center !important;vertical-align:middle !important}.dj-mx thead th.nm{text-align:center !important}.dj-mx td.c{height:22px;font-size:10px}.dj-mx tr{break-inside:avoid}
- .dj-mx i{font-style:normal;display:inline-block;min-width:22px;text-align:center;border-radius:4px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}.sign{display:flex;justify-content:space-around;margin-top:16px}.sign span{border-top:1px solid #7b8794;padding:5px 30px 0}.noprint{text-align:center;margin:12px}@media print{.noprint{display:none}}
- ${MXCSS}</style></head><body><h1>جدول عملکرد دانش‌آموزان — گزارش ${B.R.kind}</h1><div class="meta"><span>بازه: ${esc(B.R.title)}</span><span>درس: ${esc(cn)}</span><span>تاریخ تهیه: ${esc(dshort(todayK()))}</span></div>
- <div class="dj-mx"><div class="dj-mxw">${mxTable(B)}</div>${mxLegend().replace('class="dj-mxlg"','style="font-size:10px;line-height:2.1;margin-top:6px"')}</div>
- <div class="sign"><span>نام و امضای آموزگار</span><span>امضای مدیر</span></div><div class="noprint"><button onclick="window.print()">چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
- win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700)}
-
 /* گزارش رسمی دفتر روزانه؛ داده‌ها از Snapshot ثبت‌شده خوانده می‌شوند */
 function printDailyReport(period){
  const today=todayK(),anchor=st.k||today,jp0=jparts(anchor);let from,to,title;
@@ -1672,305 +1616,102 @@ function teacherReportModalHtml(){
  </div></div>`;
 }
 
-function printTeacherJournalReport(directDownloadPdf){
-  const cfg = st.repModal || { period: 'month', att: 'inline', course: 'all' };
-  const today = todayK(), anchor = st.mx.k || st.k || today, jp0 = jparts(anchor);
-  let from, to, title, kind;
-  if(cfg.period === 'month'){
-    from = jiso(jp0.y, jp0.m, 1);
-    to = jiso(jp0.y, jp0.m, jlen(jp0.y, jp0.m));
-    title = 'ماهانه — ماه ' + JMN[jp0.m-1] + ' ' + fa(jp0.y);
-    kind = 'month';
-  } else {
-    const start = addD(anchor, -dow(anchor));
-    from = start;
-    to = addD(start, 6);
-    title = 'هفتگی — ' + dshort(from) + ' تا ' + dshort(to);
-    kind = 'week';
-  }
-  if(!from || !to){ flash('تعیین بازه گزارش ممکن نشد'); return; }
-
-  const cf = cfg.course || 'all';
-  const withAtt = cfg.att !== 'none';
-  const cols = mxCols(from, to, cf, withAtt);
-  const students = sts();
-  if(!students.length){ flash('دانش‌آموزی در کلاس وجود ندارد'); return; }
-
-  const u = f => { try { return new URL('assets/fonts/' + f, location.href).href; } catch(e){ return 'assets/fonts/' + f; } };
-  const schoolName = (S.prof && S.prof.school) || (S.profile && S.profile.school) || 'دبستان';
-  const teacherName = (S.prof && S.prof.teacher) || (S.profile && S.profile.teacher) || 'آموزگار کلاس';
-  const gradeName = (S.prof && S.prof.grade) || (S.profile && S.profile.grade) || '';
-  const isLandscape = (kind === 'month');
-
-  // Split columns across pages:
-  // For monthly report, chunk columns by max 30 per page (or 30 activities) so nothing is clipped.
-  const COL_CHUNK_SIZE = kind === 'month' ? 30 : 40;
-  const colChunks = [];
-  if(cols.length <= COL_CHUNK_SIZE){
-    colChunks.push(cols);
-  } else {
-    for(let i = 0; i < cols.length; i += COL_CHUNK_SIZE){
-      colChunks.push(cols.slice(i, i + COL_CHUNK_SIZE));
-    }
-  }
-  const totalPages = Math.max(1, colChunks.length);
-
-  const ATS = {
-    pr: 'background:#e3f4ea;color:#1a8f55',
-    lt: 'background:#fff1cf;color:#b26a00',
-    ax: 'background:#ffe9d6;color:#b45309',
-    ab: 'background:#fde7e8;color:#c0262c',
-    em: ''
-  };
-  const LVC = { 4: '#1a8f55', 3: '#55b043', 2: '#e2a300', 1: '#d9363e' };
-
-  // Generate pages HTML
-  let allPagesHtml = '';
-
-  colChunks.forEach((chunkCols, pIdx) => {
-    let prevDate = null;
-    const colHeaders = chunkCols.map(c => {
-      const isNewDate = (c.k !== prevDate);
-      if(isNewDate) prevDate = c.k;
-      const jp = jparts(c.k), dt = WDN[dow(c.k)] + ' | ' + fa(jp.d) + ' ' + JMN[jp.m-1];
-      const isAt = c.kind === 'att';
-      const tx = isAt ? 'حضور و غیاب' : cname(c.c) + ' | ' + c.n;
-      return `<th${isAt ? ' style="background:#d5efe9"' : ''}>
-        <div class="${isAt ? 'v-head v-att' : 'v-head v-act'}">
-          ${isNewDate ? `<b>${esc(dt)}</b> | ` : ''}${esc(tx)}
-        </div>
-      </th>`;
-    }).join('');
-
-    const rowsHtml = students.map((s, idx) => {
-      const tds = chunkCols.map(c => {
-        if(c.kind === 'att'){
-          const a = attCell(c.k, s.id);
-          return `<td style="${ATS[a.c]};font-weight:900">${a.t}</td>`;
-        }
-        const v = c.mk[s.id];
-        if(v == null){
-          // If absent during activity, leave cell completely empty as requested!
-          return `<td></td>`;
-        }
-        if(c.t === 'd'){
-          if(v === 1) return `<td style="color:#1a8f55;font-weight:bold">✓</td>`;
-          return `<td style="color:#c0262c;font-weight:bold">✗</td>`;
-        }
-        if(c.t === 'p'){
-          const q = (c.pm || {})[s.id];
-          if(q) return `<td style="background:${LVC[v]}22;color:${LVC[v]};font-weight:900;white-space:nowrap">${pnHtml(q)}</td>`;
-        }
-        if(v === 4) return `<td style="background:#1a8f5518;color:#1a8f55;font-weight:900"><span style="white-space:nowrap;display:inline-block">خ خ</span></td>`;
-        if(v === 3) return `<td style="background:#55b04318;color:#3f8f2a;font-weight:900"><span style="white-space:nowrap;display:inline-block">خ</span></td>`;
-        if(v === 2) return `<td style="background:#e2a30018;color:#b26a00;font-weight:900"><span style="white-space:nowrap;display:inline-block">ق ق</span></td>`;
-        if(v === 1) return `<td style="background:#d9363e18;color:#c0262c;font-weight:900"><span style="white-space:nowrap;display:inline-block">ن ت</span></td>`;
-        return `<td></td>`;
-      }).join('');
-
-      return `<tr>
-        <td style="text-align:center;width:28px">${fa(idx+1)}</td>
-        <td style="text-align:right;font-weight:bold;white-space:nowrap;padding:4px 8px">${esc(s.name)}</td>
-        ${tds}
-      </tr>`;
-    }).join('');
-
-    allPagesHtml += `
-    <div class="print-page ${pIdx < totalPages - 1 ? 'page-break' : ''}">
-      <div class="rep-header">
-        <div>
-          <h1>دفتر روزانه ${esc(teacherName)} — گزارش حضور و غیاب و فعالیت‌های کلاسی روزانه</h1>
-          <div class="rep-meta">
-            <span>آموزشگاه: <b>${esc(schoolName)}</b></span>
-            <span>پایه/کلاس: <b>${esc(gradeName)}</b></span>
-            <span class="page-num">صفحه ${fa(pIdx+1)} از ${fa(totalPages)}</span>
-          </div>
-        </div>
-        <div style="text-align:left;font-size:10px;color:#475569">
-          <div><b>دوره:</b> ${esc(title)}</div>
-          <div><b>تاریخ چاپ:</b> ${esc(dshort(today))}</div>
-        </div>
-      </div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:28px">ردیف</th>
-              <th style="min-width:130px;white-space:nowrap">نام و نام خانوادگی دانش‌آموز</th>
-              ${colHeaders}
-            </tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-      </div>
-      <div class="sign">
-        <span>نام و امضای آموزگار: ${esc(teacherName)}</span>
-        <span>امضای مدیر آموزشگاه: ${esc(schoolName)}</span>
-      </div>
-    </div>
-    `;
-  });
-
-  if(directDownloadPdf){
-    // Use html2canvas & jsPDF for direct PDF file download
-    (async ()=>{
-      try {
-        flash('در حال ساخت فایل PDF… لطفاً چند لحظه صبر کنید.');
-        await pdfLibs();
-        try{ await document.fonts.ready; }catch(e){}
-        const doc = new (window.jspdf ? window.jspdf.jsPDF : MiniPDF)({
-          unit: 'mm',
-          format: 'a4',
-          orientation: isLandscape ? 'landscape' : 'portrait'
-        });
-
-        const tempDiv = document.createElement('div');
-        tempDiv.id = 'tempPdfRender';
-        tempDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:' + (isLandscape ? '1123px' : '794px') + ';background:#fff;direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif;padding:0;box-sizing:border-box';
-        
-        // Render each page element individually to canvas
-        const pageW = isLandscape ? 297 : 210;
-        const pageH = isLandscape ? 210 : 297;
-        
-        document.body.appendChild(tempDiv);
-
-        for(let p = 0; p < totalPages; p++){
-          tempDiv.innerHTML = `<div style="padding:${isLandscape?'8mm':'10mm'};background:#fff;color:#1e293b;box-sizing:border-box;width:${isLandscape?'1123px':'794px'}">
-            <style>
-              body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;}
-              .rep-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #334155;padding-bottom:6px;margin-bottom:8px}
-              .rep-header h1{font-size:14px;margin:0 0 2px;color:#0f172a}
-              .rep-meta{font-size:10px;color:#475569;display:flex;gap:14px;align-items:center}
-              .page-num{background:#e2e8f0;padding:1px 6px;border-radius:4px;font-weight:800;color:#0f172a}
-              table{width:100%;border-collapse:collapse;margin-top:6px;font-size:9.5px;table-layout:fixed}
-              th,td{border:1px solid #cbd5e1;padding:3px 2px;text-align:center;word-break:keep-all;overflow:hidden}
-              thead th{background:#f1f5f9;color:#0f172a;font-weight:bold}
-              tbody tr:nth-child(even){background:#f8fafc}
-              .v-head{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;max-height:220px;font-size:9.5px;padding:3px 0}
-              .v-att{text-align:right;}
-              .v-act{text-align:right;text-indent:1.2em;}
-              .sign{display:flex;justify-content:space-around;margin-top:20px;font-size:10px;font-weight:bold}
-              .sign span{border-top:1px solid #64748b;padding:5px 24px 0}
-            </style>
-            ${colChunks[p] ? `
-              <div class="rep-header">
-                <div>
-                  <h1>دفتر روزانه ${esc(teacherName)} — گزارش حضور و غیاب و فعالیت‌های کلاسی روزانه</h1>
-                  <div class="rep-meta">
-                    <span>آموزشگاه: <b>${esc(schoolName)}</b></span>
-                    <span>پایه/کلاس: <b>${esc(gradeName)}</b></span>
-                    <span class="page-num">صفحه ${fa(p+1)} از ${fa(totalPages)}</span>
-                  </div>
-                </div>
-                <div style="text-align:left;font-size:10px;color:#475569">
-                  <div><b>دوره:</b> ${esc(title)}</div>
-                  <div><b>تاریخ چاپ:</b> ${esc(dshort(today))}</div>
-                </div>
-              </div>
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:28px">ردیف</th>
-                    <th style="width:130px;white-space:nowrap">نام و نام خانوادگی دانش‌آموز</th>
-                    ${colChunks[p].map(c=>{
-                      const isAt = c.kind === 'att';
-                      const jp = jparts(c.k), dt = WDN[dow(c.k)] + ' | ' + fa(jp.d) + ' ' + JMN[jp.m-1];
-                      const tx = isAt ? 'حضور و غیاب' : cname(c.c) + ' | ' + c.n;
-                      return `<th${isAt ? ' style="background:#d5efe9"' : ''} style="width:24px"><div class="${isAt ? 'v-head v-att' : 'v-head v-act'}"><b>${esc(dt)}</b> | ${esc(tx)}</div></th>`;
-                    }).join('')}
-                  </tr>
-                </thead>
-                <tbody>
-                  ${students.map((s, idx) => `<tr>
-                    <td style="text-align:center">${fa(idx+1)}</td>
-                    <td style="text-align:right;font-weight:bold;white-space:nowrap;padding:3px 6px">${esc(s.name)}</td>
-                    ${colChunks[p].map(c => {
-                      if(c.kind === 'att'){
-                        const a = attCell(c.k, s.id);
-                        return `<td style="${ATS[a.c]};font-weight:900">${a.t}</td>`;
-                      }
-                      const v = c.mk[s.id];
-                      if(v == null) return '<td></td>';
-                      if(c.t === 'd') return v === 1 ? '<td style="color:#1a8f55;font-weight:bold">✓</td>' : '<td style="color:#c0262c;font-weight:bold">✗</td>';
-                      if(c.t === 'p'){
-                        const q = (c.pm||{})[s.id];
-                        if(q) return `<td style="background:${LVC[v]}22;color:${LVC[v]};font-weight:900">${pnHtml(q)}</td>`;
-                      }
-                      if(v === 4) return '<td style="background:#1a8f5518;color:#1a8f55;font-weight:900;white-space:nowrap">خ خ</td>';
-                      if(v === 3) return '<td style="background:#55b04318;color:#3f8f2a;font-weight:900;white-space:nowrap">خ</td>';
-                      if(v === 2) return '<td style="background:#e2a30018;color:#b26a00;font-weight:900;white-space:nowrap">ق ق</td>';
-                      if(v === 1) return '<td style="background:#d9363e18;color:#c0262c;font-weight:900;white-space:nowrap">ن ت</td>';
-                      return '<td></td>';
-                    }).join('')}
-                  </tr>`).join('')}
-                </tbody>
-              </table>
-              <div class="sign">
-                <span>نام و امضای آموزگار: ${esc(teacherName)}</span>
-                <span>امضای مدیر آموزشگاه: ${esc(schoolName)}</span>
-              </div>
-            ` : ''}
-          </div>`;
-
-          const cv = await rast(tempDiv);
-          if(p > 0) doc.addPage();
-          doc.addImage(cv.toDataURL('image/jpeg', 0.94), 'JPEG', 0, 0, pageW, pageH);
-        }
-
-        tempDiv.remove();
-        const fileName = 'گزارش-دفتر-روزانه-' + title.replace(/\s+/g, '-') + '.pdf';
-        await dl(fileName, doc.output('arraybuffer'));
-        flash('فایل PDF با موفقیت دانلود شد 📄✅');
-      } catch(err) {
-        console.error(err);
-        flash('ساخت فایل PDF مستقیم ناموفق بود؛ پنجره چاپ باز می‌شود.');
-        printTeacherJournalReport(false);
-      }
-    })();
-    return;
-  }
-
-  // Print Window output
-  const win = window.open('', '_blank');
-  if(!win){ flash('پنجره گزارش مسدود شد؛ باز شدن پنجره را تأیید کنید'); return; }
-
-  win.document.open();
-  win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
-  <title>گزارش دفتر روزانه ${esc(teacherName)} — ${title}</title>
-  <style>
-    @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}
-    @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
-    @page{size:A4 ${isLandscape ? 'landscape' : 'portrait'};margin:${isLandscape ? '8mm' : '10mm'}}
-    *{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#1e293b;margin:0;font-size:10px;line-height:1.5}
-    .print-page{width:100%;margin:0 0 16px}
-    .page-break{page-break-after:always;break-after:page}
-    .rep-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #334155;padding-bottom:5px;margin-bottom:6px}
-    .rep-header h1{font-size:14px;margin:0 0 2px;color:#0f172a}
-    .rep-meta{font-size:10px;color:#475569;display:flex;gap:12px;align-items:center}
-    .page-num{background:#e2e8f0;padding:1px 6px;border-radius:4px;font-weight:800;color:#0f172a}
-    .table-container{width:100%;overflow-x:auto}
-    table{width:100%;border-collapse:collapse;margin-top:4px;font-size:9.5px;table-layout:auto}
-    th,td{border:1px solid #cbd5e1;padding:3px 2px;text-align:center;word-break:keep-all;white-space:nowrap}
-    thead th{background:#f1f5f9;color:#0f172a;font-weight:bold}
-    tbody tr:nth-child(even){background:#f8fafc}
-    .v-head{writing-mode:vertical-rl;transform:rotate(180deg);white-space:nowrap;margin:0 auto;max-height:220px;font-size:9.5px;padding:3px 0}
-    .v-att{text-align:right;}
-    .v-act{text-align:right;text-indent:1.2em;}
-    .sign{display:flex;justify-content:space-around;margin-top:18px;font-size:10.5px;font-weight:bold}
-    .sign span{border-top:1px solid #64748b;padding:5px 24px 0}
-    .noprint{text-align:center;margin:16px;display:flex;gap:10px;justify-content:center}@media print{.noprint{display:none}}
-  </style></head><body>
-    <div class="noprint">
-      <button style="padding:9px 18px;font:bold 13px Vazirmatn,Tahoma,sans-serif;background:#2563eb;color:#fff;border:0;border-radius:8px;cursor:pointer" onclick="window.print()">🖨️ چاپ مستقیم صفحات</button>
-    </div>
-    ${allPagesHtml}
-  </body></html>`);
-  win.document.close();
-  setTimeout(()=>{try{win.focus();win.print();}catch(e){}}, 700);
-}
+/* ───── گزارش دفتر روزانه معلم: پیش‌نمایش = چاپ = PDF (هر سه از یک HTML و یک CSS ساخته می‌شوند) ───── */
+const MXPR=`
+.pg{background:#fff;color:#1e293b;font-family:Vazirmatn,Tahoma,Arial,sans-serif;font-size:11px;direction:rtl}
+.pg .rep-header{display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:2px solid #334155;padding-bottom:6px;margin-bottom:8px}
+.pg .rep-header h1{font-size:14px;margin:0 0 3px;color:#0f172a;font-weight:900}
+.pg .rep-meta{font-size:10px;color:#475569;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.pg .page-num{background:#e2e8f0;padding:1px 8px;border-radius:4px;font-weight:800;color:#0f172a}
+.pg .rep-side{text-align:left;font-size:10px;color:#475569;line-height:1.8;white-space:nowrap}
+.pg .note{font-size:9.5px;color:#526477;margin-top:4px}
+.pg .sign{display:flex;justify-content:space-around;margin-top:18px;font-size:10.5px;font-weight:700}.pg .sign span{border-top:1px solid #64748b;padding:5px 28px 0}
+.pg .dj-mxlg{font-size:9.5px;line-height:2.1;margin-top:6px}
+.pg .dj-mxlg i{font-style:normal;display:inline-block;min-width:22px;text-align:center;border-radius:4px;color:#fff;font-weight:900;padding:0 4px;margin-left:3px}
+.dj-mx table.pr{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse;font-size:9px}
+.dj-mx table.pr thead{display:table-header-group}.dj-mx table.pr tr{break-inside:avoid;page-break-inside:avoid}
+.dj-mx table.pr th,.dj-mx table.pr td{border:1px solid #cfd6e6}
+.dj-mx table.pr thead th{position:static;text-align:center !important;vertical-align:middle !important}
+.dj-mx table.pr th.nm,.dj-mx table.pr td.nm{position:static;width:var(--nmw);min-width:0;max-width:none;white-space:normal !important;overflow:visible !important;font-size:9.5px;line-height:1.35;padding:2px 5px;text-align:right}
+.dj-mx table.pr thead th.nm{text-align:center !important;font-size:10px}
+.dj-mx table.pr th.rn,.dj-mx table.pr td.rn{width:24px;min-width:0;padding:0;font-size:9px;font-weight:700;background:#f1f5f9;color:#475569}
+.dj-mx table.pr thead th.rn{background:#2b4a9b;color:#fff;font-size:9px}
+.dj-mx table.pr th.h{width:auto;min-width:0;padding:3px 0;height:var(--hh)}
+.dj-mx table.pr th.h span{max-height:var(--hh);font-size:8.5px;line-height:1.3}
+.dj-mx table.pr td.c{width:auto;min-width:0;height:19px;font-size:9px;padding:0}
+.dj-mx table.pr th.h.pnh,.dj-mx table.pr td.c.pnc{width:auto;min-width:0;font-size:8px;letter-spacing:-.2px}
+`;
+function mxPagesHtml(o){const per=o.land?36:22,chunks=mxChunk(o.cols,per),n=chunks.length;
+ return chunks.map((ch,i)=>{const last=i===n-1;
+  return`<div class="pg dj-mx"><div class="rep-header"><div><h1>${esc(o.h1)}</h1><div class="rep-meta">${o.metas.map(x=>`<span>${x}</span>`).join('')}<span class="page-num">صفحه ${fa(i+1)} از ${fa(n)}</span></div></div><div class="rep-side">${o.side.map(x=>`<div>${x}</div>`).join('')}</div></div>${mxTable({cols:o.cols},{cols:ch,pr:true,num:true})}${last?mxLegend()+(o.note?`<div class="note">${o.note}</div>`:''):''}<div class="sign">${o.sign.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`}).join('')}
+function djPrintWin(o){
+ const win=window.open('','_blank');if(!win){flash('پنجره‌ی گزارش مسدود شد؛ اجازه‌ی بازشدن پنجره را فعال کنید');return}
+ const u=f=>{try{return new URL('assets/fonts/'+f,location.href).href}catch(e){return'assets/fonts/'+f}};
+ win.document.open();win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(o.title)}</title><style>
+ @font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}
+ @page{size:A4 ${o.land?'landscape':'portrait'};margin:${o.land?'8mm':'10mm'}}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ html,body{margin:0;background:#fff}body{font-family:Vazirmatn,Tahoma,Arial,sans-serif;color:#1e293b;font-size:11px}
+ .noprint{text-align:center;margin:14px}.noprint button{padding:8px 18px;font:bold 13px Vazirmatn,Tahoma,sans-serif;background:#2563eb;color:#fff;border:0;border-radius:8px;cursor:pointer}
+ @media screen{body{padding:10px;max-width:${o.land?1123:794}px;margin:0 auto}.pg{margin-bottom:18px;padding-bottom:12px;border-bottom:2px dashed #cbd5e1}}
+ @media print{.noprint{display:none}.pg{break-after:page;page-break-after:always}.pg:last-of-type{break-after:auto;page-break-after:auto}}
+ ${MXCSS}${MXPR}</style></head><body>${o.body}<div class="noprint"><button onclick="window.print()">🖨️ چاپ / ذخیره به‌صورت PDF</button></div></body></html>`);
+ win.document.close();setTimeout(()=>{try{win.focus();win.print()}catch(e){}},700)}
+/* تبدیل یک صفحه به تصویر با موتور خود مرورگر (فونت و CSS داخل تصویر)؛ سرتیترهای عمودی فارسی دقیقاً مثل چاپ رسم می‌شوند و آفلاین هم کار می‌کند */
+let FONTCSS=null;
+async function fontCss(){if(FONTCSS!==null)return FONTCSS;
+ const b64=async f=>{const r=await fetch(new URL('assets/fonts/'+f,location.href).href);if(!r.ok)throw new Error('font');const b=new Uint8Array(await r.arrayBuffer());let t='';for(let i=0;i<b.length;i+=0x8000)t+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(t)};
+ try{const[x,y]=await Promise.all([b64('Vazirmatn-Regular.ttf'),b64('Vazirmatn-Bold.ttf')]);FONTCSS=`@font-face{font-family:Vazirmatn;src:url(data:font/ttf;base64,${x});font-weight:400}@font-face{font-family:Vazirmatn;src:url(data:font/ttf;base64,${y});font-weight:700 900}`}catch(e){FONTCSS=''}
+ return FONTCSS}
+async function djRaster(el,sc){sc=sc||2;
+ const w=el.offsetWidth,h=el.offsetHeight;if(!w||!h)throw new Error('size');
+ const fc=await fontCss();
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject x="0" y="0" width="${w}" height="${h}"><div xmlns="http://www.w3.org/1999/xhtml" dir="rtl" style="box-sizing:border-box;background:#fff;color:#1e293b;font:400 11px/normal Vazirmatn,Tahoma,sans-serif;margin:0;padding:0;border:0;width:${w}px"><style><![CDATA[*{box-sizing:border-box}${fc}${MXCSS}${MXPR}]]></style>${new XMLSerializer().serializeToString(el)}</div></foreignObject></svg>`;
+ const img=new Image();
+ await new Promise((res,rej)=>{img.onload=res;img.onerror=()=>rej(new Error('render'));img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg)});
+ const cv=document.createElement('canvas');cv.width=w*sc;cv.height=h*sc;const g=cv.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,cv.width,cv.height);g.drawImage(img,0,0,cv.width,cv.height);
+ cv.toDataURL('image/jpeg',.5);/* اگر بوم آلوده باشد همین‌جا خطا می‌دهد و به روش دوم می‌رویم */
+ return cv}
+const safeName=t=>String(t).replace(/[\\\/:*?"<>|]/g,'').replace(/\s+/g,'-');
+/* PDF: هر صفحه‌ی گزارش (همان HTML چاپ) در یک iframe بدون CSS برنامه ساخته و به تصویر A4 تبدیل می‌شود */
+async function mxPdf(o){const land=!!o.land;let fr=null;flash('⏳ در حال ساخت PDF…');
+ try{const X=window.__pdfx;if(!X)throw new Error('ابزار PDF برنامه در دسترس نیست');
+  await X.pdfLibs();
+  fr=document.createElement('iframe');fr.setAttribute('aria-hidden','true');fr.style.cssText=`position:fixed;left:-99999px;top:0;border:0;width:${land?1123:794}px;height:1400px`;document.body.appendChild(fr);
+  const d=fr.contentDocument,u=f=>{try{return new URL('assets/fonts/'+f,location.href).href}catch(e){return'assets/fonts/'+f}};
+  d.open();d.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><style>@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Regular.ttf')});font-weight:400}@font-face{font-family:Vazirmatn;src:url(${u('Vazirmatn-Bold.ttf')});font-weight:700 900}*{box-sizing:border-box}html,body{margin:0;background:#fff}body{font:400 11px/normal Vazirmatn,Tahoma,sans-serif;color:#1e293b;padding:0 ${land?30:38}px;width:${land?1123:794}px}${MXCSS}${MXPR}</style></head><body></body></html>`);d.close();
+  d.body.innerHTML=mxPagesHtml(o);
+  try{await d.fonts.ready}catch(e){}
+  await new Promise(r=>setTimeout(r,120));
+  const cvs=[];for(const el of d.body.querySelectorAll('.pg')){let cv=null;try{cv=await djRaster(el)}catch(e){cv=await X.rast(el)}cvs.push(cv)}
+  const J=window.jspdf?window.jspdf.jsPDF:X.MiniPDF,doc=new J({unit:'mm',format:'a4',orientation:land?'landscape':'portrait'});
+  const PW=land?297:210,PH=land?210:297,M=8;
+  cvs.forEach((cv,i)=>{if(i)doc.addPage();let w=PW-2*M,h=cv.height*w/cv.width;const mh=PH-2*M;if(h>mh){w=w*mh/h;h=mh}doc.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',(PW-w)/2,M,w,h)});
+  const ok=await window.dlFile(o.name+'.pdf',doc.output('arraybuffer'));
+  flash(ok?'فایل PDF ساخته شد 📄✅':'⚠️ PDF ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد؛ برنامه را در Chrome باز کنید یا از «چاپ» استفاده کنید')}
+ catch(x){console.error(x);flash('❌ ساخت PDF ناموفق بود؛ از «چاپ» و گزینه‌ی ذخیره به‌صورت PDF استفاده کنید')}
+ finally{if(fr)fr.remove()}}
+/* تنظیمات گزارش: fromPreview=true یعنی دقیقاً همان بازه و درس جدولِ پیش‌نمایش؛ وگرنه تنظیمات پنجره‌ی گزارش */
+function teacherReportOpts(fromPreview){
+ const P=S.prof||S.profile||{},schoolName=P.school||'دبستان',teacherName=P.teacher||'آموزگار کلاس',gradeName=P.grade||'',today=todayK();
+ let title,kind,cols,cf,withAtt;
+ if(fromPreview){const B=mxBuild();kind=st.mx.m==='month'?'month':'week';title=(kind==='month'?'ماهانه — ':'هفتگی — ')+B.R.title;cols=B.cols;cf=st.mx.c||'all';withAtt=true}
+ else{const cfg=st.repModal||{period:'month',att:'inline',course:'all'},anchor=st.mx.k||st.k||today,jp0=jparts(anchor);let from,to;
+  kind=cfg.period==='month'?'month':'week';
+  if(kind==='month'){from=jiso(jp0.y,jp0.m,1);to=jiso(jp0.y,jp0.m,jlen(jp0.y,jp0.m));title='ماهانه — ماه '+JMN[jp0.m-1]+' '+fa(jp0.y)}
+  else{from=addD(anchor,-dow(anchor));to=addD(from,6);title='هفتگی — '+dshort(from)+' تا '+dshort(to)}
+  if(!from||!to){flash('تعیین بازه گزارش ممکن نشد');return null}
+  cf=cfg.course||'all';withAtt=cfg.att!=='none';cols=mxCols(from,to,cf,withAtt)}
+ if(!sts().length){flash('دانش‌آموزی در کلاس وجود ندارد');return null}
+ if(!cols.length){flash('در این بازه عملکردی برای گزارش ثبت نشده است');return null}
+ return{cols,land:kind==='month',name:safeName('گزارش-دفتر-روزانه-'+title),h1:'دفتر روزانه '+teacherName+' — گزارش حضور و غیاب و فعالیت‌های کلاسی روزانه',
+  metas:['آموزشگاه: <b>'+esc(schoolName)+'</b>','پایه/کلاس: <b>'+esc(gradeName)+'</b>','درس: <b>'+esc(cf==='all'?'همه‌ی درس‌ها':cname(cf))+'</b>'],
+  side:['<b>دوره:</b> '+esc(title),'<b>تاریخ چاپ:</b> '+esc(dshort(today))],
+  note:withAtt?'اولین ستون هر روز، حضور و غیاب همان روز است؛ اگر دانش‌آموز آن روز غایب بوده، خانه‌های فعالیت همان روز خالی می‌ماند.':'',
+  sign:['نام و امضای آموزگار: '+teacherName,'امضای مدیر آموزشگاه: '+schoolName]}}
+function printTeacherJournalReport(directDownloadPdf,fromPreview){
+ const o=teacherReportOpts(!!fromPreview);if(!o)return;
+ if(directDownloadPdf)return mxPdf(o);
+ djPrintWin({title:o.name,land:o.land,body:mxPagesHtml(o)})}
 
 /* رویدادها */
 function act(a){const [c,x,y]=a.split(':'),k=st.k;
@@ -2073,10 +1814,9 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
- else if(c==='mxprint'){printTeacherJournalReport(false);return}
- else if(c==='mxpdf'){printTeacherJournalReport(true);return}
- else if(c==='mxtogglesum'){st.mxHideSum = !st.mxHideSum; render(); return}
- else if(c==='printdash'){printDashboardReport(); return}
+ else if(c==='mxprint'){printTeacherJournalReport(false,true);return}
+ else if(c==='mxpdf'){printTeacherJournalReport(true,true);return}
+  else if(c==='printdash'){printDashboardReport(); return}
  else if(c==='teacherreport'){st.repModal={period:'month',att:'inline',course:st.mx.c||'all'};render();return}
  else if(c==='gotoact'){try{show('act')}catch(e){}return}
   else if(c==='closerepmodal'){st.repModal=null;render();return}

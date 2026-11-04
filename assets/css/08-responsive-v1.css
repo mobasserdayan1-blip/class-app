@@ -30,3 +30,20 @@ table.rt-fit th:first-child,table.rt-fit td:first-child{width:26%}
  table.rt-stack td::before{content:attr(data-label);font-weight:800;color:var(--mut);flex:0 0 38%;text-align:right}
  table.rt-stack td[data-label=""]::before{display:none}
 }
+
+/* استثناهای بهبودیافته برای جلوگیری از بهم‌ریختگی جدول‌های دفتر روزانه و تقویم در موبایل */
+.dj-mx th.h span{word-break:keep-all!important;white-space:nowrap!important;text-align:right!important}
+.dj-mx th.h span.h-att{text-align:right!important;padding-right:2px}
+.dj-mx th.h span.h-act{text-align:right!important;padding-right:14px}
+.dj-mx td.c span.c-txt{white-space:nowrap!important;display:inline-block!important}
+.dj-calgrid button{white-space:nowrap!important;word-break:keep-all!important}
+.dj-acts-tbl td,.dj-acts-tbl th{white-space:nowrap!important;word-break:keep-all!important}
+.dj-dash-rank td,.dj-dash-rank th{white-space:nowrap!important;word-break:keep-all!important}
+@media(max-width:600px){
+  .dj-calbox{width:96%!important;padding:10px!important}
+  .dj-calgrid button{padding:6px 2px!important;font-size:12px!important}
+  .dj-calsel select{font-size:12px!important;padding:5px 2px!important}
+  .dj-profile-header{padding:10px!important}
+  .dj-stat-cards{grid-template-columns:repeat(2,1fr)!important}
+  .dj-mxbar{gap:4px!important}
+}

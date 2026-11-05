@@ -1,0 +1,263 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   17-modern-theme.css — ظاهر جدید برنامه (نسخه‌ی cl-v160)
+   الهام‌گرفته از «دفتر کلاسی هوشمند»: زمینه‌ی روشن و تمیز، کارت‌های سفید با حاشیه‌ی نازک،
+   رنگ اصلی ایندیگو، دکمه‌ها و تب‌های قرصی، جدول‌های سبک، وضعیت‌ها با رنگ‌های زمرد/کهربا/رز.
+   ⚠️ این فایل باید «آخرین» فایل CSS باشد. فقط ظاهر را عوض می‌کند؛ هیچ داده یا بخشی حذف نمی‌شود.
+   تم روز  = :root (پیش‌فرض)       تم شب = :root[data-theme="dark"] و حالت خودکار با دستگاه تاریک
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ───── ۱) متغیرهای رنگ — تم روز ───── */
+:root{
+  --page:#f4f6fb;
+  --bg1:#f4f6fb; --bg2:#eef1f8;
+  --card:#ffffff;
+  --tx:#1e293b; --mut:#64748b;
+  --line:#e2e8f0; --line2:#cbd5e1;
+  --p:#4f46e5; --p2:#6366f1; --pd:#4338ca;
+  --soft:#eef2ff; --soft-tx:#4338ca; --soft-line:#c7d2fe;
+  --ok:#059669; --no:#e11d48; --wa:#d97706; --info:#2563eb;
+  --ok-s:#ecfdf5; --no-s:#fff1f2; --wa-s:#fffbeb; --info-s:#eff6ff;
+  --hdr-bg:#ffffff; --hdr-tx:#0f172a; --hdr-line:#e5e7ef;
+  --nav-bg:#ffffff; --nav-tx:#334155; --nav-hover:#f1f5f9;
+  --thbg:#f8fafc; --thtx:#475569;
+  --sh1:0 1px 2px rgba(15,23,42,.05);
+  --sh2:0 4px 14px rgba(15,23,42,.07);
+  --sh3:0 12px 32px rgba(15,23,42,.14);
+  --focus:0 0 0 3px rgba(79,70,229,.22);
+  --r:16px; --r2:12px;
+  --eu-p:#4f46e5; --eu-g:linear-gradient(135deg,#4f46e5,#6366f1);
+}
+
+/* ───── تم شب ───── */
+:root[data-theme="dark"]{
+  --page:#0b1120;
+  --bg1:#0b1120; --bg2:#182136;
+  --card:#111a2e;
+  --tx:#e5e9f2; --mut:#93a0b8;
+  --line:#243049; --line2:#34425f;
+  --p:#6366f1; --p2:#818cf8; --pd:#4f46e5;
+  --soft:#1b2347; --soft-tx:#a5b4fc; --soft-line:#323d78;
+  --ok:#10b981; --no:#fb7185; --wa:#fbbf24; --info:#60a5fa;
+  --ok-s:#0d2a24; --no-s:#33141f; --wa-s:#2f2410; --info-s:#14233f;
+  --hdr-bg:#0f172a; --hdr-tx:#f1f5f9; --hdr-line:#222d45;
+  --nav-bg:#0f172a; --nav-tx:#cbd5e1; --nav-hover:#1a2540;
+  --thbg:#16203a; --thtx:#aab6cf;
+  --sh1:0 1px 2px rgba(0,0,0,.35);
+  --sh2:0 6px 18px rgba(0,0,0,.35);
+  --sh3:0 14px 38px rgba(0,0,0,.55);
+  --focus:0 0 0 3px rgba(129,140,248,.30);
+  --eu-p:#818cf8; --eu-g:linear-gradient(135deg,#6366f1,#818cf8);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme:dark){
+:root:not([data-theme="light"]){
+  --page:#0b1120;
+  --bg1:#0b1120; --bg2:#182136;
+  --card:#111a2e;
+  --tx:#e5e9f2; --mut:#93a0b8;
+  --line:#243049; --line2:#34425f;
+  --p:#6366f1; --p2:#818cf8; --pd:#4f46e5;
+  --soft:#1b2347; --soft-tx:#a5b4fc; --soft-line:#323d78;
+  --ok:#10b981; --no:#fb7185; --wa:#fbbf24; --info:#60a5fa;
+  --ok-s:#0d2a24; --no-s:#33141f; --wa-s:#2f2410; --info-s:#14233f;
+  --hdr-bg:#0f172a; --hdr-tx:#f1f5f9; --hdr-line:#222d45;
+  --nav-bg:#0f172a; --nav-tx:#cbd5e1; --nav-hover:#1a2540;
+  --thbg:#16203a; --thtx:#aab6cf;
+  --sh1:0 1px 2px rgba(0,0,0,.35);
+  --sh2:0 6px 18px rgba(0,0,0,.35);
+  --sh3:0 14px 38px rgba(0,0,0,.55);
+  --focus:0 0 0 3px rgba(129,140,248,.30);
+  --eu-p:#818cf8; --eu-g:linear-gradient(135deg,#6366f1,#818cf8);
+  color-scheme:dark;
+}}
+
+/* ───── ۲) زمینه و متن ───── */
+body{background:var(--page)!important;color:var(--tx);font-feature-settings:"ss01";-webkit-font-smoothing:antialiased}
+::selection{background:var(--p);color:#fff}
+h1{color:var(--tx);font-size:24px;font-weight:800;text-align:right}
+h2{color:var(--tx)}
+.sub{color:var(--mut)}
+a{color:var(--p)}
+hr{border:0;border-top:1px solid var(--line)}
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+
+/* ───── ۳) هدر ───── */
+header{background:var(--hdr-bg)!important;color:var(--hdr-tx)!important;border-bottom:1px solid var(--hdr-line);box-shadow:var(--sh1)!important;gap:10px}
+header b,header #ptl{color:var(--hdr-tx)!important;font-size:17px;font-weight:800;letter-spacing:-.2px}
+.menu-btn{background:var(--bg2)!important;color:var(--hdr-tx)!important;border:1px solid var(--line)!important;border-radius:11px!important;font-size:18px;padding:6px 11px;transition:background .15s,border-color .15s}
+.menu-btn:hover{background:var(--soft)!important;border-color:var(--soft-line)!important}
+#cb::after{border-color:var(--hdr-bg)}
+#clsSel,header select{background:var(--bg2)!important;color:var(--hdr-tx)!important;border:1px solid var(--line)!important;border-radius:11px!important;font:700 13px Vazirmatn,Tahoma,sans-serif!important;padding:8px 10px!important}
+/* کلید تم — قرص سه‌حالته با برچسب (خودکار / شب / روز) */
+.tg{background:var(--bg2)!important;border:1px solid var(--line);border-radius:12px!important;padding:3px!important;gap:2px!important}
+.tg button{width:auto!important;min-width:34px;height:30px!important;padding:0 9px!important;gap:5px;display:inline-flex!important;align-items:center;justify-content:center;color:var(--mut)!important;border-radius:9px!important;font:700 12px Vazirmatn,Tahoma,sans-serif;transition:background .15s,color .15s}
+.tg button.on{background:var(--card)!important;color:var(--p)!important;box-shadow:var(--sh1),0 0 0 1px var(--line)!important}
+:root[data-theme="dark"] .tg button.on{color:var(--p2)!important}
+.tg svg{width:17px!important;height:17px!important}
+.tg .tl{display:inline}
+@media (max-width:640px){.tg .tl{display:none}.tg button{min-width:30px;padding:0 6px!important}}
+/* دکمه‌ی چاپ سیاه‌وسفید (ماژول bw-print.js) */
+#bwb{background:var(--bg2)!important;color:var(--hdr-tx)!important;border:1px solid var(--line)!important;border-radius:11px!important;font:700 12.5px Vazirmatn,Tahoma,sans-serif;padding:7px 11px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#bwb svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#bwb[aria-pressed="true"]{background:var(--p)!important;color:#fff!important;border-color:var(--p)!important}
+@media (max-width:760px){#bwb .tl{display:none}}
+
+/* نوار جستجوی سراسری زیر هدر */
+#gsb,#gs,.gsb,.gs-wrap,#gsWrap{background:transparent!important}
+#gsq,#gs input,.gsb input,input#gq{background:var(--card)!important;border:1px solid var(--line)!important;border-radius:12px!important;color:var(--tx)!important;box-shadow:var(--sh1)}
+
+/* ───── ۴) منوی کناری ───── */
+nav{background:var(--nav-bg)!important;border:0!important;border-left:1px solid var(--hdr-line)!important;box-shadow:none!important;border-radius:0}
+@media (max-width:899px){nav.open{border:1px solid var(--line)!important;border-radius:16px!important;box-shadow:var(--sh3)!important}}
+@media (min-width:900px){nav.nx{box-shadow:-10px 0 34px rgba(15,23,42,.16)!important}}
+nav button,nav summary{color:var(--nav-tx)!important;border-radius:12px!important;font-weight:700;transition:background .15s,color .15s}
+nav button:not(.on):hover,nav summary:hover{background:var(--nav-hover)!important}
+nav button.on{background:var(--p)!important;color:#fff!important;box-shadow:0 6px 16px rgba(79,70,229,.28)!important}
+nav details{border-color:var(--line)!important}
+:root[data-theme="dark"] nav button:not(.on),:root[data-theme="dark"] nav summary{color:var(--nav-tx)!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) nav button:not(.on),:root:not([data-theme="light"]) nav summary{color:var(--nav-tx)!important}}
+
+/* ───── ۵) عنوان هر صفحه (به‌جای بنر گرادیانی) ───── */
+section:not(#wsc):not(#exp)>h2,#wsc>h2,#exp>h2{
+  background:var(--card)!important;color:var(--tx)!important;
+  border:1px solid var(--line);border-inline-start:4px solid var(--p);
+  border-radius:var(--r)!important;box-shadow:var(--sh1)!important;
+  padding:15px 20px!important;font-size:20px!important;font-weight:800;text-align:right;
+  animation:none!important;margin:0 0 14px!important}
+section>h2::before,section>h2::after{display:none!important}
+@media (max-width:480px){section:not(#wsc):not(#exp)>h2{font-size:17px!important;padding:12px 14px!important}}
+
+/* ───── ۶) کارت‌ها ───── */
+.card{background:var(--card);border:1px solid var(--line)!important;border-radius:var(--r)!important;box-shadow:var(--sh1)!important}
+.card>b:first-child{font-weight:800}
+.card.cd,.cd{background:var(--soft)!important;color:var(--soft-tx)!important;border-color:var(--soft-line)!important}
+.cdg div{background:var(--card)!important;color:var(--tx);border:1px solid var(--line)}
+.dt{background:var(--soft)!important;color:var(--tx)!important}
+.st{background:var(--card)!important;border:1px solid var(--line);border-top:3px solid var(--c,var(--p))!important;border-radius:14px!important;box-shadow:var(--sh1)!important}
+.st:hover{transform:translateY(-2px);box-shadow:var(--sh2)!important}
+.st b{font-weight:800}
+.row:hover{background:var(--bg2)!important;border-radius:10px}
+.wrap{border-radius:12px}
+
+/* ───── ۷) دکمه‌ها ───── */
+.big:not([style*="background"]){background:var(--p)!important;color:#fff!important}
+.big{border-radius:12px!important;box-shadow:none!important;
+  font-weight:700!important;padding:13px 16px;transition:background .15s,transform .12s,box-shadow .15s}
+.big:not([style*="background"]):hover{background:var(--pd)!important;box-shadow:0 6px 16px rgba(79,70,229,.28)!important}
+.big.ex{background:var(--soft)!important;color:var(--soft-tx)!important;border:1px solid var(--soft-line)!important}
+.big.ex:hover{background:var(--soft-line)!important;color:var(--tx)!important}
+.big:disabled,.big[disabled]{opacity:.5;cursor:not-allowed}
+.sm,.btns button{background:var(--card);color:var(--tx);border:1px solid var(--line)!important;border-radius:10px!important}
+.sm:hover,.btns button:hover{background:var(--bg2)}
+button:focus-visible,select:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid var(--p2);outline-offset:2px}
+
+/* ───── ۸) ورودی‌ها ───── */
+input,select,textarea,select.fs{background:var(--card);color:var(--tx);border:1px solid var(--line2)!important;border-radius:12px!important;font-family:inherit}
+input[type=checkbox],input[type=radio]{accent-color:var(--p)}
+input::placeholder,textarea::placeholder{color:var(--mut);opacity:.8}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--p)!important;box-shadow:var(--focus)!important}
+.sel select{background:var(--card)!important;color:var(--tx)!important;border:1px solid var(--line2)!important}
+.exn textarea{background:var(--card)}
+
+/* ───── ۹) تب‌ها و چیپ‌ها (قرصی، فعال = ایندیگوی توپر) ───── */
+.tabs,.tb2{background:var(--bg2)!important;border:1px solid var(--line);border-radius:14px!important}
+.tabs button,.tb2 button{color:var(--mut)!important;border-radius:10px!important;transition:background .15s,color .15s}
+.tabs button:hover,.tb2 button:hover{color:var(--tx)!important}
+.tabs button.on,.tb2 button.on,#mgr .tb2 button.on{background:var(--p)!important;color:#fff!important;box-shadow:0 3px 10px rgba(79,70,229,.25)}
+.chips2 button,#subTabs button,.lv button{background:var(--card)!important;color:var(--tx)!important;border:1px solid var(--line2)!important;border-radius:999px!important;transition:background .15s,border-color .15s,color .15s}
+.chips2 button:hover,#subTabs button:hover{background:var(--soft)!important;border-color:var(--soft-line)!important;color:var(--soft-tx)!important}
+.chips2 button.on,#subTabs button.on{background:var(--p)!important;color:#fff!important;border-color:var(--p)!important;box-shadow:0 3px 10px rgba(79,70,229,.25)!important}
+#subTabs{background:transparent!important}
+.lv button{border-radius:10px!important}
+.lv button.on4{background:var(--ok)!important;color:#fff!important;border-color:var(--ok)!important}
+.lv button.on3{background:var(--info)!important;color:#fff!important;border-color:var(--info)!important}
+.lv button.on2{background:var(--wa)!important;color:#1f1300!important;border-color:var(--wa)!important}
+.lv button.on1{background:var(--no)!important;color:#fff!important;border-color:var(--no)!important}
+
+/* ───── ۱۰) جدول‌ها ───── */
+th{background:var(--thbg);color:var(--thtx);font-weight:800;font-size:12.5px;border-bottom:1px solid var(--line2)}
+td{border-bottom:1px solid var(--line)}
+table.at th.nm{background:var(--thbg)!important}
+table.at .nm{background:var(--card)}
+th.fr{background:var(--no-s)!important;color:var(--no)!important}
+.c.p{background:var(--ok)!important;color:#fff}.c.a{background:var(--no)!important;color:#fff}.c.l{background:var(--wa)!important;color:#fff}
+.cn.p{background:var(--ok)}.cn.a{background:var(--no)}.cn.l{background:var(--wa)}.cn.n{background:var(--mut)}
+.btns button.a-p.on{background:var(--ok)!important;border-color:var(--ok)!important}
+.btns button.a-a.on{background:var(--no)!important;border-color:var(--no)!important}
+.btns button.a-l.on{background:var(--wa)!important;border-color:var(--wa)!important}
+.btns button.a-e.on,.cn.e{background:var(--info)!important;border-color:var(--info)!important;color:#fff!important}
+table.at td.c.e{background:var(--info-s)!important;color:var(--info)!important}
+.exn{background:var(--info-s)!important;border-color:var(--info)!important}
+.exn label{color:var(--info)!important}
+.chp button{color:var(--info)!important;border-color:var(--info)!important}
+.badge{background:var(--soft)!important;color:var(--soft-tx)!important}
+.sc,.xb{background:var(--bg2)!important;color:var(--tx)}
+.tm{background:var(--info-s)!important;color:var(--info)!important}
+.g1{background:#fde68a!important;color:#5a4300!important}.g2{background:#e2e8f0!important;color:#334155!important}.g3{background:#fed7aa!important;color:#7c2d12!important}
+tr.g1 .nm{background:#fde68a!important;color:#5a4300}tr.g2 .nm{background:#e2e8f0!important;color:#334155}tr.g3 .nm{background:#fed7aa!important;color:#7c2d12}
+.rkp>div,.rki,.cgr.acc{border:1px solid var(--line);box-shadow:var(--sh1)!important}
+.rkp .p1{background:linear-gradient(var(--wa-s),var(--card))!important}
+.pick,.team h3{color:var(--p)}
+:root[data-theme="dark"] .pick,:root[data-theme="dark"] .team h3{color:var(--p2)}
+.chip{border-color:var(--line2)}
+
+/* ───── ۱۱) صفحه‌ی اصلی ───── */
+#subTabs button.on{box-shadow:0 3px 10px rgba(79,70,229,.25)!important}
+#hk .hk-k{border:1px solid var(--line);border-top:3px solid var(--c,var(--p));box-shadow:var(--sh1)}
+#crs details.cc{border-radius:var(--r)!important;border-top-width:4px}
+
+/* ───── ۱۲) پنجره‌ها و برگه‌ها ───── */
+#jcal,#cpan,#hpan,#lpan,#spro{backdrop-filter:blur(2px)}
+#jcal .box,#cpan .box,#hpan .box{background:var(--card)!important;border:1px solid var(--line);border-radius:20px!important;box-shadow:var(--sh3)!important}
+#jcal .dy.sel,#jcal .ft .pr,#cpan button.pr{background:var(--p)!important;border-color:var(--p)!important;color:#fff!important}
+#jcal .dy.td{outline-color:var(--p2)}
+#ttl{background:var(--card)!important;border:1px dashed var(--p)!important;color:var(--tx)}
+#eus .bx{background:var(--card)!important;border:1px solid var(--line)}
+
+/* ───── ۱۳) اجزای «اتدپلاس» (نمای گرافیکی، یار هوشمند، ثبت سریع) هم‌رنگ شوند ───── */
+.euv{border:1px solid var(--line)!important;box-shadow:var(--sh1)!important;border-radius:var(--r)!important}
+.euv::before{background:var(--eu-g)!important}
+.euv-tiles button:nth-child(1){background:var(--ok)!important}
+.euv-tiles button:nth-child(2){background:var(--p)!important}
+.euv-tiles button:nth-child(3){background:var(--wa)!important}
+.euv-h span{background:var(--bg2)}
+.hb>u i{background:var(--eu-g)!important}
+
+/* ───── ۱۴) نمایش‌های کوچک‌تر ───── */
+.lg{color:var(--mut)}
+details>summary{color:var(--tx)}
+details.cc>summary,.adds{font-weight:800}
+.dcol{color:var(--mut)!important}
+.bt i.g2{background:var(--line2)}
+
+
+/* ───── ۱۷) غلبه بر قواعد قدیمی تم شب (۱۶-etoud-ui) و کارت‌های گرادیانی صفحه‌ی اصلی ───── */
+:root[data-theme="dark"] header{background:var(--hdr-bg)!important;box-shadow:var(--sh1)!important}
+:root[data-theme="dark"] nav{background:var(--nav-bg)!important;border-color:var(--hdr-line)!important;box-shadow:none!important}
+:root[data-theme="dark"] nav button.on{background:var(--p)!important;color:#fff!important}
+@media (prefers-color-scheme:dark){
+ :root:not([data-theme="light"]) header{background:var(--hdr-bg)!important;box-shadow:var(--sh1)!important}
+ :root:not([data-theme="light"]) nav{background:var(--nav-bg)!important;border-color:var(--hdr-line)!important;box-shadow:none!important}
+ :root:not([data-theme="light"]) nav button.on{background:var(--p)!important;color:#fff!important}
+}
+.ws-today,.ex-rem{background:var(--card)!important;border:1px solid var(--line)!important;box-shadow:var(--sh1)!important}
+.thero{background:linear-gradient(120deg,var(--pd),var(--p2))!important;box-shadow:var(--sh2)!important}
+
+/* ───── ۱۵) حرکت کمتر ───── */
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+/* ───── ۱۵-ب) میزبان‌های ساخت PDF همیشه با پالت روشن (حتی در تم شب) ───── */
+[style*="left:-9999"],[style*="left: -9999"],#rpPrintRoot,.pdfc{
+  --card:#fff;--tx:#222;--mut:#666;--line:#e2e8f0;--line2:#cbd5e1;--bg1:#fff;--bg2:#f1f5f9;
+  --thbg:#f8fafc;--thtx:#475569;--soft:#eef2ff;--soft-tx:#4338ca;--soft-line:#c7d2fe;
+  --ok:#059669;--no:#e11d48;--wa:#d97706;--info:#2563eb;color-scheme:light}
+
+/* ───── ۱۶) چاپ از خود برنامه (Ctrl+P) — ظاهر روشن و بی‌رنگ‌زمینه ───── */
+@media print{
+  :root,:root[data-theme="dark"],:root:not([data-theme="light"]){
+    --page:#fff;--bg1:#fff;--bg2:#f1f5f9;--card:#fff;--tx:#111;--mut:#555;--line:#cbd5e1;--line2:#94a3b8;
+    --thbg:#f1f5f9;--thtx:#334155;--soft:#eef2ff;--soft-tx:#4338ca;--soft-line:#c7d2fe;
+    --ok:#059669;--no:#e11d48;--wa:#d97706;--info:#2563eb;color-scheme:light}
+  body{background:#fff!important;color:#000!important}
+  header,nav,#thg,#bwb{display:none!important}
+}

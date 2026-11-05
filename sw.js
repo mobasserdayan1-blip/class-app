@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v159';
+const C='cl-v160';
 const A=[
   './',
   './index.html',
@@ -26,7 +26,9 @@ const A=[
   './assets/css/14-editor-panels.css',
   './assets/css/15-excused-and-theme-toggle.css',
   './assets/css/16-etoud-ui.css',
+  './assets/css/17-modern-theme.css',
   './assets/js/boot/01-helpers.js',
+  './assets/js/boot/05-bw-print.js',
   './assets/js/boot/02-lock-flash.js',
   './assets/js/boot/modules.js',
   './assets/js/boot/03-storage-boot.js',

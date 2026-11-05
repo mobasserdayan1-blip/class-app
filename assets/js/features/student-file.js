@@ -27,14 +27,14 @@ function studentDashboard(s,I){
  const hDone=hw.filter(h=>h.st[id]==='d'||h.st[id]==='p').length;
  const acts=(S.activities||[]).filter(a=>String(a.sid)===String(id)&&inRange(a.date)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
  const dj=S.dj||{},marks=[],notes=[];
- Object.keys(dj.m||{}).forEach(key=>{const p=key.split('|');if(p.length!==3||!inRange(p[0]))return;const v=dj.m[key][id];if(v==null)return;const ses=(dj.ses||{})[p[0]+'|'+p[1]]||{},course=courseName(ses.c);if(cid&&String(ses.c)!==String(cid))return;let it=(dj.tpl&&dj.tpl[ses.c]||[]).find(x=>String(x.id)===p[2]);marks.push({date:p[0],course,activity:it?it.n:'فعالیت کلاسی',v:+v});const note=(dj.n||{})[key+'|'+id];if(note)notes.push({date:p[0],course,text:note})});
+ Object.keys(dj.m||{}).forEach(key=>{const p=key.split('|');if(p.length!==3||!inRange(p[0]))return;const v=dj.m[key][id];if(v==null)return;const ses=(dj.ses||{})[p[0]+'|'+p[1]]||{},course=courseName(ses.c);if(cid&&String(ses.c)!==String(cid))return;let it=(dj.tpl&&dj.tpl[ses.c]||[]).find(x=>String(x.id)===p[2]);const it2=(ses.it||{})[p[2]],lv=(it2&&it2.t!=='d'&&v>=1&&v<=4&&((S.att||{})[p[0]]||{})[id]!=='a')?+v:null;marks.push({date:p[0],course,activity:it?it.n:'فعالیت کلاسی',v:+v,lv});const note=(dj.n||{})[key+'|'+id];if(note)notes.push({date:p[0],course,text:note})});
  Object.keys(dj.ses||{}).forEach(key=>{const p=key.split('|'),ses=dj.ses[key];if(p.length===2&&ses&&ses.nt&&inRange(p[0])&&(!cid||String(ses.c)===String(cid)))notes.push({date:p[0],course:courseName(ses.c),text:ses.nt})});
  marks.sort((a,b)=>b.date.localeCompare(a.date));
- const avg=ex.length?ex.reduce((a,x)=>a+x.v,0)/ex.length:null;
+ const djv=marks.filter(m=>m.lv!=null),pool=ex.map(x=>x.v).concat(djv.map(m=>m.lv)),avg=pool.length?pool.reduce((a,v)=>a+v,0)/pool.length:null;/* میانگین = آزمون‌ها + فعالیت‌های سطحی/مثبت‌منفی دفتر روزانه */
  const level=v=>v>=3.5?'خیلی خوب':v>=2.5?'خوب':v>=1.5?'قابل قبول':'نیاز به تلاش بیشتر';
  const esc2=x=>E(x==null?'':x);
  const card=(label,val,sub,ico)=>`<div class="sfd-kpi"><span>${ico}</span><b>${val}</b><small>${label}</small><em>${sub||''}</em></div>`;
- const examsBy=(S.courses||[]).filter(c=>!cid||String(c.id)===String(cid)).map(c=>{const a=ex.filter(x=>x.course===c.name);return a.length?{name:c.name,avg:a.reduce((n,x)=>n+x.v,0)/a.length,n:a.length}:null}).filter(Boolean);
+ const examsBy=(S.courses||[]).filter(c=>!cid||String(c.id)===String(cid)).map(c=>{const a=ex.filter(x=>x.course===c.name).map(x=>x.v).concat(djv.filter(m=>m.course===c.name).map(m=>m.lv));return a.length?{name:c.name,avg:a.reduce((n,x)=>n+x,0)/a.length,n:a.length}:null}).filter(Boolean);
  const strong=examsBy.filter(x=>x.avg>=3).sort((a,b)=>b.avg-a.avg).slice(0,3),needs=examsBy.filter(x=>x.avg<2.5).sort((a,b)=>a.avg-b.avg).slice(0,3);
  const rows=(arr,fn,empty)=>arr.length?arr.map(fn).join(''): `<p class="sfd-empty">${empty}</p>`;
  return `<style>

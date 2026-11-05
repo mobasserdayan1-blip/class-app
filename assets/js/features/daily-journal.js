@@ -487,6 +487,7 @@ const PENDCSS=`
 #dj .dj-mxmh{font-size:12px;font-weight:900;color:var(--p,#5b3fd6);background:#ede9fe;padding:3px 10px;border-radius:8px}
 #dj .dj-mxpk .dj-sm.on{background:var(--p,#5b3fd6);color:#fff;border-color:transparent}
 #dj td.dj-atc{cursor:pointer;user-select:none}#dj td.dj-atc:hover{outline:2px solid #6366f1;outline-offset:-2px}
+#dj td.dj-ed{cursor:pointer;user-select:none}#dj td.dj-ed:hover,#dj td.dj-ed:focus-visible{outline:2px solid #6366f1;outline-offset:-2px}#dj td.dj-ed.em:hover::after{content:'＋';color:#94a3b8;font-size:13px;font-weight:800}
 #dj .dj-fch{display:flex;flex-direction:column;gap:5px;margin:10px 0}
 #dj .dj-fr{display:grid;grid-template-columns:minmax(110px,190px) 1fr 44px;align-items:center;gap:8px;padding:3px 6px;border-radius:8px}
 #dj .dj-fr.lo{background:#fff1f2;outline:1px solid #fecdd3}#dj .dj-fr.na{opacity:.5}
@@ -1301,24 +1302,33 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
  const hh=Math.min(pr?200:190,Math.max(64,Math.ceil(maxH*(pr?4.7:6.1))+14));
  const body=sts().map((s,i)=>{
   const tds=cols.map(c=>{
+   const EA=(pr||c.kind==='att')?'':` data-dj="mxedit:${encodeURIComponent(c.key)}:${s.id}" role="button" tabindex="0"`,EC=EA?' dj-ed':'';
    if(c.kind==='att'){const a=attCell(c.k,s.id);return pr?`<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`:`<td class="c at ${a.c} dj-atc" title="${a.tt} — برای تغییر (حاضر ← غایب ← تأخیر ← موجه ← خالی) کلیک کنید" data-dj="attcyc:${c.k}:${s.id}" role="button" tabindex="0">${a.t||'·'}</td>`}
-   if(absent(c.k,s.id))return`<td class="c em"></td>`;
-   const v=c.mk[s.id];
-   if(v==null)return`<td class="c em"></td>`;
-   if(c.t==='d')return v===1?`<td class="c ok" title="انجام شد">✓</td>`:`<td class="c no" title="انجام نشد">✗</td>`;
-   if(c.t==='p'){const q=(c.pm||{})[s.id];if(q)return`<td class="c pnc l${v}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی">${pnHtml(q)}</td>`}
-   const m=MXS[v];return m?`<td class="c ${m[1]}" title="${m[2]}"><span class="c-txt">${m[0]}</span></td>`:`<td class="c em"></td>`}).join('');
+   if(absent(c.k,s.id))return`<td class="c em"${pr?'':' title="در این روز غایب بوده؛ ثبت ارزشیابی ممکن نیست"'}></td>`;
+   const v=c.mk[s.id],hint=pr?'':' — برای ویرایش کلیک کنید';
+   if(v==null)return`<td class="c em${EC}"${pr?'':' title="ثبت نشده — برای ثبت کلیک کنید"'}${EA}></td>`;
+   if(c.t==='d')return v===1?`<td class="c ok${EC}" title="انجام شد${hint}"${EA}>✓</td>`:`<td class="c no${EC}" title="انجام نشد${hint}"${EA}>✗</td>`;
+   if(c.t==='p'){const q=(c.pm||{})[s.id];if(q)return`<td class="c pnc l${v}${EC}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی${hint}"${EA}>${pnHtml(q)}</td>`}
+   const m=MXS[v];return m?`<td class="c ${m[1]}${EC}" title="${m[2]}${hint}"${EA}><span class="c-txt">${m[0]}</span></td>`:`<td class="c em${EC}"${EA}></td>`}).join('');
   return`<tr>${o.num?`<td class="rn">${fa(i+1)}</td>`:''}<td class="nm">${esc(s.name)}</td>${tds}</tr>`}).join('');
  const tw=pr?`max-width:${nmW+(o.num?24:0)+cols.length*46}px;`:'';
  return`<table data-noresp="1" class="${pr?'pr':''}" style="${tw}--nmw:${nmW}px;--hh:${hh}px"><thead><tr>${o.num?'<th class="rn">ردیف</th>':''}<th class="nm">نام دانش‌آموز</th>${head}</tr></thead><tbody>${body}</tbody></table>`}
 function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
-function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز (برای تغییر، روی خانه کلیک کنید) · ستون 📝 = آزمونِ ثبت‌شده در «درس‌ها و آزمون‌ها» · خانه‌ی خالی = ثبت نشده</div>`}
+function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز (برای تغییر، روی خانه کلیک کنید) · هر خانه‌ی فعالیت/آزمون هم با یک کلیک قابل ویرایش است (سطح، انجام/نشد، مثبت/منفی یا نمره) · ستون 📝 = آزمونِ ثبت‌شده در «درس‌ها و آزمون‌ها» · خانه‌ی خالی = ثبت نشده</div>`}
 
 /* ───── داشبورد تحلیلی و نمودار وضعیت دانش‌آموزان در انتهای صفحه ───── */
+/* سال تحصیلی (اول مهر تا آخر خرداد سال بعد) برای تاریخ k؛ مبنای «کل سال» در تحلیل‌ها */
+function schoolYearOf(k){const p=jparts(k||mxAnchor())||{},y=p.m>=7?p.y:p.y-1;return{y,from:jiso(y,7,1)||'1900-01-01',to:jiso(y+1,6,31)||'2999-12-31'}}
+/* شمار فعالیت‌های ثبت‌شده‌ی هر دانش‌آموز در هر درس در «کل سال تحصیلی» (مستقل از هفته/ماه انتخاب‌شده)؛ هر ثبت = یک مورد، آزمون‌ها هم شمرده می‌شوند */
+function yearCourseStats(){const Y=schoolYearOf(),cols=mxCols(Y.from,Y.to,'all',false),R={};
+ cols.forEach(c=>{if(c.kind==='att')return;const cNm=cname(c.c)||'سایر';
+  Object.keys(c.mk||{}).forEach(sid=>{if(c.mk[sid]==null||absent(c.k,+sid))return;const r=R[sid]=R[sid]||{tot:0,by:{}};r.tot++;r.by[cNm]=(r.by[cNm]||0)+1})});
+ return{Y,R}}
 function classAnalyticsDashboard(B){
   const cols = B.cols || [];
   const students = sts();
   if(!students.length) return '';
+  const YS = yearCourseStats();
 
   const studentStats = students.map(s => {
     let l4 = 0, l3 = 0, l2 = 0, l1 = 0, ok = 0, no = 0, abs = 0, tot = 0;
@@ -1346,7 +1356,10 @@ function classAnalyticsDashboard(B){
       if(cnt > topCount){ topCount = cnt; topCourse = cnm; }
     });
 
-    return { student: s, l4, l3, l2, l1, ok, no, abs, tot, rate, courseCounts, topCourse, topCount };
+    const yr = YS.R[s.id] || {tot:0,by:{}};
+    let yTop = '—', yCount = 0;
+    Object.entries(yr.by).forEach(([cnm, cnt]) => { if(cnt > yCount){ yCount = cnt; yTop = cnm; } });
+    return { student: s, l4, l3, l2, l1, ok, no, abs, tot, rate, courseCounts, topCourse: yTop, topCount: yCount, yTot: yr.tot };
   });
 
   const classTotals = { l4: 0, l3: 0, l2: 0, l1: 0, ok: 0, no: 0, tot: 0 };
@@ -1433,11 +1446,12 @@ function classAnalyticsDashboard(B){
   <!-- بخش تحلیل فعالیت هر دانش‌آموز در دروس -->
   <div class="dj-course-chart">
     <div class="dj-chart-title">🎓 بیشترین فعالیت هر دانش‌آموز در چه درسی بوده است؟</div>
+    <p class="sub" style="margin:2px 0 10px;font-size:11.5px">مبنای محاسبه: همه‌ی فعالیت‌ها و ارزشیابی‌های ثبت‌شده از اول مهر ${fa(YS.Y.y)} تا پایان سال تحصیلی — مستقل از هفته یا ماهِ انتخاب‌شده در جدول.</p>
     <div class="dj-stu-grid">
       ${studentStats.map(r => `<div class="dj-stu-card">
         <b>${esc(r.student.name)}</b>
         <div style="color:var(--mut,#64748b)">درس محوری: <span style="color:#1d4ed8;font-weight:800">${esc(r.topCourse)}</span> (${fa(r.topCount)} ثبت)</div>
-        <div style="font-size:11px;color:#1a8f55;font-weight:700">کل فعالیت‌های ثبت‌شده: ${fa(r.tot)} مورد</div>
+        <div style="font-size:11px;color:#1a8f55;font-weight:700">کل فعالیت‌های ثبت‌شده در سال تحصیلی: ${fa(r.yTot)} مورد</div>
       </div>`).join('')}
     </div>
   </div>
@@ -1834,6 +1848,59 @@ function printTeacherJournalReport(directDownloadPdf,fromPreview){
 
 /* رویدادها */
 /* پنجره‌ی تأیید داخل برنامه — confirm() مرورگر در پیش‌نمایش/PWA/iframe ممکن است بی‌صدا مسدود شود و کار (حذف، تغییر روش ارزشیابی) انجام نشود */
+/* ───── ویرایش مستقیم یک خانه‌ی «جدول عملکرد» (بدون رفتن به تاریخ ثبت اولیه) ─────
+   فعالیت ۴سطحی ← سطح | انجام‌شد/نشد ← دو دکمه | مثبت/منفی ← شمارنده | آزمون ← نمره (در همان S.exams).
+   همه‌ی تغییرها از همان توابع ثبت اصلی (setMarks / setPN) می‌گذرند؛ پس پرونده‌ی دانش‌آموز، گزارش‌ها و داشبورد همان لحظه یکی می‌شوند. */
+function clrMark(k,b,id,sid){const d=D(),key=k+'|'+b+'|'+id,m=d.m[key];
+ if(m){delete m[sid];if(!Object.keys(m).length)delete d.m[key]}
+ const pm=d.pm[key];if(pm){delete pm[sid];if(!Object.keys(pm).length)delete d.pm[key]}
+ const s=getSes(k,b);if(s)syncHw(k,b,id,s);save()}
+const nd=t=>String(t==null?'':t).replace(/[۰-۹]/g,x=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/[٠-٩]/g,x=>'٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[٫,]/g,'.').trim();
+function mxEditOpen(key,sid){
+ const find=()=>mxBuild().cols.find(q=>q.kind==='act'&&q.key===key),stu=sts().find(q=>String(q.id)===String(sid));
+ if(!find()||!stu){flash('این خانه دیگر در جدول نیست');return}
+ try{const old=document.getElementById('djMxEd');if(old)old.remove()}catch(e){}
+ const ov=document.createElement('div');ov.id='djMxEd';ov.setAttribute('dir','rtl');
+ ov.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:2147482000;display:grid;place-items:center;padding:14px;font-family:Vazirmatn,Tahoma,sans-serif';
+ const close=()=>{ov.remove();document.removeEventListener('keydown',onKey,true)};
+ const onKey=e=>{if(e.key==='Escape'){e.stopPropagation();close()}};
+ document.addEventListener('keydown',onKey,true);
+ const btn=(a,label,bg,fg)=>`<button type="button" data-me="${a}" style="padding:10px 14px;border:0;border-radius:11px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;background:${bg||'#eef2f7'};color:${fg||'#1e293b'};min-height:42px">${label}</button>`;
+ const draw=()=>{const c=find();if(!c){close();return}
+  const sv=c.mk[sid],isEx=c.t==='x',e=isEx?(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1)):null;
+  let body='';
+  if(isEx){if(!e){close();return}
+   const cur=e.scores&&e.scores[sid],mx=e.max||4;
+   body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">نمره‌ی همین آزمون در صفحه‌ی «درس‌ها و آزمون‌ها» هم به‌روز می‌شود. بیشینه‌ی نمره: <b>${fa(mx)}</b></div>`
+    +(mx===4?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${LV.map(l=>btn('ex:'+l.v,l.s,cur===l.v?l.c:'#eef2f7',cur===l.v?'#fff':'#1e293b')).join('')}</div>`:'')
+    +`<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input data-me-in type="text" inputmode="decimal" value="${cur==null?'':esc(fa(cur))}" placeholder="نمره (۰ تا ${esc(fa(mx))})" style="flex:1;min-width:120px;padding:10px;border:1px solid #cbd5e1;border-radius:11px;font:700 14px Vazirmatn,Tahoma,sans-serif">${btn('exsave','ثبت نمره','#1d4ed8','#fff')}</div>`;
+  }else if(c.t==='d'){
+   body=`<div style="display:flex;gap:6px;flex-wrap:wrap">${btn('mk:1','✓ انجام شد',sv===1?'#1a8f55':'#eef2f7',sv===1?'#fff':'#1e293b')}${btn('mk:0','✗ انجام نشد',sv===0?'#c0262c':'#eef2f7',sv===0?'#fff':'#1e293b')}</div>`;
+  }else if(c.t==='p'){
+   const q=(c.pm||{})[sid]||[0,0];
+   body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">هر «مثبت» = یک پاسخ درست/مشارکت، هر «منفی» = یک پاسخ نادرست/نبود آمادگی. فعلاً: <b>＋${fa(q[0])}</b> و <b>−${fa(q[1])}</b></div><div style="display:flex;gap:6px;flex-wrap:wrap">${btn('pn:1:0','＋ مثبت','#0f766e','#fff')}${btn('pn:0:1','− منفی','#b45309','#fff')}${q[0]?btn('pn:-1:0','کم‌کردن یک مثبت'):''}${q[1]?btn('pn:0:-1','کم‌کردن یک منفی'):''}</div>`;
+  }else{
+   body=`<div style="display:flex;gap:6px;flex-wrap:wrap">${LV.map(l=>btn('mk:'+l.v,l.s,sv===l.v?l.c:'#eef2f7',sv===l.v?'#fff':'#1e293b')).join('')}</div>`;
+  }
+  const hasVal=isEx?(e.scores&&e.scores[sid]!=null):(sv!=null);
+  ov.innerHTML=`<div role="dialog" aria-modal="true" style="background:var(--card,#fff);color:var(--tx,#1e293b);border-radius:16px;max-width:460px;width:100%;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
+   <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px"><div><b style="font-size:15px">${esc(stu.name)}</b><div style="font-size:12px;color:#64748b;line-height:1.8">${esc(dlab(c.k))} · ${esc(cname(c.c))} · ${esc(c.n)}</div></div>${btn('x','✕','transparent','#64748b')}</div>
+   ${body}
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px">${hasVal?btn('clr','🗑️ پاک‌کردن این ثبت','#fde7e8','#c0262c'):''}${isEx?btn('examgo','↗ رفتن به صفحه‌ی آزمون','#eef2f7'):''}${btn('x','بستن','#eef2f7')}</div></div>`;
+  const inp=ov.querySelector('[data-me-in]');if(inp)setTimeout(()=>{try{inp.focus();inp.select()}catch(x){}},30)};
+ ov.addEventListener('click',ev=>{if(ev.target===ov){close();return}
+  const t=ev.target.closest('[data-me]');if(!t)return;const a=t.dataset.me.split(':'),c=find();if(a[0]==='x'){close();return}if(!c){close();return}
+  try{
+   if(a[0]==='mk'){if(setMarks(c.k,c.b,c.id,[stu.id],+a[1],false)){render();draw()}}
+   else if(a[0]==='pn'){if(setPN(c.k,c.b,c.id,stu.id,+a[1],+a[2],false)){render();draw()}}
+   else if(a[0]==='clr'){if(c.t==='x'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(e&&e.scores){delete e.scores[stu.id];save()}}else clrMark(c.k,c.b,c.id,stu.id);render();draw()}
+   else if(a[0]==='ex'||a[0]==='exsave'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(!e)return;e.scores=e.scores||{};const mx=e.max||4;
+    let v;if(a[0]==='ex')v=+a[1];else{const r=nd((ov.querySelector('[data-me-in]')||{}).value);if(r===''){delete e.scores[stu.id];save();render();draw();return}v=parseFloat(r);if(isNaN(v)||v<0||v>mx){flash('نمره باید بین ۰ و '+fa(mx)+' باشد');return}}
+    e.scores[stu.id]=v;save();render();draw()}
+   else if(a[0]==='examgo'){close();act('examgo:'+c.id.slice(1))}
+  }catch(er){console.error('dj mxedit',er)}});
+ ov.addEventListener('keydown',ev=>{if(ev.key==='Enter'&&ev.target&&ev.target.hasAttribute&&ev.target.hasAttribute('data-me-in')){ev.preventDefault();const b=ov.querySelector('[data-me="exsave"]');if(b)b.click()}});
+ document.body.appendChild(ov);draw()}
 function djConfirm(msg,onYes,yesLabel){
  try{const old=document.getElementById('djCfm');if(old)old.remove()}catch(e){}
  const o=document.createElement('div');o.id='djCfm';o.setAttribute('dir','rtl');
@@ -1946,6 +2013,7 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
+ else if(c==='mxedit'){let key='';try{key=decodeURIComponent(x||'')}catch(e){}mxEditOpen(key,isNaN(+y)?y:+y);return}
  else if(c==='attcyc'){if(!/^\d{4}-\d{2}-\d{2}$/.test(x||'')||mxOff(x))return;if(typeof window.cyc==='function'){window.cyc(isNaN(+y)?y:+y,x);try{save()}catch(e){}}}
  else if(c==='examgo'){try{show('crs');setTimeout(()=>{try{window.openExNow&&window.openExNow(isNaN(+x)?x:+x)}catch(e){}},60)}catch(e){}return}
  else if(c==='fcrange'){st.fc=x||'14'}
@@ -2010,7 +2078,18 @@ function examCourses(){return allCourses().map(c=>({id:c.id,name:c.name}))}
 /* درس ویژه‌ی دفتر (مثل املا) هنگام ثبت آزمون به درس واقعی برنامه تبدیل می‌شود */
 function materialize(v){if(typeof v==='string'&&v.indexOf('sp_')===0){const sc=SPECIAL_COURSES.find(x=>x.id===v);if(!sc)return v;let c=(S.courses||[]).find(x=>x.name===sc.name);if(!c){c={id:Date.now(),name:sc.name,book:''};S.courses.push(c);save()}return c.id}return v}
 function subsOf(cid){const n=cname(cid),seen=new Set(),out=[];tplOf(cid).forEach(x=>{if(x&&x.n&&!seen.has(x.n)){seen.add(x.n);out.push(x.n)}});getCourseSubs(n).forEach(x=>{if(!seen.has(x)){seen.add(x);out.push(x)}});return out}
-window.djApi={examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
+/* سطح‌های ارزشیابی دفتر برای نمره‌ی مستمر درسی: آرایه‌ای از ۱ تا ۴ برای دانش‌آموز sid و درس cid (null = همه‌ی درس‌ها).
+   o = {from,to,pred(k)}. فقط فعالیت‌های ۴سطحی و مثبت/منفی شمرده می‌شوند؛ «انجام شد/نشد» (تکلیف) از S.hwl و آزمون‌ها فقط از S.exams می‌آیند
+   (در S.dj.m آزمون ذخیره نمی‌شود) ⇒ هیچ داده‌ای دوبار شمرده نمی‌شود. روز غیبت دانش‌آموز حساب نمی‌شود. */
+function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(cid);
+ Object.keys(d.m).forEach(key=>{const v=d.m[key][sid];if(v==null||!(v>=1&&v<=4))return;const p=key.split('|');if(p.length!==3)return;const k=p[0];
+  if(o.from&&k<o.from)return;if(o.to&&k>o.to)return;if(o.pred&&!o.pred(k))return;
+  const se=d.ses[k+'|'+p[1]],it=se&&(se.it||{})[p[2]];if(!it||it.t==='d')return;
+  if(absent(k,sid))return;
+  if(cid!=null&&String(se.c)!==String(cid)&&cname(se.c)!==cn)return;
+  out.push(v)});
+ return out}
+window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;
  const row=r=>`<tr><td style="padding:4px 6px;font-weight:700">${esc(cname(r.c))}</td>${[4,3,2,1].map(v=>`<td style="text-align:center;color:${LV.find(l=>l.v===v).c};font-weight:800">${fa(r.g[v])}</td>`).join('')}<td style="text-align:center">${r.ok||r.no?fa(r.ok)+' / '+fa(r.no):'—'}${r.pp||r.pn?`<small style="display:block;color:#0f766e">＋${fa(r.pp)} −${fa(r.pn)}</small>`:''}</td></tr>`;

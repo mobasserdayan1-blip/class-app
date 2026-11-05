@@ -479,8 +479,13 @@ const f1=v=>v==null?'—':fa(v.toFixed(1).replace(/\.0$/,'').replace('.','٫'));
 const col=v=>v==null?'#999':v>=3.5?'#1a8f55':v>=2.5?'#5fa83a':v>=1.5?'#d98600':'#d12f35';
 const inMonth=(d,m)=>{const q=jp(new Date(d+'T12:00:00Z'));return q.m===m&&q.y===(m>=7?SY:SY+1)};
 const EXf=()=>{const g=window.__rg,t=$('rt').value,m=g?0:(+$('rm').value||0);return S.exams.filter(e=>(!t||e.type===t)&&(!m||inMonth(e.date,m))&&(!g||(e.date>=g[0]&&e.date<=g[1])))};
-const cAvg=(id,cid,EX=EXf())=>mean(EX.filter(e=>e.course===cid).map(e=>nrm(e,id)).filter(nn));
-const clsAvg=cid=>mean(EXf().filter(e=>e.course===cid).flatMap(e=>S.students.map(s=>nrm(e,s.id))).filter(nn));
+/* سطح‌های دفتر روزانه (۱ تا ۴؛ هم‌مقیاس نمره‌ی آزمون) برای نمره‌ی مستمر هر درس. فیلتر نوع/ماه/بازه همان فیلتر آزمون‌هاست؛
+   اگر EX کلِ S.exams باشد، همه‌ی سال شمرده می‌شود. اگر «نوع» آزمون مشخصی انتخاب شده باشد، فعالیت‌های دفتر شمرده نمی‌شوند. */
+const djLv=(id,cid,EX)=>{try{if(!window.djApi||!window.djApi.levels)return[];if(EX===S.exams)return window.djApi.levels(id,cid);
+ const g=window.__rg,t=$('rt')?$('rt').value:'',m=g?0:(+($('rm')||{}).value||0);if(t)return[];
+ return window.djApi.levels(id,cid,{pred:k=>(!g||(k>=g[0]&&k<=g[1]))&&(!m||inMonth(k,m))})}catch(e){return[]}};
+const cAvg=(id,cid,EX=EXf())=>mean(EX.filter(e=>e.course===cid).map(e=>nrm(e,id)).filter(nn).concat(djLv(id,cid,EX)));
+const clsAvg=cid=>{const EX=EXf();return mean(EX.filter(e=>e.course===cid).flatMap(e=>S.students.map(s=>nrm(e,s.id))).filter(nn).concat(S.students.flatMap(s=>djLv(s.id,cid,EX))))};
 const overall=id=>mean(S.courses.map(c=>cAvg(id,c.id)).filter(nn));
 const bar=(l,v,v2)=>`<div class="br"><span class="bl">${esc2(l)}</span><div class="bt"><i style="width:${v==null?0:v/4*100}%;background:${col(v)}"></i>${v2!=null?`<i class="g2" style="width:${v2/4*100}%"></i>`:''}</div><b>${f1(v)}${window.__pct?window.__pct(v):''}</b></div>`;
 const entry=e=>`<div class="card" style="background:var(--bg2);margin:6px 0;box-shadow:none"><div class="lg" style="margin:0 0 8px">۴ خیلی خوب | ۳ خوب | ۲ قابل قبول | ۱ نیاز به تلاش بیشتر</div>${S.students.map(s=>{if(absent(e,s.id))return `<div style="opacity:.6;margin-bottom:8px"><b>${esc2(s.name)}</b> <span class="xb" style="background:#e5484d;color:#fff">غایب</span><div class="sum">در این روز غایب بوده و قابل ارزیابی نیست</div></div>`;const v=lvl(nrm(e,s.id));return `<div><b>${esc2(s.name)}</b><div class="lv">${[4,3,2,1].map(k=>`<button class="${v===k?'on'+k:''}" onclick="setLv(${e.id},${s.id},${k})">${fa(k)}<br>${LVW[k]}</button>`).join('')}</div></div>`}).join('')}</div>`;
@@ -654,6 +659,7 @@ function mrCalc(co,m){const y=mrY(m),inM=d=>{const q=jp(new Date(d+'T12:00:00Z')
  const ex=S.exams.filter(e=>e.course===co.id&&inM(e.date)),hw=(S.hwl||[]).filter(h=>h.course===co.id&&inM(h.date));
  const ak=Object.keys(S.att).filter(k=>inM(k)&&!S.closed[k]&&!hol(new Date(k+'T12:00:00Z')));
  const data=S.students.map(st=>{const sc=[];ex.forEach(e=>{const a=(S.att[e.date]||{})[st.id]==='a';if(a&&!(e.mk&&e.mk[st.id]&&e.mk[st.id]!=='x'))return;const v=e.scores&&e.scores[st.id];if(v!=null)sc.push(v/e.max*4)});
+  try{if(window.djApi&&window.djApi.levels)window.djApi.levels(st.id,co.id,{pred:inM}).forEach(v=>sc.push(v))}catch(e){}/* فعالیت‌های دفتر روزانه‌ی همین درس و ماه */
   const avg=sc.length?sc.reduce((a,b)=>a+b,0)/sc.length:null,lv=avg==null?0:Math.min(4,Math.max(1,Math.round(avg)));
   let d=0,p=0,n=0;hw.forEach(h=>{const v=(h.st||{})[st.id];if(v==='d')d++;else if(v==='p')p++;else if(v==='n')n++});const rec=d+p+n,hs=rec?((d+.5*p)/rec>=.8?'c':(d+p===0?'n':'p')):'';
   let ab=0,lt=0;ak.forEach(k=>{const v=(S.att[k]||{})[st.id];if(v==='a')ab++;else if(v==='l')lt++});
@@ -669,7 +675,7 @@ function mrTable(R,a,b){const lv=[1,2,3,4].map(i=>`<th style="${MTH}">${MRL[i].n
  return `<table style="width:100%;border-collapse:collapse;direction:rtl;min-width:620px"><thead><tr><th rowspan="2" style="${MTH}width:34px">ردیف</th><th rowspan="2" style="${MTH}width:130px">نام و نام خانوادگی</th><th rowspan="2" style="${MTH}">توضیحات</th><th colspan="4" style="${MTH}">سطح عملکرد<div style="font-weight:400;font-size:10px">(نیاز به تلاش بیشتر / قابل قبول / خوب / خیلی خوب)</div></th><th colspan="3" style="${MTH}">تمرین و تکالیف<div style="font-weight:400;font-size:10px">(اصلا / ناقص / کامل)</div></th></tr><tr>${lv}${hw}</tr></thead><tbody>${rows}</tbody></table>`}
 function mrHead(R){const P=S.prof,sch=P.school?schoolFull():'',m=MN[R.m-1],y2=R.m>=7?R.y:R.y;
  return `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;border-bottom:3px solid #7e57c2;padding-bottom:8px"><div style="width:110px;text-align:center">${P.logo?`<img src="${P.logo}" style="height:58px;max-width:100px;object-fit:contain">`:''}<div style="font-size:10px;font-weight:800;color:#1f3b8a;margin-top:2px">${esc2(sch)}</div></div><div style="flex:1;text-align:center"><div style="font-weight:800;font-size:22px;color:#4a2f9a">ثبت گزارش عملکرد ماهانه درس «${esc2(R.co.name)}»</div><div style="font-size:14px;color:#555;margin-top:6px">ماه ${m} ${P.year?LR+fa(P.year)+LR:syLab(SY)}</div><div style="font-size:12px;color:#666;margin-top:6px">${esc2(profLine())}</div></div><div style="width:110px"></div></div>`}
-function mrFoot(R,i,n){return `<div style="position:absolute;bottom:56px;left:30px;right:30px;font-size:10.5px;color:#555;line-height:1.7">سطح عملکرد = میانگین ارزیابی این درس در همین ماه (از ۱ تا ۴)؛ تمرین و تکالیف = از ${fa(R.nHw)} تکلیف ثبت‌شده؛ «کامل» یعنی حداقل ۸۰٪ انجام شده، «اصلا» یعنی هیچ‌کدام انجام نشده، بقیه «ناقص»؛ خانه‌ی خالی = داده‌ای ثبت نشده.</div>${n>1?`<div style="position:absolute;bottom:30px;left:30px;right:30px;text-align:center;font-size:11px;color:#666">صفحه ${fa(i+1)} از ${fa(n)}</div>`:''}`}
+function mrFoot(R,i,n){return `<div style="position:absolute;bottom:56px;left:30px;right:30px;font-size:10.5px;color:#555;line-height:1.7">سطح عملکرد = میانگین ارزیابی این درس در همین ماه (از ۱ تا ۴؛ شامل آزمون‌ها و فعالیت‌های ثبت‌شده در دفتر روزانه)؛ تمرین و تکالیف = از ${fa(R.nHw)} تکلیف ثبت‌شده؛ «کامل» یعنی حداقل ۸۰٪ انجام شده، «اصلا» یعنی هیچ‌کدام انجام نشده، بقیه «ناقص»؛ خانه‌ی خالی = داده‌ای ثبت نشده.</div>${n>1?`<div style="position:absolute;bottom:30px;left:30px;right:30px;text-align:center;font-size:11px;color:#666">صفحه ${fa(i+1)} از ${fa(n)}</div>`:''}`}
 function mrFile(R){return ('گزارش-ماهانه-'+R.co.name+'-'+MN[R.m-1]+'-'+R.y).replace(/\s+/g,'-').replace(/[\\/:*?"<>|]/g,'')}
 function renderMr(){const c=$('mr_c'),m=$('mr_m');if(!c)return;const keep=c.value;
  c.innerHTML=S.courses.length?S.courses.map(x=>`<option value="${x.id}">${esc2(x.name)}</option>`).join(''):'<option value="">ابتدا درسی بسازید</option>';if(keep&&S.courses.some(x=>String(x.id)===keep))c.value=keep;
@@ -718,17 +724,18 @@ function data(m){
  const r=rangeY(),a=iso(r.a),b=iso(r.b),st=S.students,A=S.att;
  const reg=k=>k>=a&&k<=b&&!S.closed[k]&&!hol(new Date(k+'T12:00:00Z'))&&st.some(s=>A[k][s.id]);
  const[i1,i2]=rI(),rg=k=>{const i=SM.indexOf(jp(new Date(k+'T12:00:00Z')).m);return i>=i1&&i<=i2};const aD=Object.keys(A).filter(reg).sort(),dk=aD.filter(rg);
+ const dl=(sid,cid,pr)=>{try{return window.djApi&&window.djApi.levels?window.djApi.levels(sid,cid,{pred:k=>k>=a&&k<=b&&rg(k)&&(!pr||pr(k))}):[]}catch(e){return[]}};/* سطح‌های دفتر روزانه در همین بازه */
  const aE=S.exams.filter(e=>e.date>=a&&e.date<=b&&Object.keys(e.scores).length).sort((x,y)=>x.date.localeCompare(y.date)),EX=aE.filter(e=>rg(e.date));
  const cn=id=>(S.courses.find(c=>c.id===id)||{}).name||'—';
  const rows=st.map(s=>{
-  const c=cnt(s.id,dk),n=dk.length,hw=HW(s.id,a,b,rg),per=S.courses.map(co=>mean(EX.filter(e=>e.course===co.id).map(e=>nrm(e,s.id)).filter(nn)));
+  const c=cnt(s.id,dk),n=dk.length,hw=HW(s.id,a,b,rg),per=S.courses.map(co=>mean(EX.filter(e=>e.course===co.id).map(e=>nrm(e,s.id)).filter(nn).concat(dl(s.id,co.id))));
   const avg=mean(per.filter(nn)),v=EX.map(e=>nrm(e,s.id)).filter(nn),h=v.length>>1,dr=v.length>=4?mean(v.slice(h))-mean(v.slice(0,h)):0,fl=[];
   if(n&&c.a/n>=.15)fl.push('غیبت زیاد');if(c.l>=3)fl.push('تأخیر زیاد');if(avg!=null&&avg<2.5)fl.push('میانگین پایین');if(dr<=-.5)fl.push('افت نمره');if(hw.n>=3)fl.push('تکلیف انجام‌نشده');const pd=EX.filter(e=>e.type!==OR0&&(A[e.date]||{})[s.id]==='a'&&e.scores[s.id]==null&&!(e.mk&&e.mk[s.id])).length;if(pd)fl.push('آزمون جبرانی باقی‌مانده');
   return{s,c,ap:n?(n-c.a)/n*100:null,per,avg,fl,dr,hw,pd}});
  const mon=SM.filter((mm,i)=>i>=i1&&i<=i2).map(mm=>{const ks=aD.filter(k=>inMonth(k,mm));let p=0,t=0;ks.forEach(k=>st.forEach(s=>{const x=A[k][s.id];if(x){t++;if(x!=='a'||isX(k,s.id))p++}}));
-  return{l:MN[mm-1],ab:t-p,ap:t?p/t*100:null,av:mean(aE.filter(e=>inMonth(e.date,mm)).flatMap(e=>st.map(s=>nrm(e,s.id))).filter(nn))}}).filter(x=>x.ap!=null||x.av!=null);
+  return{l:MN[mm-1],ab:t-p,ap:t?p/t*100:null,av:mean(aE.filter(e=>inMonth(e.date,mm)).flatMap(e=>st.map(s=>nrm(e,s.id))).filter(nn).concat(st.flatMap(s=>dl(s.id,null,k=>inMonth(k,mm)))))}}).filter(x=>x.ap!=null||x.av!=null);
  const les=S.courses.map((c,i)=>({l:c.name,v:mean(rows.map(q=>q.per[i]).filter(nn))}));
- const lv=[4,3,2,1].map(k=>({l:LVW[k],v:EX.flatMap(e=>st.map(s=>lvl(nrm(e,s.id)))).filter(x=>x===k).length,c:LVC[k]}));
+ const lv=[4,3,2,1].map(k=>({l:LVW[k],v:EX.flatMap(e=>st.map(s=>lvl(nrm(e,s.id)))).filter(x=>x===k).length+st.flatMap(s=>dl(s.id,null)).filter(x=>x===k).length,c:LVC[k]}));
  const ex=EX.map(e=>{const v=st.map(s=>nrm(e,s.id)).filter(nn);return{d:e.date,c:cn(e.course),t:e.type,n:v.length,mk:Object.values(e.mk||{}).filter(x=>x!=='x').length,pd:st.filter(s=>e.type!==OR0&&(S.att[e.date]||{})[s.id]==='a'&&e.scores[s.id]==null&&!(e.mk&&e.mk[s.id])).length,av:mean(v),lo:v.length?Math.min(...v):null,hi:v.length?Math.max(...v):null}});
  const ok=ex.filter(x=>x.av!=null),weak=ok.length?ok.reduce((p,q)=>q.av<p.av?q:p):null;
  return{rows,dk,EX,mon,les,lv,ex,weak,m,avg:mean(rows.map(q=>q.avg).filter(nn)),ap:mean(rows.map(q=>q.ap).filter(nn)),ab:rows.reduce((t,q)=>t+q.c.a,0)};

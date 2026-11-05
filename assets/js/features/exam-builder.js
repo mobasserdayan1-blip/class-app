@@ -10,7 +10,8 @@ try{
  const E=x=>String(x==null?'':x).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
  const F=n=>typeof fa==='function'?fa(n):String(n);
  const LVN={e:'آسان',m:'متوسط',h:'سخت'};
- const TYPES=['ارزشیابی آغازین','آزمون ماهانه','آزمون مستمر','آزمون نیم‌سال اول','آزمون نیم‌سال دوم','آزمون پایان فصل','آزمون پایان سال','آزمونک',''];
+ /* همان فهرست یکسان «ثبت ارزشیابی یا آزمون» و دفتر روزانه (window.EVAL_TYPES در app-core) */
+  const TYPES=(window.EVAL_TYPES||['ارزشیابی آغازین','آزمونک','آزمون ماهانه','آزمون مستمر','آزمون پایان فصل','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم']).concat(['']);
  const FBL=['خیلی خوب','خوب','قابل قبول','نیاز به تلاش بیشتر دارد'];
  const fullTitle=()=>[($('exbType')||{}).value||'',(($('exbTitle')||{}).value||'').trim()].filter(Boolean).join(' ')||'ارزشیابی';
  const prof=()=>S.prof||{};
@@ -641,7 +642,7 @@ try{
  let rmRestored=false;
  function restore(){
   const c=cfg();
-  if(c.type!=null)$('exbType').value=c.type;else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
+  if(c.type!=null)$('exbType').value=TYPES.includes(c.type)?c.type:(window.evalTypeNorm?window.evalTypeNorm(c.type):'');else if(c.title&&TYPES.includes(c.title)){$('exbType').value=c.title;c.title=''}
   if(c.title!=null)$('exbTitle').value=c.title;if(c.count)$('exbCount').value=c.count;if(c.meta!=null)$('exbMeta').checked=!!c.meta;if(c.same!=null)$('exbSame').checked=!!c.same;if(c.mfill!=null)$('exbMfill').checked=!!c.mfill;if(Array.isArray(c.sel)){selSet.clear();c.sel.forEach(i=>selSet.add(String(i)))}setMode(c.mode);
   if(!rmRestored){rmRestored=true;if(c.rm==='page'||c.rm==='lesson'){rmode=c.rm;fillRange()}}
   if(c.fb!=null)$('exbFb').checked=!!c.fb;if(c.fbRows!=null)$('exbFbRows').value=c.fbRows;if(c.ans)$('exbAns').value=c.ans;

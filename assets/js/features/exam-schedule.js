@@ -5,7 +5,7 @@ const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);
 const esc=t=>String(t==null?'':t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const MN=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
 const WN=['شنبه','یکشنبه','دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه'];
-const TYPES=['آزمون کتبی','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم'];
+const TYPES=(window.EVAL_TYPES||['آزمون کتبی','آزمون پایان نیمسال اول','آزمون پایان نیمسال دوم']).filter(t=>t!=='پرسش و پاسخ کلاسی');
 const isFin=t=>/پایان نیمسال/.test(t||'');
 const jf=new Intl.DateTimeFormat('en-u-ca-persian-nu-latn',{timeZone:'UTC',year:'numeric',month:'numeric',day:'numeric'});
 const jp=d=>{const o={};jf.formatToParts(d).forEach(p=>{if(p.type==='year'||p.type==='relatedYear')o.y=+p.value;else if(p.type==='month')o.m=+p.value;else if(p.type==='day')o.d=+p.value});return o};

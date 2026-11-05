@@ -71,7 +71,7 @@ function homeInit(){try{qa();foldHome();moreBtn();arrangeHome()}catch(e){console
 /* چیدمان نهایی صفحه‌ی خانه (ترتیب واقعی باکس‌ها، بدون ساخت نسخه‌ی تکراری):
    ۱) خوش‌آمدگویی (#tdHero) ۲) برنامه‌ی امروز (#wsToday) ۳) یادآور آزمون‌ها (#exRem) ۴) پنج کارت (#qa) ۵) دفتر روزانه (#djHome)
    هر باکس را ماژول خودش می‌سازد؛ این تابع فقط جای آن‌ها را زیر سرتیتر صفحه مرتب می‌کند. */
-const HOME_ORDER=['tdHero','wsToday','exRem','qa','djHome'];
+const HOME_ORDER=['tdHero','wsToday','exRem','qa','djHome','asxHome'];
 function arrangeHome(){
  const h=$('home');if(!h)return;
  let prev=$('hsub');if(!prev||prev.parentNode!==h)prev=h.querySelector(':scope>h1');

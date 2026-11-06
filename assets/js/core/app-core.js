@@ -675,7 +675,7 @@ function mrSel(){const c=$('mr_c'),m=$('mr_m');if(!c||!m)return null;const cid=+
 function mrCalc(co,m){const y=mrY(m),inM=d=>{const q=jp(new Date(d+'T12:00:00Z'));return q.m===m&&q.y===y};
  const ex=S.exams.filter(e=>e.course===co.id&&inM(e.date)),hw=(S.hwl||[]).filter(h=>h.course===co.id&&inM(h.date));
  const ak=Object.keys(S.att).filter(k=>inM(k)&&!S.closed[k]&&!hol(new Date(k+'T12:00:00Z')));
- const data=S.students.map(st=>{const sc=[];ex.forEach(e=>{const a=(S.att[e.date]||{})[st.id]==='a';if(a&&!(e.mk&&e.mk[st.id]&&e.mk[st.id]!=='x'))return;const v=e.scores&&e.scores[st.id];if(v!=null)sc.push(v/e.max*4)});
+ const data=S.students.map(st=>{const sc=[];S.exams.filter(e=>e.course===co.id).forEach(e=>{const md=e.mk&&e.mk[st.id]&&e.mk[st.id]!=='x'?e.mk[st.id]:null;/* جبرانی: فقط در ماهِ تاریخ واقعی آزمون جبرانی و فقط یک‌بار؛ آزمون اصلی: فقط اگر غایب نبوده */if(md){if(!inM(md))return;const v=nrm(e,st.id);if(v!=null)sc.push(v);return}if(!inM(e.date))return;const a=(S.att[e.date]||{})[st.id]==='a';if(a)return;const v=e.scores&&e.scores[st.id];if(v!=null)sc.push(v/e.max*4)});
   try{if(window.djApi&&window.djApi.levels)window.djApi.levels(st.id,co.id,{pred:inM}).forEach(v=>sc.push(v))}catch(e){}/* فعالیت‌های دفتر روزانه‌ی همین درس و ماه */
   const avg=sc.length?sc.reduce((a,b)=>a+b,0)/sc.length:null,lv=avg==null?0:Math.min(4,Math.max(1,Math.round(avg)));
   let d=0,p=0,n=0;hw.forEach(h=>{const v=(h.st||{})[st.id];if(v==='d')d++;else if(v==='p')p++;else if(v==='n')n++});const rec=d+p+n,hs=rec?((d+.5*p)/rec>=.8?'c':(d+p===0?'n':'p')):'';

@@ -329,6 +329,21 @@ const examsOn=k=>(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.date===k);
 const examName=e=>String(e.type||'آزمون')+(e.title?' — '+e.title:'');
 function examLevel(e,sid){try{const v=typeof nrm==='function'?nrm(e,sid):null;if(v==null||isNaN(v))return null;return Math.max(1,Math.min(4,Math.round(v)))}catch(x){return null}}
 function examMk(e){const m={};sts().forEach(s0=>{const l=examLevel(e,s0.id);if(l!=null)m[s0.id]=l});return m}
+/* ───── آزمون جبرانی در دفتر روزانه ─────
+   منبع داده همان S.exams است (e.mk[sid]=تاریخ جبرانی یا 'x' برای معاف، e.mkEval[sid]=سطح ۱..۴). هیچ داده‌ای کپی نمی‌شود.
+   ستون آزمون اصلی: فقط نتیجه‌ی کسانی که با کلاس امتحان داده‌اند؛ غایب‌ها همان‌جا غایب می‌مانند (⏳ منتظر جبرانی / ➖ معاف / ↪ جبرانی داده).
+   ستون «جبرانی»: در تاریخ واقعی آزمون جبرانی، با برچسب مشخص. هر نتیجه فقط یک‌بار شمرده می‌شود (یا اصلی یا جبرانی). */
+const mkDate=(e,sid)=>{const m=e&&e.mk&&e.mk[sid];return(m&&m!=='x')?m:null};
+function examMainMk(e){const m=examMk(e);Object.keys(m).forEach(id=>{if(mkDate(e,id))delete m[id]});return m}
+function examMkState(e){const pend={},exempt={},moved={};
+ if(!e||e.type==='پرسش و پاسخ کلاسی')return{pend,exempt,moved};
+ sts().forEach(s0=>{const id=s0.id,md=mkDate(e,id);
+  if(md){moved[id]=md;return}
+  if(e.mk&&e.mk[id]==='x'){exempt[id]=1;return}
+  if(((S.att||{})[e.date]||{})[id]==='a'&&!(e.scores&&e.scores[id]!=null))pend[id]=1});
+ return{pend,exempt,moved}}
+function examMkGroups(e){const g={};Object.keys((e&&e.mk)||{}).forEach(id=>{const dd=mkDate(e,id);if(!dd)return;if(!sts().some(q=>String(q.id)===String(id)))return;const l=examLevel(e,id);if(l==null)return;(g[dd]=g[dd]||{})[id]=l});return g}
+const mkExamsOn=k=>(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.mk&&Object.keys(examMkGroups(e)).indexOf(k)>=0);
 function getDayActivities(k){
   const d=D(), out=[];
   const bellsList=dayBells(k);
@@ -362,8 +377,14 @@ function getDayActivities(k){
   });
   examsOn(k).forEach(e=>{
     const mk=examMk(e);
+    const mm=examMainMk(e);
     out.push({exam:true,b:'exam',itId:'x'+e.id,exId:e.id,fullKey:'exam|'+e.id,courseId:e.course,courseName:cname(e.course),topic:'',
-      sub:e.title||'—',n:examName(e),t:'x',cg:e.type||'آزمون',d:'',hw:0,count:Object.keys(mk).length,session:null,item:null});
+      sub:e.title||'—',n:examName(e),t:'x',cg:e.type||'آزمون',d:'',hw:0,count:Object.keys(mm).length,session:null,item:null});
+  });
+  mkExamsOn(k).forEach(e=>{
+    const g=examMkGroups(e)[k]||{};
+    out.push({exam:true,mkc:true,b:'examMk',itId:'x'+e.id+'m',exId:e.id,fullKey:'exam|'+e.id+'|mk|'+k,courseId:e.course,courseName:cname(e.course),topic:'',
+      sub:e.title||'—',n:'🔁 جبرانی: '+examName(e)+' (آزمون اصلی '+dlab(e.date)+')',t:'x',cg:'جبرانی',d:'',hw:0,count:Object.keys(g).length,session:null,item:null});
   });
   return out;
 }
@@ -764,11 +785,11 @@ function actsTableHtml(k, todayActs, pn){
       <td style="text-align:center;font-weight:800">${fa(i+1)}</td>
       <td style="font-weight:900;color:#1e3a8a"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#e0e7ff;color:#3730a3">${esc(a.courseName)}</span></td>
       <td style="font-weight:700">${esc(a.sub)}</td>
-      <td style="font-weight:800">${esc(a.n)} <span style="font-size:11px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px">📝 آزمون</span></td>
-      <td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#92400e;font-size:11px">آزمون</span></td>
-      <td style="text-align:center;font-weight:800;font-variant-numeric:tabular-nums">${fa(a.count)} / ${fa(pn)}</td>
-      <td style="text-align:center"><span class="dj-act-status-pill ${isDone?'done':'part'}">${isDone?'✅ نمره‌ها ثبت شد':'🟡 نمره‌ها ناقص'}</span></td>
-      <td style="text-align:center"><button type="button" class="dj-sm on" style="background:#b45309;color:#fff;border-color:transparent" data-dj="examgo:${esc(a.exId)}" title="ورود یا ویرایش نمره‌ها در «درس‌ها و آزمون‌ها»">📝 نمره‌ها</button></td>
+      <td style="font-weight:800">${esc(a.n)} <span style="font-size:11px;color:#92400e;background:#fef3c7;padding:1px 6px;border-radius:6px">${a.mkc?'🔁 جبرانی':'📝 آزمون'}</span></td>
+      <td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#92400e;font-size:11px">${a.mkc?'جبرانی':'آزمون'}</span></td>
+      <td style="text-align:center;font-weight:800;font-variant-numeric:tabular-nums">${a.mkc?fa(a.count):fa(a.count)+' / '+fa(pn)}</td>
+      <td style="text-align:center"><span class="dj-act-status-pill ${(a.mkc||isDone)?'done':'part'}">${a.mkc?'✅ نتیجه‌ی جبرانی ثبت شد':(isDone?'✅ نمره‌ها ثبت شد':'🟡 نمره‌ها ناقص')}</span></td>
+      <td style="text-align:center"><button type="button" class="dj-sm on" style="background:#b45309;color:#fff;border-color:transparent" data-dj="examgo:${esc(a.exId)}" title="${a.mkc?'ثبت و ویرایش در «آزمون جبرانی»':'ورود یا ویرایش نمره‌ها در «درس‌ها و آزمون‌ها»'}">${a.mkc?'🔁 جبرانی':'📝 نمره‌ها'}</button></td>
     </tr>`}
     const isSelected = st.b === a.b && st.item === a.itId;
     return `<tr style="${isSelected?'background:#eff6ff;outline:2px solid #3b82f644;':''}">
@@ -1101,7 +1122,7 @@ function render(){const s=$('dj');if(!s)return;
  const todayActsCount=todayActs.length;
  const evaluatedStudentIds=new Set();
  todayActs.forEach(a=>{
-  const m=a.exam?examMk((S.exams||[]).find(e=>e.id===a.exId)||{}):(D().m[a.fullKey]||{});
+  const m=a.exam?(a.mkc?(examMkGroups((S.exams||[]).find(e=>e.id===a.exId)||{})[k]||{}):examMainMk((S.exams||[]).find(e=>e.id===a.exId)||{})):(D().m[a.fullKey]||{});
   Object.keys(m).forEach(sid=>{if(m[sid]!=null)evaluatedStudentIds.add(+sid)});
  });
  const todayStudentsEvaluated=evaluatedStudentIds.size;
@@ -1234,8 +1255,15 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
   acts.push({kind:'act',key,k,b:p[1],id:p[2],c:ses.c,t,n:it.n,mk,pm:t==='p'?(d.pm[key]||{}):null})});
  (Array.isArray(S.exams)?S.exams:[]).forEach(e=>{if(!e||!e.date||!from||e.date<from||e.date>to||mxOff(e.date))return;
   if(cf!=='all'&&String(e.course)!==String(cf))return;
-  const mk=examMk(e);if(!Object.keys(mk).length)return;
-  acts.push({kind:'act',key:'exam|'+e.id,k:e.date,b:'x99',id:'x'+e.id,c:e.course,t:'x',n:'📝 '+examName(e),mk,pm:null})});
+  const mk=examMainMk(e),ms=examMkState(e);
+  if(!Object.keys(mk).length&&!Object.keys(ms.pend).length&&!Object.keys(ms.exempt).length&&!Object.keys(ms.moved).length)return;
+  acts.push({kind:'act',key:'exam|'+e.id,k:e.date,b:'x99',id:'x'+e.id,c:e.course,t:'x',n:'📝 '+examName(e),mk,pm:null,pend:ms.pend,exempt:ms.exempt,moved:ms.moved})});
+ /* ستون‌های «جبرانی»: در تاریخ واقعی آزمون جبرانی (مستقل از تاریخ آزمون اصلی) */
+ (Array.isArray(S.exams)?S.exams:[]).forEach(e=>{if(!e||!e.date)return;
+  if(cf!=='all'&&String(e.course)!==String(cf))return;
+  const g=examMkGroups(e);
+  Object.keys(g).forEach(dd=>{if(!from||dd<from||dd>to)return;
+   acts.push({kind:'act',key:'exam|'+e.id+'|mk|'+dd,k:dd,b:'x98',id:'x'+e.id,c:e.course,t:'x',mkc:true,mkFrom:e.date,n:'🔁 جبرانی: '+examName(e),mk:g[dd],pm:null})})});
  const bo=b=>(String(b).charAt(0)==='m'?100:0)+(+String(b).replace(/\D/g,'')||0);
  acts.sort((a,b)=>a.k<b.k?-1:a.k>b.k?1:(bo(a.b)-bo(b.b))||(a.id<b.id?-1:a.id>b.id?1:0));
  const days=new Set(acts.map(a=>a.k));
@@ -1294,15 +1322,21 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
   const jp=jparts(c.k),dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1];
   if(c.kind==='att'){maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+12);
    return`<th class="h at${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(dlab(c.k)+' — حضور و غیاب')}"><span>${isNewDate?`<b>${esc(dt)}</b> | `:''}حضور و غیاب</span></th>`}
-  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+(c.t==='x'?'آزمون':bellLabel(c.k,c.b))+' — '+cname(c.c)+' — '+c.n;
+  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+(c.t==='x'?(c.mkc?'آزمون جبرانی (آزمون اصلی '+dlab(c.mkFrom)+')':'آزمون'):bellLabel(c.k,c.b))+' — '+cname(c.c)+' — '+c.n;
   const mxT=isNewDate?cap-dt.length:cap,txs=tx.length>mxT?tx.slice(0,Math.max(10,mxT-1))+'…':tx;
   maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+txs.length);
-  return`<th class="h${c.t==='p'?' pnh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs)}</span></th>`}).join('');
+  return`<th class="h${c.t==='p'?' pnh':''}${c.mkc?' mkh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs)}</span></th>`}).join('');
  const hh=Math.min(pr?200:190,Math.max(64,Math.ceil(maxH*(pr?4.7:6.1))+14));
  const body=sts().map((s,i)=>{
   const tds=cols.map(c=>{
    const EA=(pr||c.kind==='att')?'':` data-dj="mxedit:${encodeURIComponent(c.key)}:${s.id}" role="button" tabindex="0"`,EC=EA?' dj-ed':'';
    if(c.kind==='att'){const a=attCell(c.k,s.id);return pr?`<td class="c at ${a.c}" title="${a.tt}">${a.t}</td>`:`<td class="c at ${a.c} dj-atc" title="${a.tt} — برای تغییر (حاضر ← غایب ← تأخیر ← موجه ← خالی) کلیک کنید" data-dj="attcyc:${c.k}:${s.id}" role="button" tabindex="0">${a.t||'·'}</td>`}
+   if(c.mkc){const v0=c.mk[s.id],m0=MXS[v0];if(v0==null||!m0)return`<td class="c em"></td>`;
+    const bd='<i style="display:block;font-style:normal;font-size:8px;line-height:1;font-weight:800;margin-top:1px">جبرانی</i>';
+    return`<td class="c ${m0[1]}${EC}" title="${m0[2]} — آزمون جبرانی (آزمون اصلی ${esc(dlab(c.mkFrom))})${pr?'':' — برای ویرایش کلیک کنید'}"${EA}><span class="c-txt">${m0[0]}</span>${bd}</td>`}
+   if(c.t==='x'&&c.moved&&c.moved[s.id])return`<td class="c em" style="color:#64748b"${pr?'':' title="در روز آزمون غایب بود؛ نتیجه در تاریخ آزمون جبرانی ('+esc(dlab(c.moved[s.id]))+') ثبت شده است"'}>↪</td>`;
+   if(c.t==='x'&&c.pend&&c.pend[s.id])return`<td class="c em" style="background:#fff4d6;color:#b26a00;font-size:9px;font-weight:800"${pr?'':' title="در روز آزمون غایب بود؛ در انتظار آزمون جبرانی (نمره‌ی صفر یا ارزشیابی منفی محسوب نمی‌شود)"'}>انتظار</td>`;
+   if(c.t==='x'&&c.exempt&&c.exempt[s.id])return`<td class="c em" style="color:#64748b"${pr?'':' title="در روز آزمون غایب بود و از آزمون جبرانی معاف شد"'}>معاف</td>`;
    if(absent(c.k,s.id))return`<td class="c em"${pr?'':' title="در این روز غایب بوده؛ ثبت ارزشیابی ممکن نیست"'}></td>`;
    const v=c.mk[s.id],hint=pr?'':' — برای ویرایش کلیک کنید';
    if(v==null)return`<td class="c em${EC}"${pr?'':' title="ثبت نشده — برای ثبت کلیک کنید"'}${EA}></td>`;
@@ -1313,7 +1347,7 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
  const tw=pr?`max-width:${nmW+(o.num?24:0)+cols.length*46}px;`:'';
  return`<table data-noresp="1" class="${pr?'pr':''}" style="${tw}--nmw:${nmW}px;--hh:${hh}px"><thead><tr>${o.num?'<th class="rn">ردیف</th>':''}<th class="nm">نام دانش‌آموز</th>${head}</tr></thead><tbody>${body}</tbody></table>`}
 function bellLabel(k,b){try{const x=dayBells(k).find(q=>q.b===String(b));return x?bellName(k,x):'زنگ '+b}catch(e){return'زنگ '+b}}
-function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز (برای تغییر، روی خانه کلیک کنید) · هر خانه‌ی فعالیت/آزمون هم با یک کلیک قابل ویرایش است (سطح، انجام/نشد، مثبت/منفی یا نمره) · ستون 📝 = آزمونِ ثبت‌شده در «درس‌ها و آزمون‌ها» · خانه‌ی خالی = ثبت نشده</div>`}
+function mxLegend(){return`<div class="dj-mxlg"><i style="background:#1a8f55">خ خ</i>خیلی خوب <i style="background:#55b043">خ</i>خوب <i style="background:#e2a300">ق ق</i>قابل قبول <i style="background:#d9363e">ن ت</i>نیاز به تلاش بیشتر <i style="background:#1a8f55">✓</i>انجام شد <i style="background:#d9363e">✗</i>انجام نشد <i style="background:#0f766e">+۲ −۱</i>مثبت / منفی <i style="background:#e3f4ea;color:#1a8f55">ح</i>حاضر <i style="background:#fde7e8;color:#c0262c">غ</i>غایب <i style="background:#ffe9d6;color:#b45309">غ م</i>غایب موجه <i style="background:#fff1cf;color:#b26a00">تأ</i>تأخیر · اولین ستون هر روز = حضور و غیاب همان روز (برای تغییر، روی خانه کلیک کنید) · هر خانه‌ی فعالیت/آزمون هم با یک کلیک قابل ویرایش است (سطح، انجام/نشد، مثبت/منفی یا نمره) · ستون 📝 = آزمونِ ثبت‌شده در «درس‌ها و آزمون‌ها» · ستون 🔁 جبرانی = نتیجه‌ی آزمون جبرانی در تاریخ واقعیِ آن (غایبِ روز آزمون در ستون آزمون اصلی «انتظار»، «↪» یا «معاف» می‌ماند و فقط یک‌بار شمرده می‌شود) · خانه‌ی خالی = ثبت نشده</div>`}
 
 /* ───── داشبورد تحلیلی و نمودار وضعیت دانش‌آموزان در انتهای صفحه ───── */
 /* سال تحصیلی (اول مهر تا آخر خرداد سال بعد) برای تاریخ k؛ مبنای «کل سال» در تحلیل‌ها */
@@ -1321,7 +1355,7 @@ function schoolYearOf(k){const p=jparts(k||mxAnchor())||{},y=p.m>=7?p.y:p.y-1;re
 /* شمار فعالیت‌های ثبت‌شده‌ی هر دانش‌آموز در هر درس در «کل سال تحصیلی» (مستقل از هفته/ماه انتخاب‌شده)؛ هر ثبت = یک مورد، آزمون‌ها هم شمرده می‌شوند */
 function yearCourseStats(){const Y=schoolYearOf(),cols=mxCols(Y.from,Y.to,'all',false),R={};
  cols.forEach(c=>{if(c.kind==='att')return;const cNm=cname(c.c)||'سایر';
-  Object.keys(c.mk||{}).forEach(sid=>{if(c.mk[sid]==null||absent(c.k,+sid))return;const r=R[sid]=R[sid]||{tot:0,by:{}};r.tot++;r.by[cNm]=(r.by[cNm]||0)+1})});
+  Object.keys(c.mk||{}).forEach(sid=>{if(c.mk[sid]==null||(absent(c.k,+sid)&&!c.mkc))return;const r=R[sid]=R[sid]||{tot:0,by:{}};r.tot++;r.by[cNm]=(r.by[cNm]||0)+1})});
  return{Y,R}}
 function classAnalyticsDashboard(B){
   const cols = B.cols || [];
@@ -1866,9 +1900,12 @@ function mxEditOpen(key,sid){
  document.addEventListener('keydown',onKey,true);
  const btn=(a,label,bg,fg)=>`<button type="button" data-me="${a}" style="padding:10px 14px;border:0;border-radius:11px;font:800 13px Vazirmatn,Tahoma,sans-serif;cursor:pointer;background:${bg||'#eef2f7'};color:${fg||'#1e293b'};min-height:42px">${label}</button>`;
  const draw=()=>{const c=find();if(!c){close();return}
-  const sv=c.mk[sid],isEx=c.t==='x',e=isEx?(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1)):null;
+  const sv=c.mk[sid],isEx=c.t==='x',isMk=!!c.mkc,e=isEx?(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1)):null;
   let body='';
-  if(isEx){if(!e){close();return}
+  if(isMk){if(!e){close();return}
+   const ev=e.mkEval&&e.mkEval[sid];
+   body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">🔁 آزمون جبرانی — آزمون اصلی در ${esc(dlab(e.date))} بود و نمره‌ی آزمون اصلیِ دیگران تغییر نمی‌کند. سطح جبرانی را انتخاب کنید:</div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${LV.map(l=>btn('mkl:'+l.v,l.s,Number(ev)===l.v?l.c:'#eef2f7',Number(ev)===l.v?'#fff':'#1e293b')).join('')}</div>`;
+  }else if(isEx){if(!e){close();return}
    const cur=e.scores&&e.scores[sid],mx=e.max||4;
    body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">نمره‌ی همین آزمون در صفحه‌ی «درس‌ها و آزمون‌ها» هم به‌روز می‌شود. بیشینه‌ی نمره: <b>${fa(mx)}</b></div>`
     +(mx===4?`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${LV.map(l=>btn('ex:'+l.v,l.s,cur===l.v?l.c:'#eef2f7',cur===l.v?'#fff':'#1e293b')).join('')}</div>`:'')
@@ -1881,18 +1918,19 @@ function mxEditOpen(key,sid){
   }else{
    body=`<div style="display:flex;gap:6px;flex-wrap:wrap">${LV.map(l=>btn('mk:'+l.v,l.s,sv===l.v?l.c:'#eef2f7',sv===l.v?'#fff':'#1e293b')).join('')}</div>`;
   }
-  const hasVal=isEx?(e.scores&&e.scores[sid]!=null):(sv!=null);
+  const hasVal=isMk?true:(isEx?(e.scores&&e.scores[sid]!=null):(sv!=null));
   ov.innerHTML=`<div role="dialog" aria-modal="true" style="background:var(--card,#fff);color:var(--tx,#1e293b);border-radius:16px;max-width:460px;width:100%;padding:18px;box-shadow:0 20px 50px rgba(0,0,0,.35)">
    <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start;margin-bottom:6px"><div><b style="font-size:15px">${esc(stu.name)}</b><div style="font-size:12px;color:#64748b;line-height:1.8">${esc(dlab(c.k))} · ${esc(cname(c.c))} · ${esc(c.n)}</div></div>${btn('x','✕','transparent','#64748b')}</div>
    ${body}
-   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px">${hasVal?btn('clr','🗑️ پاک‌کردن این ثبت','#fde7e8','#c0262c'):''}${isEx?btn('examgo','↗ رفتن به صفحه‌ی آزمون','#eef2f7'):''}${btn('x','بستن','#eef2f7')}</div></div>`;
+   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;border-top:1px solid #e2e8f0;padding-top:10px">${hasVal?btn('clr',isMk?'↩ برگرداندن به «منتظر جبرانی»':'🗑️ پاک‌کردن این ثبت','#fde7e8','#c0262c'):''}${isEx?btn('examgo','↗ رفتن به صفحه‌ی آزمون','#eef2f7'):''}${btn('x','بستن','#eef2f7')}</div></div>`;
   const inp=ov.querySelector('[data-me-in]');if(inp)setTimeout(()=>{try{inp.focus();inp.select()}catch(x){}},30)};
  ov.addEventListener('click',ev=>{if(ev.target===ov){close();return}
   const t=ev.target.closest('[data-me]');if(!t)return;const a=t.dataset.me.split(':'),c=find();if(a[0]==='x'){close();return}if(!c){close();return}
   try{
    if(a[0]==='mk'){if(setMarks(c.k,c.b,c.id,[stu.id],+a[1],false)){render();draw()}}
    else if(a[0]==='pn'){if(setPN(c.k,c.b,c.id,stu.id,+a[1],+a[2],false)){render();draw()}}
-   else if(a[0]==='clr'){if(c.t==='x'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(e&&e.scores){delete e.scores[stu.id];save()}}else clrMark(c.k,c.b,c.id,stu.id);render();draw()}
+   else if(a[0]==='mkl'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(!e)return;e.mkEval=e.mkEval||{};e.mkEval[stu.id]=+a[1];save();render();draw()}
+   else if(a[0]==='clr'){if(c.mkc){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(e){if(e.mk)delete e.mk[stu.id];if(e.mkEval)delete e.mkEval[stu.id];save()}render();close();return}if(c.t==='x'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(e&&e.scores){delete e.scores[stu.id];save()}}else clrMark(c.k,c.b,c.id,stu.id);render();draw()}
    else if(a[0]==='ex'||a[0]==='exsave'){const e=(S.exams||[]).find(x=>String(x.id)===String(c.id).slice(1));if(!e)return;e.scores=e.scores||{};const mx=e.max||4;
     let v;if(a[0]==='ex')v=+a[1];else{const r=nd((ov.querySelector('[data-me-in]')||{}).value);if(r===''){delete e.scores[stu.id];save();render();draw();return}v=parseFloat(r);if(isNaN(v)||v<0||v>mx){flash('نمره باید بین ۰ و '+fa(mx)+' باشد');return}}
     e.scores[stu.id]=v;save();render();draw()}

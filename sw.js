@@ -1,5 +1,5 @@
 /* ⚠️ با هر تغییر در فایل‌ها، شماره‌ی نسخه‌ی کش (cl-v..) را یکی بالا ببرید تا کاربران نسخه‌ی جدید را بگیرند */
-const C='cl-v162';
+const C='cl-v163';
 const A=[
   './',
   './index.html',
@@ -99,6 +99,7 @@ const A=[
   './assets/js/features/exam-builder.js',
   './assets/js/features/question-export.js',
   './assets/js/features/daily-journal.js',
+  './assets/js/features/bell-attendance.js',
   './assets/js/features/academic-status.js',
   './assets/js/features/honor-board.js'
   /* pdf.js (assets/js/vendor/pdfjs/) عمداً پیش‌ذخیره نمی‌شود (حدود ۱٫۵ مگابایت)؛ بعد از اولین استفاده در کش می‌ماند و آفلاین هم کار می‌کند */

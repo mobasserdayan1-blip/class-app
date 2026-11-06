@@ -93,6 +93,13 @@ function sortStudentsByFamily(list) {
 
 const absent=(k,sid)=>((S.att||{})[k]||{})[sid]==='a';
 const late=(k,sid)=>((S.att||{})[k]||{})[sid]==='l';
+/* ───── حضور و غیاب زنگ‌به‌زنگ (ماژول bell-attendance.js؛ داده‌ی S.bat) ─────
+   وضعیت هر زنگ: p حاضر · a غایب · o خروج با اجازه · r بازگشت. اگر ماژول نباشد همه‌چیز مثل قبل (فقط وضعیت کل روز) است.
+   خروج/غیبت یک زنگ هیچ ثبت قبلی را پاک نمی‌کند؛ فقط همان زنگ را «غیرقابل ثبت» می‌کند (نه صفر، نه منفی). */
+const bst=(k,b,sid)=>{try{return window.BellAtt?window.BellAtt.get(k,b,sid):(absent(k,sid)?'a':'p')}catch(e){return absent(k,sid)?'a':'p'}};
+const absentB=(k,b,sid)=>{if(absent(k,sid))return true;const v=bst(k,b,sid);return v==='a'||v==='o'};
+const outB=(k,b,sid)=>{if(absent(k,sid))return false;const v=bst(k,b,sid);return v==='a'||v==='o'};
+const presNB=(k,b)=>sts().filter(s=>!absentB(k,b,s.id)).length;
 
 /* سطح‌های ارزشیابی توصیفی */
 const LV=[{v:4,s:'خیلی خوب',t:'خیلی خوب',c:'#1a8f55'},{v:3,s:'خوب',t:'خوب',c:'#3f8f2a'},{v:2,s:'قابل قبول',t:'قابل قبول',c:'#b26a00'},{v:1,s:'نیاز به تلاش بیشتر',t:'نیاز به تلاش بیشتر',c:'#c0262c'}];
@@ -141,9 +148,9 @@ const bellName=(k,x)=>{const s=getSes(k,x.b);const c=s?[s.c]:x.cids;const nm=c.m
 /* فعالیت‌هایی که در این زنگ سابقه دارند اما بعداً از فهرست پیشنهادی حذف شده‌اند همچنان با نام و نوعِ ثبت‌شده (Snapshot) نمایش داده می‌شوند */
 function itemsOf(s){if(!s)return[];const t=tplOf(s.c),ids=new Set(t.map(x=>x.id));const old=Object.keys(s.it||{}).filter(id=>!ids.has(id)&&s.it[id]).map(id=>({id,n:s.it[id].n,t:s.it[id].t==='d'?'d':(s.it[id].t==='p'?'p':'g'),hw:s.it[id].hw?1:0,old:1}));const ov=x=>{const r=s.it&&s.it[x.id];return(r&&r.t)?Object.assign({},x,{t:r.t==='d'?'d':(r.t==='p'?'p':'g'),hw:r.t==='p'?0:(r.hw?1:0)}):x};
  return t.map(ov).concat(old)}
-const cnt=(k,b,id)=>Object.keys(D().m[k+'|'+b+'|'+id]||{}).filter(sid=>!absent(k,+sid)).length;
+const cnt=(k,b,id)=>Object.keys(D().m[k+'|'+b+'|'+id]||{}).filter(sid=>!absentB(k,b,+sid)).length;
 const presN=k=>sts().filter(s=>!absent(k,s.id)).length;
-function stat(k,b){const s=getSes(k,b);if(s&&s.st==='skip')return'skip';const ids=Object.keys((s&&s.it)||{});if(!ids.length)return'none';const p=presN(k);return ids.every(id=>cnt(k,b,id)>=p)?'full':'part'}
+function stat(k,b){const s=getSes(k,b);if(s&&s.st==='skip')return'skip';const ids=Object.keys((s&&s.it)||{});if(!ids.length)return'none';const p=presNB(k,b);return ids.every(id=>cnt(k,b,id)>=p)?'full':'part'}
 const SI={full:'✅',part:'🟡',none:'⚪',skip:'➖'};
 
 /* ثبت نمره‌ها */
@@ -335,13 +342,14 @@ function examMk(e){const m={};sts().forEach(s0=>{const l=examLevel(e,s0.id);if(l
    ستون «جبرانی»: در تاریخ واقعی آزمون جبرانی، با برچسب مشخص. هر نتیجه فقط یک‌بار شمرده می‌شود (یا اصلی یا جبرانی). */
 const mkDate=(e,sid)=>{const m=e&&e.mk&&e.mk[sid];return(m&&m!=='x')?m:null};
 function examMainMk(e){const m=examMk(e);Object.keys(m).forEach(id=>{if(mkDate(e,id))delete m[id]});return m}
-function examMkState(e){const pend={},exempt={},moved={};
- if(!e||e.type==='پرسش و پاسخ کلاسی')return{pend,exempt,moved};
+function examMkState(e){const pend={},exempt={},moved={},out={};
+ if(!e||e.type==='پرسش و پاسخ کلاسی')return{pend,exempt,moved,out};
  sts().forEach(s0=>{const id=s0.id,md=mkDate(e,id);
   if(md){moved[id]=md;return}
   if(e.mk&&e.mk[id]==='x'){exempt[id]=1;return}
-  if(((S.att||{})[e.date]||{})[id]==='a'&&!(e.scores&&e.scores[id]!=null))pend[id]=1});
- return{pend,exempt,moved}}
+  if(((S.att||{})[e.date]||{})[id]==='a'&&!(e.scores&&e.scores[id]!=null)){pend[id]=1;return}
+  try{if(window.BellAtt&&!(e.scores&&e.scores[id]!=null)&&window.BellAtt.outAtExam(e,id))out[id]=1}catch(x){}});
+ return{pend,exempt,moved,out}}
 function examMkGroups(e){const g={};Object.keys((e&&e.mk)||{}).forEach(id=>{const dd=mkDate(e,id);if(!dd)return;if(!sts().some(q=>String(q.id)===String(id)))return;const l=examLevel(e,id);if(l==null)return;(g[dd]=g[dd]||{})[id]=l});return g}
 const mkExamsOn=k=>(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.mk&&Object.keys(examMkGroups(e)).indexOf(k)>=0);
 function getDayActivities(k){
@@ -354,7 +362,7 @@ function getDayActivities(k){
         const it=s.it[itId];
         const fullKey=k+'|'+b.b+'|'+itId;
         const marks=d.m[fullKey]||{};
-        const count=Object.keys(marks).filter(sid=>!absent(k,+sid)).length;
+        const count=Object.keys(marks).filter(sid=>!absentB(k,b.b,+sid)).length;
         out.push({
           b:b.b,
           itId,
@@ -780,7 +788,8 @@ function actsTableHtml(k, todayActs, pn){
     </div>`;
   }
   const rows = todayActs.map((a, i) => {
-    const isDone = pn > 0 && a.count >= pn;
+    const pnb = (a.exam||!a.b) ? pn : presNB(k,a.b);
+    const isDone = (a.exam?pn:pnb) > 0 && a.count >= (a.exam?pn:pnb);
     if(a.exam){return `<tr style="background:#fffbeb">
       <td style="text-align:center;font-weight:800">${fa(i+1)}</td>
       <td style="font-weight:900;color:#1e3a8a"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#e0e7ff;color:#3730a3">${esc(a.courseName)}</span></td>
@@ -798,9 +807,9 @@ function actsTableHtml(k, todayActs, pn){
       <td style="font-weight:700">${esc(a.sub||'—')}</td>
       <td style="font-weight:800">${esc(a.n)}${a.hw?' <span style="font-size:11px;color:#d97706">📝 تکلیف</span>':''}${a.t==='p'?' <span style="font-size:11px;color:#0f766e;background:#ccfbf1;padding:1px 6px;border-radius:6px">＋/−</span>':''}</td>
       <td style="text-align:center"><span style="display:inline-block;padding:2px 8px;border-radius:6px;background:#f1f5f9;color:#475569;font-size:11px">${esc(a.cg)}</span></td>
-      <td style="text-align:center;font-weight:800;font-variant-numeric:tabular-nums">${fa(a.count)} / ${fa(pn)}</td>
+      <td style="text-align:center;font-weight:800;font-variant-numeric:tabular-nums">${fa(a.count)} / ${fa(pnb)}</td>
       <td style="text-align:center">
-        <span class="dj-act-status-pill ${isDone?'done':'part'}" title="${isDone ? 'تکمیل: تمام دانش‌آموزان حاضر ارزشیابی شده‌اند' : 'ناقص: هنوز همه دانش‌آموزان حاضر ارزشیابی نشده‌اند (${fa(a.count)} از ${fa(pn)})'}">
+        <span class="dj-act-status-pill ${isDone?'done':'part'}" title="${isDone ? 'تکمیل: تمام دانش‌آموزان حاضر ارزشیابی شده‌اند' : 'ناقص: هنوز همه دانش‌آموزان حاضر ارزشیابی نشده‌اند (${fa(a.count)} از ${fa(pnb)})'}">
           ${isDone ? '✅ تکمیل' : '🟡 ناقص'}
         </span>
       </td>
@@ -993,7 +1002,7 @@ function pnBtns(sid,c,dis){c=c||[0,0];const dd=dis?'disabled':'';
   const x=(t,n)=>n?`<button type="button" class="dj-pnx" ${dd} data-dj="pnd:${sid}:${t}" title="کم‌کردن یک مورد" aria-label="کم‌کردن یک مورد">✕</button>`:'';
   return `<button type="button" class="dj-b dj-pn neg" ${dd} data-dj="pn:${sid}:n" title="پاسخ منفی">− منفی${c[1]?' <b>'+fa(c[1])+'</b>':''}</button>${x('n',c[1])}<button type="button" class="dj-b dj-pn pos" ${dd} data-dj="pn:${sid}:p" title="پاسخ مثبت">＋ مثبت${c[0]?' <b>'+fa(c[0])+'</b>':''}</button>${x('p',c[0])}`}
 function studentList(k,b,it,pn){
-  const d=D(),key=k+'|'+b+'|'+it.id,m=d.m[key]||{},done=Object.keys(m).filter(sid=>!absent(k,+sid)).length;
+  const d=D(),key=k+'|'+b+'|'+it.id,m=d.m[key]||{},done=Object.keys(m).filter(sid=>!absentB(k,b,+sid)).length;
   const pct=pn?Math.round(done/pn*100):0;
   let h=`<div style="margin-top:14px;background:#f8fafc;padding:12px;border-radius:14px;border:1px solid #e2e8f0">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -1021,16 +1030,16 @@ function studentList(k,b,it,pn){
   }
 
   h+=`<div class="dj-stu-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:10px;align-items:start">`;
-  const ordered=sts().map((s,i)=>({s,i})).sort((a,b)=>(absent(k,a.s.id)-absent(k,b.s.id))||(a.i-b.i)).map(x=>x.s);
+  const ordered=sts().map((s,i)=>({s,i})).sort((x,y)=>(absentB(k,b,x.s.id)-absentB(k,b,y.s.id))||(x.i-y.i)).map(x=>x.s);
   const TINT={4:['#e9f7ef','#d3eedf'],3:['#f0f8e9','#dfefd0'],2:['#fff7e6','#fbe8bd'],1:['#fdeded','#f6d0d2']};
   h+=ordered.map((s,index)=>{
-    const ab=absent(k,s.id),v=m[s.id],nk=key+'|'+s.id,nt=d.n[nk],fn=((S.info||{})[s.id]||{}).fn||'';
+    const ab=absentB(k,b,s.id),ob=outB(k,b,s.id),v=m[s.id],nk=key+'|'+s.id,nt=d.n[nk],fn=((S.info||{})[s.id]||{}).fn||'';
     const tk=ab||v==null?null:(it.t==='d'?(v===1?4:1):v),tn=tk&&TINT[tk];
     return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;padding:9px 12px;border-radius:10px;background:${tn?tn[0]:(index%2===1?'#f8fafc':'#fff')};border:1px solid ${tn?tn[1]:'#f1f5f9'};transition:background .2s">
       ${st.sel&&!ab?`<input type="checkbox" data-dj="pick:${s.id}"${st.pick.has(s.id)?' checked':''} style="width:18px;height:18px;cursor:pointer">`:''}
       <div class="dj-nm" style="min-width:0;max-width:100%;overflow-wrap:anywhere;width:auto;white-space:nowrap !important;font-weight:800;font-size:13.5px;color:${v!=null?(it.t==='d'?(v===1?'#1a8f55':'#c0262c'):((LV.find(l=>l.v===v)||{}).c||'inherit')):'inherit'}">
         ${esc(s.name)}${(()=>{const r=caDay(k).filter(x=>x.sid===s.id);if(!r.length)return'';const p=r.filter(x=>x.type==='positive').length,e=r.length-p;return ` <span title="ثبت‌های فعالیت کلاسی امروز" style="font-size:10.5px;font-weight:800;color:#3730a3;background:#eef2ff;padding:1px 6px;border-radius:6px">🌟${fa(p)}${e?' · 💪'+fa(e):''}</span>`})()}${fn?` <small style="color:var(--mut,#888);font-weight:400">(${esc(fn)})</small>`:''}
-        ${ab?' <span style="font-size:11px;color:#c0262c;background:#fee2e2;padding:1px 6px;border-radius:4px;font-weight:700">غایب</span>':late(k,s.id)?' <span style="font-size:11px;color:#d97706;background:#fef3c7;padding:1px 6px;border-radius:4px;font-weight:700">⏰ تأخیر</span>':''}
+        ${ob?' <span title="در این زنگ خارج از مدرسه بوده؛ ارزشیابی این زنگ برایش «انجام‌نشده به علت خروج» است (نه صفر و نه منفی)" style="font-size:11px;color:#b45309;background:#ffe9d6;padding:1px 6px;border-radius:4px;font-weight:700">🚪 خارج از مدرسه</span>':ab?' <span style="font-size:11px;color:#c0262c;background:#fee2e2;padding:1px 6px;border-radius:4px;font-weight:700">غایب</span>':late(k,s.id)?' <span style="font-size:11px;color:#d97706;background:#fef3c7;padding:1px 6px;border-radius:4px;font-weight:700">⏰ تأخیر</span>':''}
       </div>
       <div class="dj-bt" style="display:flex;gap:4px;margin-right:auto;align-items:center">
         ${it.t==='p'?pnBtns(s.id,(d.pm[key]||{})[s.id],ab):btns(it,v,s.id,ab)}
@@ -1063,7 +1072,7 @@ function tplEditor(cid){
 }
 
 function sessionCard(k,b,s){
-  const items=itemsOf(s),pn=presN(k),sk=s.st==='skip';
+  const items=itemsOf(s),pn=presNB(k,b),sk=s.st==='skip';
   let h=`<div class="card dj-eval-card" id="djEvalCard" style="border:2px solid #3b82f633;background:var(--card,#fff);border-radius:18px;margin-top:14px;box-shadow:0 8px 24px rgba(59,130,246,0.08)">
     <div class="dj-hd" style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:12px">
       <div>
@@ -1256,8 +1265,8 @@ function mxCols(from,to,cf,withAtt){const d=D(),acts=[];
  (Array.isArray(S.exams)?S.exams:[]).forEach(e=>{if(!e||!e.date||!from||e.date<from||e.date>to||mxOff(e.date))return;
   if(cf!=='all'&&String(e.course)!==String(cf))return;
   const mk=examMainMk(e),ms=examMkState(e);
-  if(!Object.keys(mk).length&&!Object.keys(ms.pend).length&&!Object.keys(ms.exempt).length&&!Object.keys(ms.moved).length)return;
-  acts.push({kind:'act',key:'exam|'+e.id,k:e.date,b:'x99',id:'x'+e.id,c:e.course,t:'x',n:'📝 '+examName(e),mk,pm:null,pend:ms.pend,exempt:ms.exempt,moved:ms.moved})});
+  if(!Object.keys(mk).length&&!Object.keys(ms.pend).length&&!Object.keys(ms.exempt).length&&!Object.keys(ms.moved).length&&!Object.keys(ms.out).length)return;
+  acts.push({kind:'act',key:'exam|'+e.id,k:e.date,b:'x99',id:'x'+e.id,c:e.course,t:'x',n:'📝 '+examName(e),mk,pm:null,pend:ms.pend,exempt:ms.exempt,moved:ms.moved,out:ms.out})});
  /* ستون‌های «جبرانی»: در تاریخ واقعی آزمون جبرانی (مستقل از تاریخ آزمون اصلی) */
  (Array.isArray(S.exams)?S.exams:[]).forEach(e=>{if(!e||!e.date)return;
   if(cf!=='all'&&String(e.course)!==String(cf))return;
@@ -1334,11 +1343,13 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
    if(c.mkc){const v0=c.mk[s.id],m0=MXS[v0];if(v0==null||!m0)return`<td class="c em"></td>`;
     const bd='<i style="display:block;font-style:normal;font-size:8px;line-height:1;font-weight:800;margin-top:1px">جبرانی</i>';
     return`<td class="c ${m0[1]}${EC}" title="${m0[2]} — آزمون جبرانی (آزمون اصلی ${esc(dlab(c.mkFrom))})${pr?'':' — برای ویرایش کلیک کنید'}"${EA}><span class="c-txt">${m0[0]}</span>${bd}</td>`}
-   if(c.t==='x'&&c.moved&&c.moved[s.id])return`<td class="c em" style="color:#64748b"${pr?'':' title="در روز آزمون غایب بود؛ نتیجه در تاریخ آزمون جبرانی ('+esc(dlab(c.moved[s.id]))+') ثبت شده است"'}>↪</td>`;
+   if(c.t==='x'&&c.moved&&c.moved[s.id])return`<td class="c em" style="color:#64748b"${pr?'':' title="در زمان آزمون در مدرسه نبود؛ نتیجه در تاریخ آزمون جبرانی ('+esc(dlab(c.moved[s.id]))+') ثبت شده است"'}>↪</td>`;
    if(c.t==='x'&&c.pend&&c.pend[s.id])return`<td class="c em" style="background:#fff4d6;color:#b26a00;font-size:9px;font-weight:800"${pr?'':' title="در روز آزمون غایب بود؛ در انتظار آزمون جبرانی (نمره‌ی صفر یا ارزشیابی منفی محسوب نمی‌شود)"'}>انتظار</td>`;
+   if(c.t==='x'&&c.out&&c.out[s.id])return`<td class="c em" style="background:#ffe9d6;color:#b45309;font-size:9px;font-weight:800"${pr?'':' title="در زمان آزمون از مدرسه خارج شده بود؛ آزمون «انجام‌نشده به علت خروج» است (نه صفر و نه ارزشیابی منفی) — در انتظار آزمون جبرانی"'}>خروج</td>`;
    if(c.t==='x'&&c.exempt&&c.exempt[s.id])return`<td class="c em" style="color:#64748b"${pr?'':' title="در روز آزمون غایب بود و از آزمون جبرانی معاف شد"'}>معاف</td>`;
    if(absent(c.k,s.id))return`<td class="c em"${pr?'':' title="در این روز غایب بوده؛ ثبت ارزشیابی ممکن نیست"'}></td>`;
    const v=c.mk[s.id],hint=pr?'':' — برای ویرایش کلیک کنید';
+   if(v==null&&c.t!=='x'&&c.b&&outB(c.k,c.b,s.id))return`<td class="c em" style="background:#ffe9d6;color:#b45309;font-size:9px;font-weight:800"${pr?'':' title="در این زنگ خارج از مدرسه بود؛ «انجام‌نشده به علت خروج» (نه صفر و نه منفی)"'}>خروج</td>`;
    if(v==null)return`<td class="c em${EC}"${pr?'':' title="ثبت نشده — برای ثبت کلیک کنید"'}${EA}></td>`;
    if(c.t==='d')return v===1?`<td class="c ok${EC}" title="انجام شد${hint}"${EA}>✓</td>`:`<td class="c no${EC}" title="انجام نشد${hint}"${EA}>✗</td>`;
    if(c.t==='p'){const q=(c.pm||{})[s.id];if(q)return`<td class="c pnc l${v}${EC}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی${hint}"${EA}>${pnHtml(q)}</td>`}
@@ -2068,11 +2079,11 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='pendall')st.pendAll=!st.pendAll;
  else if(c==='tpl')st.tpl=!st.tpl;
  else if(c==='selmode'){st.sel=!st.sel;st.pick=new Set()}
- else if(c==='pickall'){const it=st.item,m=D().m[k+'|'+st.b+'|'+it]||{};st.pick=new Set(sts().filter(s=>!absent(k,s.id)&&m[s.id]==null).map(s=>s.id))}
+ else if(c==='pickall'){const it=st.item,m=D().m[k+'|'+st.b+'|'+it]||{};st.pick=new Set(sts().filter(s=>!absentB(k,st.b,s.id)&&m[s.id]==null).map(s=>s.id))}
  else if(c==='note')st.note=st.note===+x?null:+x;
  else if(c==='mk'){setMarks(k,st.b,st.item,[+x],+y,true)}
  else if(c==='bulk'){const m=D().m[k+'|'+st.b+'|'+st.item]||{};
-  const ids=st.sel?[...st.pick]:sts().filter(s=>!absent(k,s.id)&&m[s.id]==null).map(s=>s.id);
+  const ids=st.sel?[...st.pick]:sts().filter(s=>!absentB(k,st.b,s.id)&&m[s.id]==null).map(s=>s.id);
   if(!ids.length){flash(st.sel?'ابتدا دانش‌آموزان را انتخاب کنید':'همه‌ی دانش‌آموزان حاضر قبلاً ثبت شده‌اند')}else if(setMarks(k,st.b,st.item,ids,+x,false)){flash(fa(ids.length)+' نفر ثبت شد ✅');st.pick=new Set()}}
  else if(c==='tpladd'){const n=($('djNewN').value||'').trim();if(!n){flash('نام فعالیت را بنویسید');return}const s=ensureSes(k,st.b),t=ownTpl(s.c);t.push({id:'u'+Date.now(),n,t:$('djNewT').value==='d'?'d':($('djNewT').value==='p'?'p':'g'),hw:0});save()}
  else if(c==='tpldel'){const s=ensureSes(k,st.b),t=ownTpl(s.c),i=t.findIndex(q=>q.id===x);if(i>=0){t.splice(i,1);if(st.item===x)st.item=null;save()}}
@@ -2126,6 +2137,11 @@ function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(ci
   if(cid!=null&&String(se.c)!==String(cid)&&cname(se.c)!==cn)return;
   out.push(v)});
  return out}
+/* زنگِ آزمون: اگر معلم صریحاً انتخاب کرده (e.bell)، همان؛ وگرنه اولین زنگی از همان روز که درس آزمون در برنامه‌ی هفتگی/دفتر دارد */
+function examBell(e){try{if(!e||!e.date)return null;if(e.bell!=null&&e.bell!=='')return String(e.bell);
+ const hit=dayBells(e.date).find(x=>{const q=getSes(e.date,x.b);return q?String(q.c)===String(e.course):(x.cids||[]).map(String).indexOf(String(e.course))>=0});
+ return hit?String(hit.b):null}catch(x){return null}}
+window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'دستی':ORD[+x.b]||x.b)+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k)};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;

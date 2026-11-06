@@ -67,6 +67,7 @@ window.APP_MODULES=[
   {src:'assets/js/features/exam-builder.js'},
   {src:'assets/js/features/question-export.js'},
   {src:'assets/js/features/daily-journal.js'},
+  {src:'assets/js/features/bell-attendance.js'},
   {src:'assets/js/features/academic-status.js'},
   {src:'assets/js/features/honor-board.js'}
 ];

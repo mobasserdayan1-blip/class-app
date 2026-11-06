@@ -5,9 +5,26 @@ const names=['دانش‌آموز ۱','دانش‌آموز ۲','دانش‌آم�
 let NT=3;function tname(n,d){const v=((S&&S.tnm)||[])[n-1];return v&&String(v).trim()?String(v).trim():d}
 let S={students:names.map((n,i)=>({id:i+1,name:n,score:1000,team:i%NT+1,att:''})),drawn:[]};
 try{const r=localStorage.getItem('cl1');if(r)S=JSON.parse(r)}catch(e){}NT=Math.max(1,S.nt||3);
+/* ترتیب یکنواخت فهرست دانش‌آموزان در تمام بخش‌های برنامه */
+function __studentNameParts(value){
+ const p=String(value||'').trim().split(/\\s+/).filter(Boolean);
+ if(p.length<=1)return{first:p[0]||'',last:''};
+ const prefixes=['سید','سیده','میر','حاج','حاجی','شیخ'];
+ const start=prefixes.includes(p[0])&&p.length>2?1:0;
+ return{first:p.slice(0,start+1).join(' '),last:p.slice(start+1).join(' ')};
+}
+function sortStudentsGlobal(){
+ if(!Array.isArray(S.students))return;
+ S.students.sort((a,b)=>{
+  const x=__studentNameParts(a&&a.name),y=__studentNameParts(b&&b.name);
+  return x.last.localeCompare(y.last,'fa')||x.first.localeCompare(y.first,'fa');
+ });
+}
+window.sortStudentsByFamily=sortStudentsGlobal;
+sortStudentsGlobal();
 let __pa=0;function askPersist(){if(__pa)return;__pa=1;try{const N=navigator.storage;if(N&&N.persist)(N.persisted?N.persisted():Promise.resolve(false)).then(p=>p||N.persist()).then(g=>{window.__persist=g}).catch(()=>{})}catch(e){}}
 let __sfT=0;function saveFail(e){try{console.error('save failed',e);if(Date.now()-__sfT<20000)return;__sfT=Date.now();const q=e&&(e.name==='QuotaExceededError'||e.code===22||e.code===1014);let b=document.getElementById('saveErr');if(!b){b=document.createElement('div');b.id='saveErr';b.setAttribute('role','alert');b.style.cssText='position:fixed;z-index:99999;top:10px;right:10px;left:10px;max-width:520px;margin:auto;background:#d9534f;color:#fff;padding:12px 14px;border-radius:14px;font-weight:700;font-size:14px;line-height:1.9;box-shadow:0 6px 24px rgba(0,0,0,.3);cursor:pointer;text-align:right';b.onclick=()=>b.remove();document.body.appendChild(b)}b.textContent='⚠️ ذخیره‌ی اطلاعات ناموفق بود'+(q?' (فضای مرورگر پر است)':'')+'. تغییرات اخیر ممکن است از بین برود؛ همین حالا از «پشتیبان و امنیت» پشتیبان بگیرید. (برای بستن لمس کنید)';clearTimeout(b._t);b._t=setTimeout(()=>b.remove(),12000);askPersist()}catch(_){}}
-const save=()=>{try{const had=localStorage.getItem('cl1');try{window.binChk&&window.binChk(had)}catch(x){console.warn(x)}const j=JSON.stringify(S);if(j===had)return;try{window.histPush&&window.histPush(had)}catch(x){console.warn(x)}localStorage.setItem('cl1',j);askPersist();if(had!==null&&(!window.__auto||+localStorage.getItem('cl1_ts'))){localStorage.setItem('cl1_ts',Date.now());try{window.cloudPush&&window.cloudPush()}catch(x){console.warn(x)}}}catch(e){saveFail(e)}};
+const save=()=>{try{const had=localStorage.getItem('cl1');try{window.binChk&&window.binChk(had)}catch(x){console.warn(x)}sortStudentsGlobal();const j=JSON.stringify(S);if(j===had)return;try{window.histPush&&window.histPush(had)}catch(x){console.warn(x)}localStorage.setItem('cl1',j);askPersist();if(had!==null&&(!window.__auto||+localStorage.getItem('cl1_ts'))){localStorage.setItem('cl1_ts',Date.now());try{window.cloudPush&&window.cloudPush()}catch(x){console.warn(x)}}}catch(e){saveFail(e)}};
 window.save=save;
 const today=new Date().toLocaleDateString('fa-IR-u-ca-persian',{year:'numeric',month:'2-digit',day:'2-digit'});
 $('d2').textContent='امروز: '+today;
@@ -474,7 +491,7 @@ function examDates(){const t=iso(tdy()),r=rangeY(),a=iso(r.a),b=iso(r.b);return 
 let repTab='c',openEx=null,rkMode='lg',rkEdit=false;
 const nn=x=>x!=null,mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const absent=(e,id)=>(S.att[e.date]||{})[id]==='a';
-const nrm=(e,id)=>{if(absent(e,id)&&!(e.mk&&e.mk[id]&&e.mk[id]!=='x'))return null;const v=e.scores[id];return v==null?null:v/e.max*4};
+const nrm=(e,id)=>{if(absent(e,id)&&!(e.mk&&e.mk[id]&&e.mk[id]!=='x'))return null;const ev=e.mkEval&&e.mkEval[id];if(ev!=null&&Number(ev)>=1&&Number(ev)<=4)return Number(ev);const v=e.scores[id];return v==null?null:v/e.max*4};
 const f1=v=>v==null?'—':fa(v.toFixed(1).replace(/\.0$/,'').replace('.','٫'));
 const col=v=>v==null?'#999':v>=3.5?'#1a8f55':v>=2.5?'#5fa83a':v>=1.5?'#d98600':'#d12f35';
 const inMonth=(d,m)=>{const q=jp(new Date(d+'T12:00:00Z'));return q.m===m&&q.y===(m>=7?SY:SY+1)};
@@ -758,7 +775,7 @@ const atH=['نام','علت','حضور','میانگین'],atW=['28%','46%','13%'
 const atC=(d,n)=>{const L=d.rows.filter(q=>q.fl.length).sort((x,y)=>y.fl.length-x.fl.length).slice(0,n||99);return h3('⚠️ دانش‌آموزان نیازمند توجه')+(L.length?fx(atH,L.map(q=>[esc2(q.s.name),chips(q.fl),pc(q.ap),f1(q.avg)]),atW):atNone)};
 const exR=(d,a,b)=>d.ex.slice(a,b).map(x=>[fmt(new Date(x.d+'T12:00:00Z')),esc2(x.c),esc2(x.t||''),f1(x.av),f1(x.lo),f1(x.hi),fa(x.n),x.mk||x.pd?(x.mk?fa(x.mk)+' جبرانی':'')+(x.pd?' | '+fa(x.pd)+' منتظر':''):'—']);
 const exT=(d,a,b)=>tbl(['تاریخ','درس','نوع','میانگین','کمترین','بیشترین','شرکت‌کننده','جبرانی'],exR(d,a,b),d.weak?d.ex.indexOf(d.weak)-a:-1);
-const mkTxt=(d,sid)=>{const L=[];d.EX.forEach(e=>{if(e.type===OR0)return;const lab=esc2((S.courses.find(c=>c.id===e.course)||{}).name||'')+' ('+fmt(new Date(e.date+'T12:00:00Z'))+')',m=e.mk&&e.mk[sid];if(m&&m!=='x')L.push('✅ '+lab+': در روز آزمون غایب بود و در تاریخ '+fmt(new Date(m+'T12:00:00Z'))+' آزمون جبرانی داد (نمره '+f1(nrm(e,sid))+' از ۴)');else if(m==='x')L.push('➖ '+lab+': غایب بود و از آزمون جبرانی معاف شد');else if((S.att[e.date]||{})[sid]==='a'&&e.scores[sid]==null)L.push('⏳ '+lab+': غایب بود و هنوز آزمون جبرانی نداده است')});return L.length?h3('🔁 آزمون‌های جبرانی (با بقیه‌ی کلاس در یک روز امتحان نداده)')+L.map(x=>`<div style="font-size:13px;margin:3px 0">${x}</div>`).join(''):''};
+const mkTxt=(d,sid)=>{const L=[];d.EX.forEach(e=>{if(e.type===OR0)return;const lab=esc2((S.courses.find(c=>c.id===e.course)||{}).name||'')+' ('+fmt(new Date(e.date+'T12:00:00Z'))+')',m=e.mk&&e.mk[sid];if(m&&m!=='x'){const ev=e.mkEval&&e.mkEval[sid],desc=ev!=null?('ارزشیابی توصیفی: '+(['','نیاز به تلاش بیشتر','قابل قبول','خوب','خیلی خوب'][Number(ev)]||'ثبت‌شده')):('نمره '+f1(nrm(e,sid))+' از ۴');L.push('✅ '+lab+': در روز آزمون غایب بود و در تاریخ '+fmt(new Date(m+'T12:00:00Z'))+' آزمون جبرانی داد ('+desc+')')}else if(m==='x')L.push('➖ '+lab+': غایب بود و از آزمون جبرانی معاف شد');else if((S.att[e.date]||{})[sid]==='a'&&e.scores[sid]==null)L.push('⏳ '+lab+': غایب بود و هنوز آزمون جبرانی نداده است')});return L.length?h3('🔁 آزمون‌های جبرانی (با بقیه‌ی کلاس در یک روز امتحان نداده)')+L.map(x=>`<div style="font-size:13px;margin:3px 0">${x}</div>`).join(''):''};
 function sCard(d,sid,del){const r=d.rows.find(q=>q.s.id===sid);if(!r)return'';const st=S.students,E=d.EX.filter(e=>nn(nrm(e,sid))).slice(-10),dd=e=>{const q=jp(new Date(e.date+'T12:00:00Z'));return fa(q.m+'/'+q.d)};
  const lc=S.courses.map((c,i)=>{const Ec=d.EX.filter(e=>e.course===c.id&&nn(nrm(e,sid))),v=Ec.map(e=>nrm(e,sid)),n=v.length,h=n>>1,df=n>=2?mean(v.slice(n-Math.ceil(n/2)))-mean(v.slice(0,h)):null;return{c,Ec,v,n,vd:trendV(v)}});
  const lt=tbl(['درس','تعداد آزمون','میانگین','آخرین نمرات','آخرین در برابر قبلی','روند'],lc.map(x=>[esc2(x.c.name),fa(x.n),f1(mean(x.v)),x.v.slice(-6).map(f1).join(' ← ')||'—',x.n>1?f1(x.v[x.n-1])+' از '+f1(x.v[x.n-2]):'—',x.vd]))+gr(lc.filter(x=>x.n>=2).map(x=>{const E2=x.Ec.slice(-10);return box(esc2(x.c.name)+' — '+x.vd,line(E2.map(e=>({l:dd(e),v:nrm(e,sid)})),4,f1,E2.map(e=>({v:mean(st.map(s=>nrm(e,s.id)).filter(nn))}))))}).join(''));
@@ -1174,11 +1191,14 @@ const OR='پرسش و پاسخ کلاسی',cn=id=>(S.courses.find(c=>c.id===id)|
 let P=[];
 const pend=()=>{const o=[];S.exams.forEach(e=>{if(e.type===OR)return;const A=S.att[e.date];if(!A)return;S.students.forEach(s=>{if(A[s.id]==='a'&&e.scores[s.id]==null&&!(e.mk&&e.mk[s.id]))o.push({e,s})})});return o.sort((a,b)=>a.e.date.localeCompare(b.e.date))};
 function rm(){const q=jp(tdy()),td=q.y+'/'+z2(q.m)+'/'+z2(q.d);P=pend();const D=[];S.exams.forEach(e=>Object.keys(e.mk||{}).forEach(id=>{const s=S.students.find(x=>x.id==id);if(s&&e.mk[id]!=='x')D.push({e,s,d:e.mk[id]})}));D.sort((a,b)=>b.d.localeCompare(a.d));
- $('mkbody').innerHTML=`<div class="card"><p class="sub" style="margin:0">دانش‌آموزی که روز آزمون غایب بوده، این‌جا می‌آید. وقتی در روز دیگری آزمون جبرانی داد، نمره و تاریخ را ثبت کنید. در گزارش‌ها مشخص می‌شود که با بقیه در یک روز امتحان نداده است.</p></div>
- <div class="card"><b>⏳ منتظر آزمون جبرانی (${fa(P.length)})</b>${P.map((x,i)=>`<div style="border-bottom:1px solid var(--line);padding:8px 0"><div><b>${esc2(x.s.name)}</b> · ${esc2(cn(x.e.course))} ${esc2(x.e.title||'')} · آزمون روز ${dt(x.e.date)}</div><div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><input data-s="${i}" type="number" step="0.5" min="0" max="${x.e.max||4}" placeholder="نمره (از ${fa(x.e.max||4)})" style="margin:0;flex:1;min-width:90px"><input data-d="${i}" value="${td}" dir="ltr" style="margin:0;flex:1;min-width:100px"><button class="sm" data-ok="${i}">✅ ثبت</button><button class="sm" data-no="${i}">معاف</button></div></div>`).join('')||'<p class="sub">موردی منتظر نیست 🎉</p>'}</div>
- <div class="card"><b>✅ آزمون‌های جبرانی انجام‌شده (${fa(D.length)})</b>${D.slice(0,30).map(x=>`<div style="border-bottom:1px solid var(--line);padding:6px 0;font-size:13px">${esc2(x.s.name)} · ${esc2(cn(x.e.course))} · آزمون روز ${dt(x.e.date)} · جبرانی در ${dt(x.d)} · نمره ${f1(nrm(x.e,x.s.id))}</div>`).join('')||'<p class="sub">هنوز ثبت نشده</p>'}</div>`}
-$('mk').addEventListener('click',e=>{const b=e.target.closest('[data-ok],[data-no]');if(!b)return;const i=+(b.dataset.ok??b.dataset.no),x=P[i];if(!x)return;x.e.mk=x.e.mk||{};
- if(b.dataset.no!=null)x.e.mk[x.s.id]='x';else{const v=parseFloat($('mkbody').querySelector(`[data-s="${i}"]`).value),m=ND($('mkbody').querySelector(`[data-d="${i}"]`).value).match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(isNaN(v)||!m)return alert('نمره و تاریخ (مثل ۱۴۰۵/۰۸/۱۲) را درست وارد کنید');x.e.scores[x.s.id]=v;x.e.mk[x.s.id]=iso(fromJ(+m[1],+m[2],+m[3]))}
+ $('mkbody').innerHTML=`<div class="card"><p class="sub" style="margin:0">دانش‌آموزی که روز آزمون غایب بوده، این‌جا می‌آید. برای آزمون جبرانی همان چهار سطح ارزشیابی توصیفی برنامه را انتخاب کنید؛ هیچ نمره‌ای وارد نمی‌شود و نتیجه‌ی آزمون اصلی بازنویسی نخواهد شد.</p></div>
+ <div class="card"><b>⏳ منتظر آزمون جبرانی (${fa(P.length)})</b>${P.map((x,i)=>`<div style="border-bottom:1px solid var(--line);padding:10px 0"><div><b>${esc2(x.s.name)}</b> · ${esc2(cn(x.e.course))} ${esc2(x.e.title||'')} · آزمون روز ${dt(x.e.date)}</div><div style="display:flex;gap:6px;margin:8px 0;flex-wrap:wrap">${[['4','خیلی خوب','#16864d'],['3','خوب','#438b2d'],['2','قابل قبول','#b26a00'],['1','نیاز به تلاش بیشتر','#c0262c']].map(v=>`<button type="button" class="sm" data-lv="${i}:${v[0]}" style="background:#fff;color:${v[2]};border:1px solid ${v[2]};min-height:38px">${v[1]}</button>`).join('')}</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input data-d="${i}" value="${td}" dir="ltr" aria-label="تاریخ آزمون جبرانی" style="margin:0;flex:1;min-width:130px"><button class="sm" data-ok="${i}">✅ ثبت ارزشیابی</button><button class="sm" data-no="${i}">معاف</button></div></div>`).join('')||'<p class="sub">موردی منتظر نیست 🎉</p>'}</div>
+ <div class="card"><b>✅ آزمون‌های جبرانی انجام‌شده (${fa(D.length)})</b>${D.slice(0,30).map(x=>{const ev=x.e.mkEval&&x.e.mkEval[x.s.id],label=ev!=null?(['','نیاز به تلاش بیشتر','قابل قبول','خوب','خیلی خوب'][Number(ev)]||'ثبت‌شده'):(x.e.scores[x.s.id]!=null?'ثبت قدیمی':'ثبت‌شده');return `<div style="border-bottom:1px solid var(--line);padding:6px 0;font-size:13px">${esc2(x.s.name)} · ${esc2(cn(x.e.course))} · آزمون روز ${dt(x.e.date)} · جبرانی در ${dt(x.d)} · ${label}</div>`}).join('')||'<p class="sub">هنوز ثبت نشده</p>'}</div>`}
+$('mk').addEventListener('click',e=>{
+ const lv=e.target.closest('[data-lv]');if(lv){const i=lv.dataset.lv.split(':')[0];$('mkbody').querySelectorAll(`[data-lv^="${i}:"]`).forEach(b=>{b.style.background='#fff';b.style.boxShadow='none';b.setAttribute('aria-pressed','false')});lv.style.background=lv.style.color;lv.style.color='#fff';lv.style.boxShadow='0 0 0 2px currentColor';lv.setAttribute('aria-pressed','true');return}
+ const b=e.target.closest('[data-ok],[data-no]');if(!b)return;const i=+(b.dataset.ok??b.dataset.no),x=P[i];if(!x)return;x.e.mk=x.e.mk||{};
+ if(b.dataset.no!=null){x.e.mk[x.s.id]='x';if(x.e.mkEval)delete x.e.mkEval[x.s.id]}
+ else{const selected=$('mkbody').querySelector(`[data-lv^="${i}:"][aria-pressed="true"]`),m=ND($('mkbody').querySelector(`[data-d="${i}"]`).value).match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);if(!selected||!m)return alert('ابتدا سطح ارزشیابی و تاریخ درست را انتخاب کنید');x.e.mkEval=x.e.mkEval||{};x.e.mkEval[x.s.id]=+selected.dataset.lv.split(':')[1];x.e.mk[x.s.id]=iso(fromJ(+m[1],+m[2],+m[3]))}
  save();rm()});
 window.renderMk=rm;
 })();

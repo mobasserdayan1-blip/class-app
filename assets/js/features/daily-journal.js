@@ -999,15 +999,15 @@ function studentList(k,b,it,pn){
   </div>`;
   }
 
-  h+=`<div class="dj-stu-list" style="display:grid;gap:6px">`;
+  h+=`<div class="dj-stu-list" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:10px;align-items:start">`;
   const ordered=sts().map((s,i)=>({s,i})).sort((a,b)=>(absent(k,a.s.id)-absent(k,b.s.id))||(a.i-b.i)).map(x=>x.s);
   const TINT={4:['#e9f7ef','#d3eedf'],3:['#f0f8e9','#dfefd0'],2:['#fff7e6','#fbe8bd'],1:['#fdeded','#f6d0d2']};
   h+=ordered.map((s,index)=>{
     const ab=absent(k,s.id),v=m[s.id],nk=key+'|'+s.id,nt=d.n[nk],fn=((S.info||{})[s.id]||{}).fn||'';
     const tk=ab||v==null?null:(it.t==='d'?(v===1?4:1):v),tn=tk&&TINT[tk];
-    return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:${tn?tn[0]:(index%2===1?'#f8fafc':'#fff')};border:1px solid ${tn?tn[1]:'#f1f5f9'};transition:background .2s">
+    return `<div class="dj-row${ab?' ab':''}${index%2===1?' stripe':''}" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;padding:9px 12px;border-radius:10px;background:${tn?tn[0]:(index%2===1?'#f8fafc':'#fff')};border:1px solid ${tn?tn[1]:'#f1f5f9'};transition:background .2s">
       ${st.sel&&!ab?`<input type="checkbox" data-dj="pick:${s.id}"${st.pick.has(s.id)?' checked':''} style="width:18px;height:18px;cursor:pointer">`:''}
-      <div class="dj-nm" style="min-width:max-content;width:auto;white-space:nowrap !important;font-weight:800;font-size:13.5px;color:${v!=null?(it.t==='d'?(v===1?'#1a8f55':'#c0262c'):((LV.find(l=>l.v===v)||{}).c||'inherit')):'inherit'}">
+      <div class="dj-nm" style="min-width:0;max-width:100%;overflow-wrap:anywhere;width:auto;white-space:nowrap !important;font-weight:800;font-size:13.5px;color:${v!=null?(it.t==='d'?(v===1?'#1a8f55':'#c0262c'):((LV.find(l=>l.v===v)||{}).c||'inherit')):'inherit'}">
         ${esc(s.name)}${(()=>{const r=caDay(k).filter(x=>x.sid===s.id);if(!r.length)return'';const p=r.filter(x=>x.type==='positive').length,e=r.length-p;return ` <span title="ثبت‌های فعالیت کلاسی امروز" style="font-size:10.5px;font-weight:800;color:#3730a3;background:#eef2ff;padding:1px 6px;border-radius:6px">🌟${fa(p)}${e?' · 💪'+fa(e):''}</span>`})()}${fn?` <small style="color:var(--mut,#888);font-weight:400">(${esc(fn)})</small>`:''}
         ${ab?' <span style="font-size:11px;color:#c0262c;background:#fee2e2;padding:1px 6px;border-radius:4px;font-weight:700">غایب</span>':late(k,s.id)?' <span style="font-size:11px;color:#d97706;background:#fef3c7;padding:1px 6px;border-radius:4px;font-weight:700">⏰ تأخیر</span>':''}
       </div>
@@ -1195,8 +1195,7 @@ function render(){const s=$('dj');if(!s)return;
  // ۵) اگر زنگ/فعالیتی برای ارزشیابی انتخاب شده
  if(ses)h+=sessionCard(k,st.b,ses);
 
- // ۶) بخش جدول دفترهای روزانه ثبت‌نشده یا ناقص (بخش دوم - بند ۴)
- h+=pendCard();
+ // بخش «وضعیت دفتر» به درخواست آموزگار حذف شده است.
 
  // ۷) جدول ماتریسی عملکرد دانش‌آموزان
  h+=mxCard();

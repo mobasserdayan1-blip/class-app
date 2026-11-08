@@ -1186,6 +1186,9 @@ function render(){const s=$('dj');if(!s)return;
   </div>
  </div>`;
 
+ // حضور و غیاب زنگ‌به‌زنگ (داخل همین صفحه؛ تاریخ = تاریخ دفتر)
+ h+=(window.BellAtt&&window.BellAtt.cardHtml?window.BellAtt.cardHtml(k):'');
+
  // ۳) ابزارهای گزارش رسمی
  h+=`<div class="card dj-report-tools"><b>📄 گزارش‌های رسمی و چاپی دفتر روزانه</b>
   <div class="dj-nt" style="margin-top:8px;flex-wrap:wrap">
@@ -2141,7 +2144,7 @@ function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(ci
 function examBell(e){try{if(!e||!e.date)return null;if(e.bell!=null&&e.bell!=='')return String(e.bell);
  const hit=dayBells(e.date).find(x=>{const q=getSes(e.date,x.b);return q?String(q.c)===String(e.course):(x.cids||[]).map(String).indexOf(String(e.course))>=0});
  return hit?String(hit.b):null}catch(x){return null}}
-window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'دستی':ORD[+x.b]||x.b)+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k)};
+window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render()};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;

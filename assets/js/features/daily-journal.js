@@ -124,7 +124,15 @@ const tplOf=cid=>{const t=D().tpl[cid];return Array.isArray(t)?t:defOf(cid)};
 function ownTpl(cid){const d=D();if(!Array.isArray(d.tpl[cid]))d.tpl[cid]=defOf(cid);return d.tpl[cid]}
 
 /* برنامه‌ی هفتگی: زنگ‌های درسیِ یک تاریخ (فقط خواندن) */
-function bells(k){const w=S.wsc;if(!w||typeof w!=='object'||!w.cell||isOff(k))return[];const di=dow(k);if(di>4)return[];
+/* تاریخچه‌ی برنامه‌ی هفتگی: تا قبل از این نسخه، همه‌ی روزها با «برنامه‌ی فعلی» ساخته می‌شدند؛ یعنی اگر برنامه بعداً عوض می‌شد، زنگ‌های روزهای گذشته هم عوض می‌شد.
+   حالا هر بار برنامه تغییر کند، نسخه‌ی قبلی تا «دیروزِ روز تغییر» نگه داشته می‌شود (S.wscHist) و روزهای قدیمی‌تر با همان نسخه ساخته می‌شوند. */
+function wscSigOf(w){try{return JSON.stringify({c:w.cell||{},n:w.n||0,k:(w.kinds||[]).map(q=>[q.id,q.cn||''])})}catch(e){return''}}
+function wscTrack(){try{const w=S.wsc;if(!w||typeof w!=='object'||!w.cell)return;const sig=wscSigOf(w);if(S.wscSig===sig)return;
+ if(S.wscSig&&S.wscSnap){S.wscHist=Array.isArray(S.wscHist)?S.wscHist:[];S.wscHist.push({until:addD(todayK(),-1),w:S.wscSnap,at:todayK()});if(S.wscHist.length>40)S.wscHist.shift()}
+ S.wscSnap=JSON.parse(JSON.stringify({cell:w.cell,n:w.n,per:w.per,kinds:w.kinds||[]}));S.wscSig=sig;save()}catch(e){}}
+window.djWscTrack=wscTrack;
+function wscFor(k){const H=S.wscHist;if(Array.isArray(H)&&H.length){const c=H.filter(x=>x&&x.until&&x.w&&String(k)<=String(x.until)).sort((a,b)=>String(a.until)<String(b.until)?-1:1)[0];if(c)return c.w}return S.wsc}
+function bells(k){const w=wscFor(k);if(!w||typeof w!=='object'||!w.cell||isOff(k))return[];const di=dow(k);if(di>4)return[];
  const n=Math.max(1,Math.min(10,w.n||(w.per||[]).length||4)),out=[];
  for(let i=0;i<n;i++){const v=w.cell[di+'_'+i];if(v==null||v==='')continue;
   const cids=[];(Array.isArray(v)?v:[v]).map(x=>x&&typeof x==='object'?x:{c:x}).forEach(x=>{
@@ -1044,6 +1052,7 @@ function studentList(k,b,it,pn){
       <div class="dj-bt" style="display:flex;gap:4px;margin-right:auto;align-items:center">
         ${it.t==='p'?pnBtns(s.id,(d.pm[key]||{})[s.id],ab):btns(it,v,s.id,ab)}
       </div>
+      <button type="button" class="dj-sm" data-dj="fu:${s.id}" ${ab?'disabled':''} title="${fuList().some(q=>q.st==='open'&&String(q.sid)===String(s.id)&&q.k0===k&&q.b===b&&q.it===it.id)?'پیگیری ثبت شده — برای حذف دوباره بزنید':'فردا از او می‌پرسم (آمادگی نداشت)'}" style="${fuList().some(q=>q.st==='open'&&String(q.sid)===String(s.id)&&q.k0===k&&q.b===b&&q.it===it.id)?'background:#fff4d6;border-color:#f6c667':''}">🗓️${fuList().some(q=>q.st==='open'&&String(q.sid)===String(s.id)&&q.k0===k&&q.b===b&&q.it===it.id)?'•':''}</button>
       <button type="button" class="dj-sm" data-dj="note:${s.id}" ${ab?'disabled':''} title="یادداشت">${nt?'📝•':'📝'}</button>
       ${st.note===s.id?`<div class="dj-nt" style="width:100%;margin-top:6px"><input data-nt="${s.id}" placeholder="یادداشت کوتاه برای این دانش‌آموز…" value="${esc(nt||'')}" style="width:100%;padding:6px 10px;border-radius:8px;border:1px solid #cbd5e1"></div>`:''}
     </div>`;
@@ -1122,7 +1131,104 @@ function sessionCard(k,b,s){
 }
 
 /* رندر اصلی دفتر روزانه */
-function render(){const s=$('dj');if(!s)return;
+
+/* ───── کرکره‌ها (details) و پیگیری «فردا می‌پرسم» و بررسی هماهنگی با برنامه‌ی هفتگی ───── */
+(function(){if(document.getElementById('djAccCss'))return;const c=document.createElement('style');c.id='djAccCss';
+c.textContent='details.dj-acc{padding:0!important;overflow:hidden}details.dj-acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 14px;font-weight:800;font-size:14px;user-select:none;-webkit-tap-highlight-color:transparent}details.dj-acc>summary::-webkit-details-marker{display:none}details.dj-acc>summary::after{content:"▾";margin-inline-start:auto;font-size:14px;color:#64748b;transition:transform .2s}details.dj-acc[open]>summary::after{transform:rotate(180deg)}details.dj-acc>summary em{font-style:normal;font-size:11.5px;font-weight:700;background:#f1f5f9;color:#475569;padding:2px 9px;border-radius:999px}details.dj-acc>summary em.warn{background:#ffe9d6;color:#b45309}details.dj-acc>summary small{font-weight:600;color:#64748b}.dj-acc-b{padding:0 14px 14px}.dj-fu-i{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 0;border-top:1px dashed #e2e8f0}.dj-fu-i .dj-fu-t{flex:1 1 220px;min-width:0;overflow-wrap:anywhere;font-size:13px;line-height:1.8}.dj-fu-i .dj-fu-b{display:flex;gap:5px;flex-wrap:wrap}.dj-fu-i button{font:700 12px Vazirmatn,Tahoma,sans-serif;border:1px solid #e2e8f0;background:#fff;border-radius:9px;padding:6px 10px;cursor:pointer}@media(max-width:560px){.dj-acc-b{padding:0 8px 10px}details.dj-acc>summary{padding:10px 10px;font-size:13.5px}#djBat table{font-size:12px}#djBat th,#djBat td{padding-left:2px!important;padding-right:2px!important}}';
+document.head.appendChild(c);
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.matches&&d.matches('details[data-acc]')){st.acc=st.acc||{};st.acc[d.dataset.acc]=d.open}},true)})();
+const accOpen=(key,def)=>(st.acc&&st.acc[key]!=null)?st.acc[key]:def;
+const accHtml=(key,title,badge,body,def,warn)=>`<details class="card dj-acc" data-acc="${key}"${accOpen(key,def)?' open':''}><summary><span>${title}</span>${badge?`<em${warn?' class="warn"':''}>${badge}</em>`:''}</summary><div class="dj-acc-b">${body}</div></details>`;
+const dayDiff=(a,b)=>Math.round((new Date(b+'T12:00:00Z')-new Date(a+'T12:00:00Z'))/864e5);
+
+/* پیگیری‌ها: D().fu = [{id,sid,k0,b,it,an,c,st:'open'|'done'|'drop',kd,lv,sn,src,note}] — فقط دانش‌آموزانی که معلم گفته «فردا ازت می‌پرسم» */
+const FU_RX=/فردا|پرسیده\s*می[‌ ]?شود|می[‌ ]?پرسم|بعداً\s*(می[‌ ]?)?پرس|دوباره\s*(می[‌ ]?)?پرس/;
+const fuList=()=>{const d=D();if(!Array.isArray(d.fu))d.fu=[];return d.fu};
+const fuName=sid=>{const q=sts().find(x=>String(x.id)===String(sid));return q?q.name:'؟'};
+function fuNew(o){const L=fuList();L.push(Object.assign({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),st:'open',sn:0},o));save()}
+function fuActInfo(k,b,it){try{const s=getSes(k,b);const x=s&&s.it&&s.it[it];return{an:x?x.n:'',c:s?s.c:null}}catch(e){return{an:'',c:null}}}
+function fuSuggest(k){/* یادداشت‌های دستیِ معلم که شبیه «فردا می‌پرسم» هستند و هنوز پیگیری نشده‌اند */
+ const d=D(),out=[],done=new Set(fuList().map(x=>x.src).filter(Boolean)),ign=d.fuIgn||{};
+ Object.keys(d.n||{}).forEach(nk=>{const p=nk.split('|');if(p.length<4)return;const dk=p[0];if(dk>k)return;
+  const txt=typeof d.n[nk]==='string'?d.n[nk]:'';if(!txt||!FU_RX.test(txt)||done.has(nk)||ign[nk])return;
+  out.push({nk,k0:dk,b:p[1],it:p[2],sid:p[3],txt})});
+ out.sort((a,b)=>a.k0<b.k0?1:-1);return out.slice(0,8)}
+function fuCard(k){
+ const L=fuList(),open=L.filter(x=>x.st==='open'&&x.k0<=k),due=open.filter(x=>x.k0<k),later=open.filter(x=>x.k0>=k),doneToday=L.filter(x=>x.st==='done'&&x.kd===k),sug=fuSuggest(k);
+ if(!open.length&&!doneToday.length&&!sug.length)return'';
+ const LV4=[['4','خیلی خوب'],['3','خوب'],['2','قابل قبول'],['1','نیاز به تلاش بیشتر']];
+ const row=(x,isDue)=>{const dd=dayDiff(x.k0,k),late=isDue&&dd>=2;
+  return`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(fuName(x.sid))}</b> · ${esc(x.an||'فعالیت')}${x.c!=null?' <small style="color:#64748b">('+esc(cname(x.c))+')</small>':''}<br><small style="color:${late?'#c0262c':'#64748b'}">${isDue?(late?'⚠️ '+fa(dd)+' روز معوق — ':'موعد پرسش: امروز — '):'برای فردا ثبت شد — '}گفته‌شده در ${esc(dlab(x.k0))}${x.sn?' · '+fa(x.sn)+' بار موکول شده':''}</small></div>
+   <div class="dj-fu-b">${isDue?LV4.map(v=>`<button type="button" data-dj="fulv:${x.id}:${v[0]}" title="پرسیده شد؛ نتیجه: ${v[1]}">${v[1]}</button>`).join('')+`<button type="button" data-dj="fudone:${x.id}">✅ پرسیده شد</button><button type="button" data-dj="fusnooze:${x.id}">↪ باز هم فردا</button>`:''}<button type="button" data-dj="fudrop:${x.id}" title="حذف از پیگیری (فراموش شد یا لازم نیست)">✖</button></div></div>`};
+ let b='';
+ if(due.length)b+=`<div style="font-weight:800;font-size:13px;margin-top:4px">🔔 باید امروز پرسیده شود</div>`+due.map(x=>row(x,true)).join('');
+ if(later.length)b+=`<div style="font-weight:800;font-size:13px;margin-top:8px">🗓️ برای فردا ثبت شده</div>`+later.map(x=>row(x,false)).join('');
+ if(doneToday.length)b+=`<div style="font-weight:800;font-size:13px;margin-top:8px">✅ امروز پرسیده شد</div>`+doneToday.map(x=>`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(fuName(x.sid))}</b> · ${esc(x.an||'فعالیت')}<br><small style="color:#64748b">گفته‌شده در ${esc(dlab(x.k0))}${x.lv?' · نتیجه: '+esc((LV4.find(v=>v[0]===String(x.lv))||[])[1]||''):''}</small></div><div class="dj-fu-b"><button type="button" data-dj="fureopen:${x.id}" title="برگرداندن به فهرست">↩</button></div></div>`).join('');
+ if(sug.length)b+=`<div style="font-weight:800;font-size:13px;margin-top:10px">📝 یادداشت‌هایی که شبیه «فردا می‌پرسم» هستند (هنوز پیگیری نشده)</div><div style="font-size:11.5px;color:#64748b">اگر آن پرسش انجام نشده، «ثبت پیگیری» بزنید تا در فهرست بماند و فراموش نشود.</div>`+sug.map(x=>{const ai=fuActInfo(x.k0,x.b,x.it);return`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(fuName(x.sid))}</b> · ${esc(ai.an||'فعالیت')} · <small>${esc(dlab(x.k0))}</small><br><small style="color:#475569">«${esc(x.txt.length>90?x.txt.slice(0,88)+'…':x.txt)}»</small></div><div class="dj-fu-b"><button type="button" data-dj="fuadopt:${esc(x.nk)}">🗓️ ثبت پیگیری</button><button type="button" data-dj="fuign:${esc(x.nk)}">نادیده</button></div></div>`}).join('');
+ const badge=due.length?fa(due.length)+' پرسش معوق/موعد':(later.length?fa(later.length)+' برای فردا':(sug.length?fa(sug.length)+' یادداشت برای بررسی':'امروز انجام شد'));
+ return accHtml('fu','🗓️ «فردا می‌پرسم» — پرسش‌های موکول‌شده',badge,b,due.length>0||sug.length>0,due.length>0)}
+
+/* هماهنگی زنگ‌های ثبت‌شده با برنامه‌ی هفتگیِ همان تاریخ
+   نکته: «املا» و «انشا» در برنامه‌ی هفتگی یک خانه‌ی جدا هستند ولی درس آن‌ها «فارسی» است؛ پس در مقایسه با فارسی یکی حساب می‌شوند. */
+const KIND_ALIAS=[['انشا','فارسی'],['انشا و نگارش','فارسی'],['املا','فارسی'],['ورزش','تربیت بدنی']];
+function canonName(cid,k){const n=String(cname(cid)||'').trim(),w=wscFor(k)||{};
+ const kinds=(w.kinds||[]).filter(q=>q&&q.cn).map(q=>({name:q.name,cn:q.cn})).concat(KIND_ALIAS.map(a=>({name:a[0],cn:a[1]})));
+ const f=kinds.find(q=>String(q.name).trim()===n);return f?f.cn:n}
+const sameCourse=(a,b,k)=>a!=null&&b!=null&&canonName(a,k)===canonName(b,k);
+function kindNames(k,i){try{const w=wscFor(k),v=w.cell[dow(k)+'_'+i];return(Array.isArray(v)?v:[v]).map(x=>x&&typeof x==='object'?x:{c:x}).filter(x=>x.k!=null).map(x=>{const kd=(w.kinds||[]).find(q=>q.id===x.k);return kd?String(kd.name).trim():''}).filter(Boolean)}catch(e){return[]}}
+const hasItems=s=>!!(s&&s.it&&Object.keys(s.it).length);
+const nmB=b=>String(b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+b]||b);
+/* پیشنهاد هماهنگ‌سازی: هر زنگِ ثبت‌شده به زنگِ هم‌درس در برنامه‌ی همان روز می‌رود؛ چیزی حذف نمی‌شود */
+function schedPlan(k){const d=D(),T=bells(k);if(!T.length)return null;
+ const R=Object.keys(d.ses||{}).filter(x=>x.indexOf(k+'|')===0).map(x=>({b:x.slice(k.length+1),s:d.ses[x]})).filter(r=>hasItems(r.s));
+ const pairs=[];
+ R.forEach(r=>T.forEach(t=>{if(!t.cids.some(cid=>sameCourse(r.s.c,cid,k)))return;let sc=1;const kn=kindNames(k,t.i),rn=String(cname(r.s.c)).trim();if(kn.indexOf(rn)>=0)sc+=3;if(r.b===t.i)sc+=2;pairs.push({r,t,sc})}));
+ pairs.sort((a,b)=>b.sc-a.sc||((+a.t.i)-(+b.t.i)));
+ const uR=new Set(),uT=new Set(),asg=[];
+ pairs.forEach(p=>{if(uR.has(p.r.b)||uT.has(p.t.i))return;uR.add(p.r.b);uT.add(p.t.i);asg.push(p)});
+ const moves=[];
+ asg.forEach(p=>{const cid=p.t.cids.find(c=>sameCourse(p.r.s.c,c,k));const recourse=String(p.r.s.c)!==String(cid)?cid:null;
+  if(p.r.b!==p.t.i||recourse!=null)moves.push({from:p.r.b,to:p.t.i,cid:recourse,cn0:cname(p.r.s.c),cn1:recourse!=null?cname(recourse):null,sub:(recourse!=null&&!String(p.r.s.tp||'').trim())?cname(p.r.s.c):null})});
+ const stay=R.filter(r=>!uR.has(r.b)),targets=new Set(moves.map(m=>m.to)),reloc=[];
+ stay.forEach(r=>{if(T.some(t=>t.i===r.b)&&targets.has(r.b))reloc.push({from:r.b,cn0:cname(r.s.c)})});
+ return{moves,stay,reloc,T,R}}
+function takeBell(k,b){const d=D(),pf=k+'|'+b+'|',o={ses:d.ses[k+'|'+b],m:{},n:{},pm:{}};
+ ['m','n','pm'].forEach(n0=>{const src=d[n0];if(!src)return;Object.keys(src).forEach(key=>{if(key.indexOf(pf)===0){o[n0][key.slice(pf.length)]=src[key];delete src[key]}})});
+ delete d.ses[k+'|'+b];return o}
+function putBell(k,b,o,cid,sub){const d=D(),pf=k+'|'+b+'|';if(!o.ses)return;if(cid!=null)o.ses.c=cid;if(sub)o.ses.tp=sub;d.ses[k+'|'+b]=o.ses;
+ ['m','n','pm'].forEach(n0=>{if(!d[n0])d[n0]={};Object.keys(o[n0]).forEach(x=>{d[n0][pf+x]=o[n0][x]})})}
+function applyPlan(k,pl){const d=D(),items=pl.moves.map(m=>({from:m.from,to:m.to,cid:m.cid,sub:m.sub}));
+ let n=1;const nextM=()=>{while(d.ses[sesKey(k,'m'+n)]||items.some(x=>x.to==='m'+n))n++;return'm'+n};
+ pl.reloc.forEach(r=>items.push({from:r.from,to:nextM(),cid:null,sub:null}));
+ try{if(Array.isArray(S.hwl))S.hwl=S.hwl.filter(h=>!(h&&typeof h.id==='string'&&items.some(x=>h.id.indexOf('dj:'+k+'|'+x.from+'|')===0)))}catch(e){}
+ try{fuList().forEach(f=>{if(f.k0!==k)return;const it=items.find(q=>q.from===f.b);if(it)f.b=it.to})}catch(e){}
+ const bag=items.map(x=>({x,o:takeBell(k,x.from)}));
+ bag.forEach(z=>putBell(k,z.x.to,z.o,z.x.cid,z.x.sub));
+ try{items.forEach(x=>{const s=d.ses[k+'|'+x.to];Object.keys((s&&s.it)||{}).forEach(id=>syncHw(k,x.to,id,s))})}catch(e){}
+ save()}
+function schedIssues(k){try{const d=D(),T=bells(k),out=[];if(!T.length||(d.schOk&&d.schOk[k]))return out;
+ T.forEach(x=>{const s=d.ses[k+'|'+x.i];if(hasItems(s)&&!x.cids.some(cid=>sameCourse(s.c,cid,k)))out.push({t:'diff',b:x.i,tc:x.cids,sc:s.c})});
+ Object.keys(d.ses||{}).forEach(key=>{if(key.indexOf(k+'|')!==0)return;const b=key.slice(k.length+1);if(T.some(x=>x.i===b))return;const s=d.ses[key];if(!hasItems(s))return;
+  const match=T.filter(x=>x.cids.some(cid=>sameCourse(s.c,cid,k))),free=match.find(x=>!hasItems(d.ses[k+'|'+x.i]));
+  /* اگر جای هم‌درس در برنامه هست ولی پر است، این یک درس اضافه‌ی عادی است و هشدار نمی‌دهد */
+  if(free||!match.length)out.push({t:'man',b,sc:s.c,to:free?free.i:null})});
+ /* درس ثبت‌شده در زنگ برنامه، ولی با «ثبت زیر درس دیگر» (مثل املا به‌جای فارسی) */
+ T.forEach(x=>{const s=d.ses[k+'|'+x.i];if(hasItems(s)&&x.cids.some(cid=>sameCourse(s.c,cid,k))&&!x.cids.some(cid=>String(cid)===String(s.c)))out.push({t:'alias',b:x.i,sc:s.c,tc:x.cids})});
+ return out}catch(e){return[]}}
+function schedCard(k){const I=schedIssues(k);if(!I.length)return'';
+ const pl=schedPlan(k),has=pl&&(pl.moves.length||pl.reloc.length);
+ let body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:6px">درس‌های ثبت‌شده‌ی این روز با برنامه‌ی هفتگیِ همان روز یکی نیست. «املا» و «انشا» در برنامه‌ی هفتگی خانه‌ی جدا هستند ولی زیرمجموعه‌ی درس <b>فارسی</b> حساب می‌شوند. هیچ ارزشیابی‌ای پاک نمی‌شود. (از این نسخه به بعد، تغییر برنامه‌ی هفتگی روزهای گذشته را عوض نمی‌کند.)</div>`;
+ body+=I.map(x=>x.t==='diff'?`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(nmB(x.b))}</b>: برنامه «${esc(x.tc.map(cname).join(' + '))}» است ولی «${esc(cname(x.sc))}» ثبت شده.</div></div>`
+  :x.t==='alias'?`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(nmB(x.b))}</b>: «${esc(cname(x.sc))}» جدا ثبت شده ولی طبق برنامه زیر درس «${esc(x.tc.map(cname).join(' + '))}» است.</div></div>`
+  :`<div class="dj-fu-i"><div class="dj-fu-t"><b>${esc(nmB(x.b))}</b> «${esc(cname(x.sc))}»${x.to!=null?` ثبت شده؛ طبق برنامه جایش ${esc(nmB(x.to))} است.`:' ثبت شده ولی در برنامه‌ی این روز زنگی با این درس نیست.'}</div></div>`).join('');
+ if(has){body+=`<div style="margin-top:8px;border:1px dashed #f6c667;background:#fffaf0;border-radius:12px;padding:9px 11px"><b style="font-size:13px">✅ پیشنهاد هماهنگ‌سازی</b><div style="font-size:12.5px;line-height:2;margin-top:3px">`+
+   pl.moves.map(m=>`• «${esc(m.cn0)}»: ${esc(nmB(m.from))} ← <b>${esc(nmB(m.to))}</b>${m.cn1?` و ثبت زیر درس «${esc(m.cn1)}»${m.sub?' (موضوع: '+esc(m.sub)+')':''}`:''}`).join('<br>')+
+   (pl.reloc.length?'<br>'+pl.reloc.map(r=>`• «${esc(r.cn0)}» (${esc(nmB(r.from))}) چون در برنامه‌ی این روز جایی ندارد به یک «زنگ دستی» می‌رود`).join('<br>'):'')+
+   `</div><div class="dj-fu-b" style="margin-top:6px"><button type="button" data-dj="schplan" style="background:#1a8f55;color:#fff;border-color:transparent;font-weight:800">اعمال پیشنهاد</button><button type="button" data-dj="schok" title="این روز طبق برنامه‌ی همان زمان بوده؛ دیگر هشدار نده">همین‌طور که هست بماند</button></div></div>`}
+ else body+=`<div class="dj-fu-b" style="margin-top:6px"><button type="button" data-dj="schok" title="دیگر برای این روز هشدار نده">همین‌طور که هست بماند</button></div>`;
+ return accHtml('sch','⚠️ ناهماهنگی با برنامه‌ی هفتگی',fa(I.length)+' مورد',body,true,true)}
+
+function render(){const s=$('dj');if(!s)return;wscTrack();
  const k=st.k,t=todayK();pickDefault();
  const L=dayBells(k),ses=st.b!=null?viewSes(k,st.b):null;
  const todayActs=getDayActivities(k);
@@ -1162,6 +1268,13 @@ function render(){const s=$('dj');if(!s)return;
   </div>
  </div>`;
 
+ // هشدارهای تقویمی در صورت تعطیلی یا نامشخص بودن
+ if(!wkSet()&&dow(k)>4)h+=`<div class="dj-warn">روزهای کاری مدرسه هنوز تنظیم نشده و این روز تعطیل فرض نشده است.${(()=>{const q=dstat(k);return q&&q.status==='unknown'?' وضعیت این روز «نامشخص» است (نه فعال، نه تعطیل).':''})()} اگر مدرسه‌ی شما این روز تعطیل است، <button type="button" class="dj-sm" data-dj="setwk">⚙️ روزهای کاری را تنظیم کنید</button></div>`;
+ if(isOff(k)){const hi=hinfo(k),nrec=todayActsCount;if(hi&&hi.official)h+=`<div class="dj-ho" id="djHol">🎉 <b>تعطیل رسمی:</b> ${esc(hi.label)}<br><small>این روز «دفتر ثبت‌نشده» یا ناقص حساب نمی‌شود. ${nrec?`سوابق این روز: <b>${fa(nrec)}</b> فعالیت ثبت‌شده در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ اگر کلاسی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</small></div>`;else if(hi&&hi.custom)h+=`<div class="dj-cu" id="djCu">🏫 <b>تعطیلی اختصاصی مدرسه${hi.emergency?' (اضطراری 🚨)':''}:</b> ${esc(hi.label)}${hi.reason?`<br><small>علت: ${esc(hi.reason)}</small>`:''}<br><small>${nrec?`سوابق ثبت‌شده‌ی این روز: <b>${fa(nrec)}</b> فعالیت در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ ثبت فعالیت در روز تعطیل نیاز به تأیید شما دارد.'}</small></div>`;else h+=`<div class="dj-warn">این روز تعطیل است${hi&&hi.label?' ('+esc(hi.label)+')':''}. ${nrec?`سوابق ثبت‌شده‌ی این روز: ${fa(nrec)} فعالیت.`:'اگر فعالیتی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</div>`}
+
+
+ h+=schedCard(k);
+
  // ۲) کارت‌های آماری ۴گانه پویا (بخش چهارم - بند ۲)
  h+=`<div class="dj-stat-cards">
   <div class="dj-stat-c">
@@ -1185,23 +1298,6 @@ function render(){const s=$('dj');if(!s)return;
    <span title="${esc(todayStatus.reason)}">${esc(todayStatus.reason.length>34?todayStatus.reason.slice(0,32)+'…':todayStatus.reason)}</span>
   </div>
  </div>`;
-
- // حضور و غیاب زنگ‌به‌زنگ (داخل همین صفحه؛ تاریخ = تاریخ دفتر)
- h+=(window.BellAtt&&window.BellAtt.cardHtml?window.BellAtt.cardHtml(k):'');
-
- // ۳) ابزارهای گزارش رسمی
- h+=`<div class="card dj-report-tools"><b>📄 گزارش‌های رسمی و چاپی دفتر روزانه</b>
-  <div class="dj-nt" style="margin-top:8px;flex-wrap:wrap">
-    <button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:13px;padding:9px 15px;border-radius:12px;border:0;cursor:pointer;font-weight:800" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 افقی / عمودی با حضور و غیاب)</button>
-    <select class="dj-in" data-report-period aria-label="بازه گزارش"><option value="week"${st.reportPeriod==='week'?' selected':''}>گزارش هفتگی</option><option value="month"${st.reportPeriod==='month'?' selected':''}>گزارش ماهانه</option><option value="year"${st.reportPeriod==='year'?' selected':''}>گزارش سالانه</option></select>
-    <button type="button" class="dj-sm" data-dj="report">🖨️ خروجی استاندارد</button>
-  </div>
-  <small style="color:var(--mut,#888)">گزارش دفتر روزانه معلم شامل عملکرد هر روز در کنار حضور و غیاب دانش‌آموزان در برگه A4 افقی (ماهانه) یا عمودی (هفتگی) آماده چاپ است.</small>
- </div>`;
-
- // هشدارهای تقویمی در صورت تعطیلی یا نامشخص بودن
- if(!wkSet()&&dow(k)>4)h+=`<div class="dj-warn">روزهای کاری مدرسه هنوز تنظیم نشده و این روز تعطیل فرض نشده است.${(()=>{const q=dstat(k);return q&&q.status==='unknown'?' وضعیت این روز «نامشخص» است (نه فعال، نه تعطیل).':''})()} اگر مدرسه‌ی شما این روز تعطیل است، <button type="button" class="dj-sm" data-dj="setwk">⚙️ روزهای کاری را تنظیم کنید</button></div>`;
- if(isOff(k)){const hi=hinfo(k),nrec=todayActsCount;if(hi&&hi.official)h+=`<div class="dj-ho" id="djHol">🎉 <b>تعطیل رسمی:</b> ${esc(hi.label)}<br><small>این روز «دفتر ثبت‌نشده» یا ناقص حساب نمی‌شود. ${nrec?`سوابق این روز: <b>${fa(nrec)}</b> فعالیت ثبت‌شده در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ اگر کلاسی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</small></div>`;else if(hi&&hi.custom)h+=`<div class="dj-cu" id="djCu">🏫 <b>تعطیلی اختصاصی مدرسه${hi.emergency?' (اضطراری 🚨)':''}:</b> ${esc(hi.label)}${hi.reason?`<br><small>علت: ${esc(hi.reason)}</small>`:''}<br><small>${nrec?`سوابق ثبت‌شده‌ی این روز: <b>${fa(nrec)}</b> فعالیت در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ ثبت فعالیت در روز تعطیل نیاز به تأیید شما دارد.'}</small></div>`;else h+=`<div class="dj-warn">این روز تعطیل است${hi&&hi.label?' ('+esc(hi.label)+')':''}. ${nrec?`سوابق ثبت‌شده‌ی این روز: ${fa(nrec)} فعالیت.`:'اگر فعالیتی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</div>`}
 
  // ۴) جدول اصلی فعالیت‌های روز جاری (بخش چهارم - بند ۳)
  h+=`<div class="card dj-acts-card">
@@ -1230,9 +1326,22 @@ function render(){const s=$('dj');if(!s)return;
 
  // بخش «وضعیت دفتر» به درخواست آموزگار حذف شده است.
 
+ h+=fuCard(k);
+ h+=(window.BellAtt&&window.BellAtt.cardHtml?window.BellAtt.cardHtml(k):'');
+ // ۳) ابزارهای گزارش رسمی
+ const repBody=`<div class="dj-nt" style="margin-top:8px;flex-wrap:wrap">
+    <button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:13px;padding:9px 15px;border-radius:12px;border:0;cursor:pointer;font-weight:800" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 افقی / عمودی با حضور و غیاب)</button>
+    <select class="dj-in" data-report-period aria-label="بازه گزارش"><option value="week"${st.reportPeriod==='week'?' selected':''}>گزارش هفتگی</option><option value="month"${st.reportPeriod==='month'?' selected':''}>گزارش ماهانه</option><option value="year"${st.reportPeriod==='year'?' selected':''}>گزارش سالانه</option></select>
+    <button type="button" class="dj-sm" data-dj="report">🖨️ خروجی استاندارد</button>
+  </div>
+  <small style="color:var(--mut,#888)">گزارش دفتر روزانه معلم شامل عملکرد هر روز در کنار حضور و غیاب دانش‌آموزان در برگه A4 افقی (ماهانه) یا عمودی (هفتگی) آماده چاپ است.</small>`;
+ h+=''; const repH=accHtml('rep','📄 گزارش‌های رسمی و چاپی دفتر روزانه','',repBody,false);
+
  // ۷) جدول ماتریسی عملکرد دانش‌آموزان
  h+=mxCard();
  h+=focusCard();
+ h+=repH;
+
 
  // ۸) مودال‌ها
  h+=teacherReportModalHtml();
@@ -2084,6 +2193,16 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='selmode'){st.sel=!st.sel;st.pick=new Set()}
  else if(c==='pickall'){const it=st.item,m=D().m[k+'|'+st.b+'|'+it]||{};st.pick=new Set(sts().filter(s=>!absentB(k,st.b,s.id)&&m[s.id]==null).map(s=>s.id))}
  else if(c==='note')st.note=st.note===+x?null:+x;
+ else if(c==='fu'){const q0=sts().find(q=>String(q.id)===String(x));if(!q0||!st.item)return;const L=fuList(),i=L.findIndex(q=>q.st==='open'&&String(q.sid)===String(q0.id)&&q.k0===k&&q.b===st.b&&q.it===st.item);
+  if(i>=0){L.splice(i,1);save()}else{const ai=fuActInfo(k,st.b,st.item);fuNew({sid:q0.id,k0:k,b:st.b,it:st.item,an:ai.an,c:ai.c});flash('✅ ثبت شد: فردا از «'+q0.name+'» پرسیده شود')}}
+ else if(c==='fulv'||c==='fudone'){const q=fuList().find(z=>z.id===x);if(q){q.st='done';q.kd=k;if(c==='fulv')q.lv=+y;save()}}
+ else if(c==='fusnooze'){const q=fuList().find(z=>z.id===x);if(q){q.k0=k;q.sn=(q.sn||0)+1;save()}}
+ else if(c==='fudrop'){const L=fuList(),i=L.findIndex(z=>z.id===x);if(i>=0){L.splice(i,1);save()}}
+ else if(c==='fureopen'){const q=fuList().find(z=>z.id===x);if(q){q.st='open';delete q.kd;delete q.lv;save()}}
+ else if(c==='fuadopt'){const p=String(x).split('|'),ai=fuActInfo(p[0],p[1],p[2]);if(p.length>=4){fuNew({sid:+p[3]||p[3],k0:p[0],b:p[1],it:p[2],an:ai.an,c:ai.c,src:x});flash('✅ در فهرست پیگیری ثبت شد')}}
+ else if(c==='fuign'){const d=D();d.fuIgn=d.fuIgn||{};d.fuIgn[x]=1;save()}
+ else if(c==='schplan'){const pl=schedPlan(k);if(pl&&(pl.moves.length||pl.reloc.length)&&confirm('زنگ‌ها طبق پیشنهاد جابه‌جا شوند؟ ارزشیابی‌ها و یادداشت‌ها همراه هر زنگ منتقل می‌شوند و چیزی پاک نمی‌شود.')){applyPlan(k,pl);flash('✅ زنگ‌ها با برنامه‌ی هفتگی هماهنگ شد')}}
+ else if(c==='schok'){const d=D();d.schOk=d.schOk||{};d.schOk[k]=1;save()}
  else if(c==='mk'){setMarks(k,st.b,st.item,[+x],+y,true)}
  else if(c==='bulk'){const m=D().m[k+'|'+st.b+'|'+st.item]||{};
   const ids=st.sel?[...st.pick]:sts().filter(s=>!absentB(k,st.b,s.id)&&m[s.id]==null).map(s=>s.id);
@@ -2144,7 +2263,7 @@ function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(ci
 function examBell(e){try{if(!e||!e.date)return null;if(e.bell!=null&&e.bell!=='')return String(e.bell);
  const hit=dayBells(e.date).find(x=>{const q=getSes(e.date,x.b);return q?String(q.c)===String(e.course):(x.cids||[]).map(String).indexOf(String(e.course))>=0});
  return hit?String(hit.b):null}catch(x){return null}}
-window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render()};
+window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def)};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;

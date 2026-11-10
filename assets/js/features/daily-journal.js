@@ -152,7 +152,7 @@ function ensureSes(k,b){const d=D(),key=sesKey(k,b);if(!d.ses[key]){const bl=bel
 function dayBells(k){const L=bells(k).map(x=>({b:x.i,s:x.s,cids:x.cids,man:false}));const d=D();
  Object.keys(d.ses).forEach(key=>{if(key.indexOf(k+'|')!==0)return;const b=key.slice(k.length+1);if(!L.some(x=>x.b===b)){const s=d.ses[key];L.push({b,s:'',cids:[s.c],man:true})}});
  return L.sort((a,b)=>(a.man-b.man)||(+String(a.b).replace(/\D/g,'')||0)-(+String(b.b).replace(/\D/g,'')||0))}
-const bellName=(k,x)=>{const s=getSes(k,x.b);const c=s?[s.c]:x.cids;const nm=c.map(cname).join(' + ');return(x.man?(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||'')):'زنگ '+ORD[+x.b])+' · '+nm}
+const bellName=(k,x)=>{const s=getSes(k,x.b);const c=s?[s.c]:x.cids;const nm=specialKind(k,x.b)||c.map(cname).join(' + ');return(x.man?(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||'')):'زنگ '+ORD[+x.b])+' · '+nm}
 /* فعالیت‌هایی که در این زنگ سابقه دارند اما بعداً از فهرست پیشنهادی حذف شده‌اند همچنان با نام و نوعِ ثبت‌شده (Snapshot) نمایش داده می‌شوند */
 function itemsOf(s){if(!s)return[];const t=tplOf(s.c),ids=new Set(t.map(x=>x.id));const old=Object.keys(s.it||{}).filter(id=>!ids.has(id)&&s.it[id]).map(id=>({id,n:s.it[id].n,t:s.it[id].t==='d'?'d':(s.it[id].t==='p'?'p':'g'),hw:s.it[id].hw?1:0,old:1}));const ov=x=>{const r=s.it&&s.it[x.id];return(r&&r.t)?Object.assign({},x,{t:r.t==='d'?'d':(r.t==='p'?'p':'g'),hw:r.t==='p'?0:(r.hw?1:0)}):x};
  return t.map(ov).concat(old)}
@@ -1176,6 +1176,19 @@ function canonName(cid,k){const n=String(cname(cid)||'').trim(),w=wscFor(k)||{};
  const f=kinds.find(q=>String(q.name).trim()===n);return f?f.cn:n}
 const sameCourse=(a,b,k)=>a!=null&&b!=null&&canonName(a,k)===canonName(b,k);
 function kindNames(k,i){try{const w=wscFor(k),v=w.cell[dow(k)+'_'+i];return(Array.isArray(v)?v:[v]).map(x=>x&&typeof x==='object'?x:{c:x}).filter(x=>x.k!=null).map(x=>{const kd=(w.kinds||[]).find(q=>q.id===x.k);return kd?String(kd.name).trim():''}).filter(Boolean)}catch(e){return[]}}
+/* برچسب زنگ ویژه (cl-v167): اگر در برنامه‌ی هفتگی خانه‌ی زنگ «املا» یا «نگارش/انشا» باشد، دقیقاً همان نام نوشته می‌شود
+   (نه «فارسی | املا» و نه «فارسی»). بقیه‌ی زیرمجموعه‌ها (حفظ شعر، معنی مخالف کلمات…) همان «فارسی | …» می‌مانند. */
+const SPECIAL_LABELS=['املا','انشا','نگارش','انشا و نگارش'];
+function specialKind(k,b){try{const bs=String(b),s=getSes(k,bs);
+  if(bs.charAt(0)!=='m'){const w=wscFor(k),v=w&&w.cell?w.cell[dow(k)+'_'+bs]:null;
+   const arr=(Array.isArray(v)?v:[v]).filter(x=>x!=null&&x!=='').map(x=>x&&typeof x==='object'?x:{c:x});
+   if(arr.length&&arr.every(x=>x.k!=null)){
+    const kds=arr.map(x=>(w.kinds||[]).find(q=>q.id===x.k)).filter(Boolean);
+    const names=kds.map(q=>String(q.name).trim()).filter(n=>SPECIAL_LABELS.indexOf(n)>=0);
+    if(names.length&&names.length===kds.length){
+     if(!s||kds.some(q=>q.cn&&canonName(s.c,k)===q.cn)||names.indexOf(String(cname(s.c)).trim())>=0)return names.join(' + ')}}}
+  const n=s?String(cname(s.c)).trim():'';
+  return SPECIAL_LABELS.indexOf(n)>=0?n:''}catch(e){return''}}
 const hasItems=s=>!!(s&&s.it&&Object.keys(s.it).length);
 const nmB=b=>String(b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+b]||b);
 /* پیشنهاد هماهنگ‌سازی: هر زنگِ ثبت‌شده به زنگِ هم‌درس در برنامه‌ی همان روز می‌رود؛ چیزی حذف نمی‌شود */
@@ -1229,6 +1242,8 @@ function schedCard(k){const I=schedIssues(k);if(!I.length)return'';
  return accHtml('sch','⚠️ ناهماهنگی با برنامه‌ی هفتگی',fa(I.length)+' مورد',body,true,true)}
 
 function render(){const s=$('dj');if(!s)return;wscTrack();
+  /* حضور و غیاب زنگ‌به‌زنگ (cl-v167): پیش‌فرض بسته؛ با عوض شدن تاریخ دوباره بسته می‌شود و فقط معلم خودش بازش می‌کند */
+  if(st.batK!==st.k){st.batK=st.k;if(st.acc)delete st.acc.bat}
  const k=st.k,t=todayK();pickDefault();
  const L=dayBells(k),ses=st.b!=null?viewSes(k,st.b):null;
  const todayActs=getDayActivities(k);
@@ -1443,7 +1458,7 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
   const jp=jparts(c.k),dt=WDN[dow(c.k)]+' | '+fa(jp.d)+' '+JMN[jp.m-1];
   if(c.kind==='att'){maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+12);
    return`<th class="h at${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(dlab(c.k)+' — حضور و غیاب')}"><span>${isNewDate?`<b>${esc(dt)}</b> | `:''}حضور و غیاب</span></th>`}
-  const tx=cname(c.c)+' | '+c.n,tt=dlab(c.k)+' — '+(c.t==='x'?(c.mkc?'آزمون جبرانی (آزمون اصلی '+dlab(c.mkFrom)+')':'آزمون'):bellLabel(c.k,c.b))+' — '+cname(c.c)+' — '+c.n;
+  const sk=c.t==='x'?'':specialKind(c.k,c.b),tx=sk||(cname(c.c)+' | '+c.n),tt=dlab(c.k)+' — '+(c.t==='x'?(c.mkc?'آزمون جبرانی (آزمون اصلی '+dlab(c.mkFrom)+')':'آزمون'):bellLabel(c.k,c.b))+' — '+cname(c.c)+' — '+c.n;
   const mxT=isNewDate?cap-dt.length:cap,txs=tx.length>mxT?tx.slice(0,Math.max(10,mxT-1))+'…':tx;
   maxH=Math.max(maxH,(isNewDate?dt.length+3:0)+txs.length);
   return`<th class="h${c.t==='p'?' pnh':''}${c.mkc?' mkh':''}${alt?' d1':''}${isNewDate?' first-act':''}" title="${esc(tt)}"><span>${isNewDate?`<b>${esc(dt)}</b> | ${esc(txs)}`:esc(txs)}</span></th>`}).join('');
@@ -2263,7 +2278,7 @@ function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(ci
 function examBell(e){try{if(!e||!e.date)return null;if(e.bell!=null&&e.bell!=='')return String(e.bell);
  const hit=dayBells(e.date).find(x=>{const q=getSes(e.date,x.b);return q?String(q.c)===String(e.course):(x.cids||[]).map(String).indexOf(String(e.course))>=0});
  return hit?String(hit.b):null}catch(x){return null}}
-window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+')})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def)};
+window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+(specialKind(k,x.b)||((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+'))})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def)};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;
@@ -2284,7 +2299,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&st.cal){st.cal=null;render()}});
 window.renderDj=render;
-const _show=window.show;window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='dj'){migrateEnsha();if(!st.keep){st.k=startDay();st.b=null;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}st.keep=false;render()}else if(id==='home')homeCard()}catch(e){console.warn('dj',e)}return r};
+const _show=window.show;window.show=function(id){const r=_show.apply(this,arguments);try{if(id==='dj'){migrateEnsha();if(st.acc)delete st.acc.bat;st.batK=null;if(!st.keep){st.k=startDay();st.b=null;st.item=null;st.note=null;st.pick=new Set();st.tpl=false}st.keep=false;render()}else if(id==='home')homeCard()}catch(e){console.warn('dj',e)}return r};
 try{render()}catch(e){console.warn('initial dj render',e)}
 try{const h=$('home');if(h&&h.classList.contains('on'))homeCard()}catch(e){}
 }catch(e){console.error('daily-journal',e)}})();

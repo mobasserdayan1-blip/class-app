@@ -52,7 +52,7 @@ function calc(from,to){
    if(it.t==='d'){if(v===1){r.ok++;c.ok++}else{r.no++;c.no++}return}
    if(typeof v!=='number'||v<1||v>4)return;
    c.dj.push({v,k});c.g[v]++;
-   const q=pmk[sid];if(it.t==='p'&&q){r.pp+=q[0]||0;r.pn+=q[1]||0;c.pp+=q[0]||0;c.pn+=q[1]||0}
+   const q=pmk[sid];if(it.t==='p'&&q){const qp=(+q[0]||0)>=(+q[1]||0)?1:0,qn=qp?0:((+q[1]||0)?1:0);r.pp+=qp;r.pn+=qn;c.pp+=qp;c.pn+=qn}
    const w=it.t==='p'?.5:1;r.samples.push({v,k,w});
    if(/آغازین/.test((it.cg||'')+' '+(it.n||'')))r.init.push(v);
    const nt=(D.n||{})[key+'|'+sid];if(nt)r.notes.push({k,a:it.n||'',t:nt,c:name})});
@@ -181,18 +181,25 @@ function homeHtml(){
   const g={1:0,2:0,3:0,4:0};Object.values(r.cr).forEach(x=>{for(let l=1;l<=4;l++)g[l]+=x.g[l]});
   return `<tr><td class="asx-n">${fa(i+1)}</td><td class="asx-nm"><a data-asx-open="${r.s.id}">${E(r.s.name)}</a>${r.flags.length?`<div class="asx-fl">${r.flags.slice(0,2).map(f=>`<span style="color:${f.c}">${E(f.t)}</span>`).join(' · ')}</div>`:''}</td><td>${pill(r.st,'font-size:10.5px;padding:1px 8px')}</td><td>${r.avg==null?'<span class="asx-m">—</span>':heat(r.avg)}<div>${stack(g,64)}</div></td>${cells}<td style="font-weight:800;color:${r.hwP==null?'#94a3b8':r.hwP>=80?'#157a47':r.hwP>=50?'#a96a00':'#b3262c'}">${pc(r.hwP)}</td><td style="font-weight:800;color:${r.attP==null?'#94a3b8':r.attP>=90?'#157a47':r.attP>=80?'#a96a00':'#b3262c'}">${pc(r.attP)}</td><td>${fa(r.act.p)}<span class="asx-m">/</span>${fa(r.act.e)}</td><td>${trendI(r.trend)}</td></tr>`}).join('');
  const courseRow=c.courseAvg.filter(x=>x.v!=null).map(x=>`<span class="asx-cc">${E(x.n)} ${heat(x.v)}</span>`).join('');
- return `<div class="asx-h"><div><b>🎯 وضعیت تحصیلی کلاس</b><div class="asx-s">ترکیب ارزشیابی‌های دفتر روزانه، آزمون‌ها، تکالیف، فعالیت کلاسی و حضور</div></div><div class="asx-pr">${Object.keys(PER).map(k=>`<button data-asx-per="${k}" class="${k===per?'on':''}">${PER[k][0]}</button>`).join('')}</div></div>`+
+ return `<details class="asx-acc" id="asxDet"${open?' open':''}><summary><b>🎯 وضعیت تحصیلی کلاس</b><span class="asx-sm">${c.avg==null?'هنوز ارزشیابی ثبت نشده':'میانگین کلاس: '+f1(c.avg)}${need?' · 🚨 '+fa(need)+' نیازمند توجه':''}</span></summary><div class="asx-body"><div class="asx-h"><div><div class="asx-s">ترکیب ارزشیابی‌های دفتر روزانه، آزمون‌ها، تکالیف، فعالیت کلاسی و حضور</div></div><div class="asx-pr">${Object.keys(PER).map(k=>`<button data-asx-per="${k}" class="${k===per?'on':''}">${PER[k][0]}</button>`).join('')}</div></div>`+
  `<div class="asx-ks4">${kp('📊','میانگین کلاس',c.avg==null?'—':f1(c.avg),c.avg==null?'هنوز ارزشیابی ثبت نشده':pill(sc,'font-size:10.5px;padding:0 8px'),lvCol(c.avg))}${kp('📓','ارزشیابی‌های ثبت‌شده',fa(c.samples),'دفتر روزانه + آزمون')}${kp('📚','انجام تکلیف',pc(c.hwP),'میانگین کلاس',c.hwP==null?null:c.hwP>=80?'#157a47':c.hwP>=50?'#a96a00':'#b3262c')}${kp('🏫','حضور',pc(c.attP),'میانگین کلاس',c.attP==null?null:c.attP>=90?'#157a47':c.attP>=80?'#a96a00':'#b3262c')}</div>`+
  `<div style="margin:10px 0 4px"><table style="border-collapse:collapse;width:100%;border-radius:8px;overflow:hidden"><tr>${seg||'<td style="background:#cbd5e1;height:18px"></td>'}</tr></table><div style="margin-top:5px">${leg}</div></div>`+
  (need?`<div class="asx-al">🚨 ${fa(need)} دانش‌آموز نیازمند توجه‌اند (در جدول، اول فهرست)</div>`:'')+
  (courseRow?`<div class="asx-cr"><b>میانگین هر درس:</b> ${courseRow}</div>`:'')+
  `<div class="asx-pr" style="margin:8px 0 4px"><span class="asx-sl">مرتب‌سازی:</span><button data-asx-sort="need" class="${sortBy==='need'?'on':''}">نیازمند توجه</button><button data-asx-sort="best" class="${sortBy==='best'?'on':''}">بهترین‌ها</button><button data-asx-sort="name" class="${sortBy==='name'?'on':''}">الفبایی</button><button data-asx-go="dj" style="margin-right:auto">📓 دفتر روزانه</button></div>`+
- `<div class="asx-w"><table class="asx-t"><thead><tr><th>#</th><th>دانش‌آموز</th><th>وضعیت</th><th>میانگین</th>${head}<th>تکلیف</th><th>حضور</th><th title="فعالیت کلاسی: مثبت / نیاز به تلاش">فعالیت</th><th>روند</th></tr></thead><tbody>${body}</tbody></table></div>`+
- `<div class="asx-lg">برای دیدن کارنامه‌ی کامل هر دانش‌آموز روی نامش بزنید. سلول‌های رنگی میانگین هر درس‌اند (از ۴)؛ نوار زیر میانگین = فراوانی سطوح.</div>`;
+ `<div class="asx-w"><table class="asx-t" data-noresp="1"><thead><tr><th class="asx-nc">#</th><th class="asx-nh">دانش‌آموز</th><th>وضعیت</th><th>میانگین</th>${head}<th>تکلیف</th><th>حضور</th><th title="فعالیت کلاسی: مثبت / نیاز به تلاش">فعالیت</th><th>روند</th></tr></thead><tbody>${body}</tbody></table></div>`+
+ `<div class="asx-lg">برای دیدن کارنامه‌ی کامل هر دانش‌آموز روی نامش بزنید. سلول‌های رنگی میانگین هر درس‌اند (از ۴)؛ نوار زیر میانگین = فراوانی سطوح.</div></div></details>`;
 }
 
 const CSS=`
-#asxHome{margin:0 0 12px;padding:14px;background:var(--card,#fff);border-radius:22px;box-shadow:0 6px 18px #7e57c21f;border:1px solid var(--line,#eadff7);color:var(--tx,#3b2a55)}
+#asxHome{margin:12px 0 12px;padding:0;overflow:hidden;background:var(--card,#fff);border-radius:22px;box-shadow:0 6px 18px #7e57c21f;border:1px solid var(--line,#eadff7);color:var(--tx,#3b2a55)}
+#asxHome .asx-acc>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px;user-select:none}
+#asxHome .asx-acc>summary::-webkit-details-marker{display:none}
+#asxHome .asx-acc>summary::after{content:"▾";margin-inline-start:auto;font-size:15px;color:var(--mut,#8a7aa6);transition:transform .2s}
+#asxHome .asx-acc[open]>summary::after{transform:rotate(180deg)}
+#asxHome .asx-acc>summary b{font-size:17px}
+#asxHome .asx-sm{font-size:12px;font-weight:700;color:var(--mut,#8a7aa6)}
+#asxHome .asx-body{padding:0 14px 14px}
 #asxHome .asx-h{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap}
 #asxHome .asx-h b{font-size:17px}#asxHome .asx-s{font-size:11.5px;color:var(--mut,#8a7aa6);margin-top:2px}
 #asxHome .asx-pr{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
@@ -206,21 +213,29 @@ const CSS=`
 #asxHome .asx-al{margin-top:8px;padding:7px 10px;border-radius:10px;background:#fde7e8;color:#b3262c;font-size:12.5px;font-weight:800}
 #asxHome .asx-cr{margin-top:8px;font-size:12px;line-height:2.3}#asxHome .asx-cc{display:inline-block;margin-left:10px;white-space:nowrap}
 #asxHome .asx-w{overflow:auto;max-height:520px;border:1px solid var(--line,#eadff7);border-radius:14px}
-#asxHome .asx-t{border-collapse:collapse;width:100%;font-size:12px;text-align:center}
+#asxHome .asx-t{border-collapse:collapse;width:max-content;min-width:100%;table-layout:auto;font-size:12px;text-align:center}
+#asxHome .asx-t th.asx-nc,#asxHome .asx-t td.asx-n{width:26px;min-width:26px;max-width:26px;padding:5px 2px;font-size:10.5px;position:sticky;right:0;background:var(--card,#fff);z-index:2}
+#asxHome .asx-t th.asx-nc{background:var(--bg2,#efe6fb);z-index:4}
+#asxHome .asx-t th.asx-nh,#asxHome .asx-t td.asx-nm{position:sticky;right:26px;z-index:2;background:var(--card,#fff);text-align:right;min-width:190px;box-shadow:-2px 0 0 var(--line,#eadff7) inset}
+#asxHome .asx-t th.asx-nh{background:var(--bg2,#efe6fb);z-index:4}
+#asxHome .asx-t td.asx-nm a{white-space:nowrap}
+#asxHome .asx-t td.asx-nm .asx-fl{white-space:normal;max-width:230px}
 #asxHome .asx-t th{position:sticky;top:0;background:var(--bg2,#efe6fb);color:var(--tx,#3b2a55);padding:7px 6px;white-space:nowrap;z-index:1}
 #asxHome .asx-t td{padding:5px 5px;border-top:1px solid var(--line,#eadff7);vertical-align:middle}
-#asxHome .asx-t td.asx-nm{text-align:right;min-width:130px}#asxHome .asx-nm a{font-weight:800;cursor:pointer;color:var(--p,#7e57c2)}
+#asxHome .asx-t td.asx-nm{text-align:right}#asxHome .asx-nm a{font-weight:800;cursor:pointer;color:var(--p,#7e57c2)}
 #asxHome .asx-fl{font-size:10px;margin-top:1px;line-height:1.5}#asxHome .asx-m{color:#94a3b8}#asxHome .asx-n{color:var(--mut,#8a7aa6)}
 #asxHome .asx-lg{margin-top:6px;font-size:11px;color:var(--mut,#8a7aa6)}`;
 const stl=document.createElement('style');stl.id='asx-css';stl.textContent=CSS;document.head.appendChild(stl);
 
 function mount(){
  try{const h=$('home');if(!h)return;let b=$('asxHome');
-  if(!b){b=document.createElement('div');b.id='asxHome';const a=$('smart');if(a&&a.parentNode===h)a.before(b);else h.appendChild(b)}
+  if(!b){b=document.createElement('div');b.id='asxHome';const hm=$('homeMore'),a=$('smart');if(hm&&hm.parentNode===h)hm.after(b);else if(a&&a.parentNode===h)a.before(b);else h.appendChild(b)}
+   {const hm=$('homeMore');if(hm&&hm.parentNode===h&&hm.nextElementSibling!==b)hm.after(b)}
   const html=homeHtml();b.style.display=html?'':'none';
   if(b.__h!==html){b.__h=html;b.innerHTML=html}
  }catch(e){console.warn('asx mount',e)}
 }
+document.addEventListener('toggle',ev=>{const d=ev.target;if(d&&d.id==='asxDet'){open=d.open;const b=$('asxHome');}},true);
 document.addEventListener('click',ev=>{
  const t=ev.target.closest&&ev.target.closest('#asxHome [data-asx-per],#asxHome [data-asx-sort],#asxHome [data-asx-open],#asxHome [data-asx-go]');if(!t)return;
  if(t.dataset.asxPer){per=t.dataset.asxPer;mount()}

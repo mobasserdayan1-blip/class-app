@@ -49,7 +49,10 @@ const wkOff=k=>{try{const w=wkApi();return !!w&&w.isSchoolDay(k)===false}catch(e
 const wkSet=()=>{try{const w=wkApi();return !!w&&w.configured()}catch(e){return false}};
 const dstat=k=>{try{return typeof window.dayStatus==='function'?window.dayStatus(k):null}catch(e){return null}};
 const isOff=k=>{{const ds=dstat(k);if(ds)return ds.off===true}if(wkOff(k))return true;if(S.closed&&S.closed[k])return true;try{if(typeof window.dayType==='function'&&window.dayType(k).kind!=='work')return true}catch(e){}return false};
-const D=()=>{S.dj=S.dj||{};const o=S.dj;o.tpl=o.tpl||{};o.ses=o.ses||{};o.m=o.m||{};o.n=o.n||{};o.pm=o.pm||{};return o};
+const D=()=>{S.dj=S.dj||{};const o=S.dj;o.tpl=o.tpl||{};o.ses=o.ses||{};o.m=o.m||{};o.n=o.n||{};o.pm=o.pm||{};if(!o.pm1)pnMigrate(o);return o};
+/* cl-v170: برای هر دانش‌آموز در هر فعالیت فقط «یک» مثبت یا «یک» منفی؛ داده‌های قدیمیِ چندتایی به همان یک وضعیت تبدیل می‌شوند (بیشتر بودن مثبت/منفی؛ در تساوی مثبت) */
+function pnOne(q){q=q||[0,0];const p=+q[0]||0,n=+q[1]||0;return !p&&!n?[0,0]:(p>=n?[1,0]:[0,1])}
+function pnMigrate(o){try{Object.keys(o.pm||{}).forEach(key=>{const pm=o.pm[key];if(!pm)return;o.m[key]=o.m[key]||{};Object.keys(pm).forEach(sid=>{const c=pnOne(pm[sid]);if(!c[0]&&!c[1]){delete pm[sid];return}pm[sid]=c;o.m[key][sid]=c[0]?4:1});if(!Object.keys(pm).length)delete o.pm[key]});o.pm1=1}catch(e){console.warn('pnMigrate',e)}}
 const save=()=>{try{if(typeof window.save==='function')window.save();else if(typeof S!=='undefined'&&S)localStorage.setItem('cl1',JSON.stringify(S))}catch(e){console.warn('dj save',e)}};
 const courses=()=>S.courses||[];
 const SPECIAL_COURSES=[
@@ -196,14 +199,18 @@ function setPN(k,b,id,sid,dp,dn,reset){
  const s=ensureSes(k,b),it=itemsOf(s).find(x=>x.id===id);if(!it||it.t!=='p')return false;
  s.it=s.it||{};if(!s.it[id])s.it[id]={n:it.n,t:'p',hw:0};
  const d=D(),key=k+'|'+b+'|'+id,pm=d.pm[key]=d.pm[key]||{},m=d.m[key]=d.m[key]||{};
- let c=pm[sid]||[0,0];c=reset?[0,0]:[Math.max(0,c[0]+dp),Math.max(0,c[1]+dn)];
+ const cur=pnOne(pm[sid]);let c;
+  if(reset||dp<0||dn<0)c=[0,0];
+  else if(dp>0)c=cur[0]?[0,0]:[1,0];
+  else if(dn>0)c=cur[1]?[0,0]:[0,1];
+  else c=cur;
  if(c[0]+c[1]===0){delete pm[sid];delete m[sid]}else{pm[sid]=c;m[sid]=pLevel(c[0],c[1])}
  if(!Object.keys(pm).length)delete d.pm[key];
  if(!Object.keys(m).length)delete d.m[key];
  if(s.st==='skip')delete s.st;
  save();return true}
 /* مجموع مثبت/منفی‌های یک دانش‌آموز (برای ارزشیابی مستمر) */
-function oralOf(sid){const d=D();let p=0,n=0;Object.keys(d.pm||{}).forEach(key=>{const q=d.pm[key][sid];if(!q)return;const kk=key.split('|'),ss=d.ses[kk[0]+'|'+kk[1]];if(!ss||!(ss.it||{})[kk[2]])return;p+=q[0]||0;n+=q[1]||0});return{p,n}}
+function oralOf(sid){const d=D();let p=0,n=0;Object.keys(d.pm||{}).forEach(key=>{const q=d.pm[key][sid];if(!q)return;const kk=key.split('|'),ss=d.ses[kk[0]+'|'+kk[1]];if(!ss||!(ss.it||{})[kk[2]])return;const o1=pnOne(q);p+=o1[0];n+=o1[1]});return{p,n}}
 /* انتقال یک فعالیت (با همه‌ی نمره‌ها، شمارش‌ها، یادداشت‌ها و تکلیف) به زنگ دیگر؛ برای اینکه عوض‌کردن درس یک فعالیت، فعالیت‌های دیگر آن زنگ را تغییر ندهد */
 function moveItem(k,b0,b1,id){
  const d=D(),s0=d.ses[sesKey(k,b0)],s1=d.ses[sesKey(k,b1)];if(!s0||!s1||!s0.it||!s0.it[id])return;
@@ -591,7 +598,7 @@ const MXCSS=`
 .dj-bt .dj-pn.neg,.dj-pn.neg{border-color:#c0262c !important;color:#c0262c !important}.dj-bt .dj-pn.neg:hover{background:#fde7e8}
 .dj-pn b{display:inline-block;min-width:18px;padding:0 5px;margin-right:4px;border-radius:9px;color:#fff !important}.dj-pn.pos b{background:#1a8f55}.dj-pn.neg b{background:#c0262c}
 .dj-pnx{border:0;background:#eef1f6;color:#64748b;border-radius:8px;width:24px;height:24px;cursor:pointer;font-size:11px;line-height:1}.dj-pnx:hover{background:#fde7e8;color:#c0262c}
-.dj-pn:disabled,.dj-pnx:disabled{opacity:.4;cursor:not-allowed}
+.dj-pn:disabled,.dj-pnx:disabled{opacity:.4;cursor:not-allowed}.dj-pn.pos.on{background:#1a8f55 !important;color:#fff !important}.dj-pn.neg.on{background:#c0262c !important;color:#fff !important}
 .dj-mx tbody tr:hover td.nm{background:#e8edf9}
 @media(max-width:640px){.dj-mx th.nm,.dj-mx td.nm{white-space:normal !important;min-width:92px;width:92px;max-width:104px;font-size:11px;line-height:1.35;padding:4px 6px}.dj-mx th.h{width:26px;min-width:26px}.dj-mx td.c{width:26px;min-width:26px;height:24px;font-size:10px}}
 
@@ -1006,9 +1013,8 @@ function btns(it,cur,sid,dis){
   return LV.map(l=>`<button type="button" class="dj-b${cur===l.v?' on':''}" ${dis?'disabled':''} title="${l.t}" style="${cur===l.v?'background:'+l.c+';color:#fff':''}" data-dj="mk:${sid}:${l.v}">${l.s}</button>`).join('');
 }
 
-function pnBtns(sid,c,dis){c=c||[0,0];const dd=dis?'disabled':'';
-  const x=(t,n)=>n?`<button type="button" class="dj-pnx" ${dd} data-dj="pnd:${sid}:${t}" title="کم‌کردن یک مورد" aria-label="کم‌کردن یک مورد">✕</button>`:'';
-  return `<button type="button" class="dj-b dj-pn neg" ${dd} data-dj="pn:${sid}:n" title="پاسخ منفی">− منفی${c[1]?' <b>'+fa(c[1])+'</b>':''}</button>${x('n',c[1])}<button type="button" class="dj-b dj-pn pos" ${dd} data-dj="pn:${sid}:p" title="پاسخ مثبت">＋ مثبت${c[0]?' <b>'+fa(c[0])+'</b>':''}</button>${x('p',c[0])}`}
+function pnBtns(sid,c,dis){c=pnOne(c);const dd=dis?'disabled':'';
+  return `<button type="button" class="dj-b dj-pn neg${c[1]?' on':''}" ${dd} data-dj="pn:${sid}:n" title="پاسخ منفی (دوباره بزنید تا برداشته شود)" aria-pressed="${c[1]?'true':'false'}">− منفی</button><button type="button" class="dj-b dj-pn pos${c[0]?' on':''}" ${dd} data-dj="pn:${sid}:p" title="پاسخ مثبت (دوباره بزنید تا برداشته شود)" aria-pressed="${c[0]?'true':'false'}">＋ مثبت</button>`}
 function studentList(k,b,it,pn){
   const d=D(),key=k+'|'+b+'|'+it.id,m=d.m[key]||{},done=Object.keys(m).filter(sid=>!absentB(k,b,+sid)).length;
   const pct=pn?Math.round(done/pn*100):0;
@@ -1326,9 +1332,10 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
 </div>
  </div>`;
 
- h+=classActsHtml(k);
- h+=hwDayHtml(k);
 
+ /* cl-v170: کارت‌های «فعالیت‌های کلاسی دانش‌آموزان در این روز» و «بررسی تکالیف این روز» به درخواست آموزگار از دفتر روزانه برداشته شد. */
+
+ h+=suggCard();
  h+=calHtml();
 
  // ۵) اگر زنگ/فعالیتی برای ارزشیابی انتخاب شده
@@ -1338,7 +1345,6 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
 
  h+=fuCard(k);
  h+=(window.BellAtt&&window.BellAtt.cardHtml?window.BellAtt.cardHtml(k):'');
- h+=(window.SubjTrack&&window.SubjTrack.cardHtml?window.SubjTrack.cardHtml(k):'');
  // ۳) ابزارهای گزارش رسمی
  const repBody=`<div class="dj-nt" style="margin-top:8px;flex-wrap:wrap">
     <button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:13px;padding:9px 15px;border-radius:12px;border:0;cursor:pointer;font-weight:800" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 افقی / عمودی با حضور و غیاب)</button>
@@ -1346,12 +1352,11 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
     <button type="button" class="dj-sm" data-dj="report">🖨️ خروجی استاندارد</button>
   </div>
   <small style="color:var(--mut,#888)">گزارش دفتر روزانه معلم شامل عملکرد هر روز در کنار حضور و غیاب دانش‌آموزان در برگه A4 افقی (ماهانه) یا عمودی (هفتگی) آماده چاپ است.</small>`;
- h+=''; const repH=accHtml('rep','📄 گزارش‌های رسمی و چاپی دفتر روزانه','',repBody,false);
-
- // ۷) جدول ماتریسی عملکرد دانش‌آموزان
+ /* ترتیب نهایی (cl-v170): فعالیت‌های امروز ← پیشنهاد برای معلم ← پنل ارزشیابی ← پیگیری‌ها ← گزارش‌های رسمی ← پیگیری پیشرفت درس ← جدول عملکرد (کرکره) ← توزیع توجه (کرکره) */
+ h+=accHtml('rep','📄 گزارش‌های رسمی و چاپی دفتر روزانه','',repBody,false);
+ h+=(window.SubjTrack&&window.SubjTrack.cardHtml?window.SubjTrack.cardHtml(k):'');
  h+=mxCard();
  h+=focusCard();
- h+=repH;
 
 
  // ۸) مودال‌ها
@@ -1370,7 +1375,7 @@ function mxRange(){const a=mxAnchor();
  const from=addD(a,-dow(a)),to=addD(from,6);return{from,to,title:dshort(from)+' تا '+dshort(to),kind:'هفتگی'}}
 /* ستون‌های جدول عملکرد: برای هر روز، اول ستون «حضور و غیاب» همان روز و بعد فعالیت‌های همان روز */
 const isExcX=(k,sid)=>{try{return typeof window.isExc==='function'&&!!window.isExc(k,sid)}catch(e){return false}};
-const pnHtml=q=>{const b='display:inline-block;direction:ltr;unicode-bidi:isolate';return (q[0]?`<span style="${b}">+${fa(q[0])}</span>`:'')+(q[0]&&q[1]?' ':'')+(q[1]?`<span style="${b}">−${fa(q[1])}</span>`:'')};
+const pnHtml=q=>{q=pnOne(q);const b='display:inline-block;direction:ltr;unicode-bidi:isolate;font-weight:900;font-size:15px';return q[0]?`<span style="${b}">＋</span>`:(q[1]?`<span style="${b}">−</span>`:'')};
 function attCell(k,sid){const v=((S.att||{})[k]||{})[sid];
  if(v==null)return{t:'',c:'em',tt:'حضور و غیاب ثبت نشده'};
  if(v==='a')return isExcX(k,sid)?{t:'غ م',c:'ax',tt:'غایب موجه'}:{t:'غ',c:'ab',tt:'غایب'};
@@ -1475,7 +1480,7 @@ function mxTable(B,o){o=o||{};const cols=o.cols||B.cols;if(!cols.length)return''
    if(v==null&&c.t!=='x'&&c.b&&outB(c.k,c.b,s.id))return`<td class="c em" style="background:#ffe9d6;color:#b45309;font-size:9px;font-weight:800"${pr?'':' title="در این زنگ خارج از مدرسه بود؛ «انجام‌نشده به علت خروج» (نه صفر و نه منفی)"'}>خروج</td>`;
    if(v==null)return`<td class="c em${EC}"${pr?'':' title="ثبت نشده — برای ثبت کلیک کنید"'}${EA}></td>`;
    if(c.t==='d')return v===1?`<td class="c ok${EC}" title="انجام شد${hint}"${EA}>✓</td>`:`<td class="c no${EC}" title="انجام نشد${hint}"${EA}>✗</td>`;
-   if(c.t==='p'){const q=(c.pm||{})[s.id];if(q)return`<td class="c pnc l${v}${EC}" title="${fa(q[0])} پاسخ مثبت و ${fa(q[1])} پاسخ منفی${hint}"${EA}>${pnHtml(q)}</td>`}
+   if(c.t==='p'){const q=(c.pm||{})[s.id];if(q){const o1=pnOne(q);return`<td class="c pnc l${v}${EC}" title="${o1[0]?'پاسخ مثبت':'پاسخ منفی'}${hint}"${EA}>${pnHtml(q)}</td>`}}
    const m=MXS[v];return m?`<td class="c ${m[1]}${EC}" title="${m[2]}${hint}"${EA}><span class="c-txt">${m[0]}</span></td>`:`<td class="c em${EC}"${EA}></td>`}).join('');
   return`<tr>${o.num?`<td class="rn">${fa(i+1)}</td>`:''}<td class="nm">${esc(s.name)}</td>${tds}</tr>`}).join('');
  const tw=pr?`max-width:${nmW+(o.num?24:0)+cols.length*46}px;`:'';
@@ -1694,11 +1699,8 @@ function classAnalyticsDashboard(B){
 function mxCard(){
   const B = mxBuild(), tb = mxTable(B), own = st.mx.k != null;
   const opt = `<option value="all"${st.mx.c==='all'?' selected':''}>همه‌ی درس‌ها</option>` + allCourses().map(c=>`<option value="${c.id}"${String(c.id)===String(st.mx.c)?' selected':''}>${esc(c.name)}</option>`).join('');
-  return `<div class="card dj-mx" id="djMx">
-    <div class="dj-ph">
-      <b>📊 جدول عملکرد دانش‌آموزان <span class="dj-live">پیش‌نمایش زنده</span></b>
-      <small>${fa(B.cols.filter(c=>c.kind==='act').length)} ستون فعالیت ثبت‌شده</small>
-    </div>
+  const nAct = B.cols.filter(c=>c.kind==='act').length;
+  const inner = `<div class="card dj-mx" id="djMx" style="box-shadow:none;border:0;padding:0;margin:0;background:transparent">
     <div class="dj-mxbar">
       <div class="dj-seg">
         <button type="button" class="${st.mx.m==='week'?'on':''}" data-dj="mxmode:week">هفتگی</button>
@@ -1721,6 +1723,7 @@ function mxCard(){
     ${mxLegend()}
     ${classAnalyticsDashboard(B)}
   </div>`;
+  return accHtml('mx','📊 جدول عملکرد دانش‌آموزان',fa(nAct)+' ستون فعالیت ثبت‌شده',inner,false);
 }
 
 /* ───── توزیع توجه معلم: چه دانش‌آموزی بیشتر مورد پرسش/ارزشیابی بوده و چه کسی کمتر دیده شده ───── */
@@ -1733,7 +1736,7 @@ function focusStats(range){
   Object.keys(mk).forEach(sid=>{const r=T[sid];if(!r||mk[sid]==null)return;
    if(k>r.last)r.last=k;
    if(!inR(k))return;
-   if(it.t==='p'){const q=(d.pm[key]||{})[sid];r.j+=q?(q[0]+q[1]):1}else r.j+=1})});
+   if(it.t==='p'){const q=(d.pm[key]||{})[sid];r.j+=1}else r.j+=1})});
  (S.activities||[]).forEach(x=>{const r=x&&T[x.sid];if(!r||!x.date||x.date>end||mxOff(x.date))return;if(x.date>r.last)r.last=x.date;if(inR(x.date))r.c++});
  Object.keys(S.att||{}).forEach(k=>{if(!inR(k))return;const a=S.att[k];if(!a||!Object.keys(a).length)return;
   Object.keys(T).forEach(id=>{if(a[id]!=='a')T[id].pres++})});
@@ -1750,14 +1753,18 @@ function focusCard(){
  const rows=F.L.map(r=>{const w1=r.j/F.max*100,w2=r.c/F.max*100,noPres=r.pres===0&&r.t===0;
   return `<div class="dj-fr${sug.has(r.s.id)?' lo':''}${noPres?' na':''}"><span class="dj-fn">${esc(r.s.name)}</span><span class="dj-fb">${w1?`<i class="j" style="width:${w1}%"></i>`:''}${w2?`<i class="c" style="width:${w2}%"></i>`:''}</span><b class="dj-fv">${noPres?'غایب':fa(r.t)}</b></div>`}).join('');
  const top=F.L.filter(r=>r.t>0).slice(0,3);
- const sugH=F.sug.length?F.sug.map(r=>`<li><b>${esc(r.s.name)}</b> — ${r.t?fa(r.t)+' نوبت در '+fa(r.pres)+' روز حضور':'در این بازه هیچ نوبتی ثبت نشده'}${r.ago!=null?` · آخرین نوبت: ${r.ago?fa(r.ago)+' روز پیش':'امروز'}`:' · تاکنون نوبتی نداشته'}</li>`).join(''):'<li style="list-style:none">✅ توزیع نوبت‌ها در این بازه متعادل است؛ دانش‌آموزِ مغفول‌مانده‌ای دیده نمی‌شود.</li>';
- return `<div class="card dj-fc" id="djFc"><div class="dj-ph"><b>🎯 توزیع توجه به دانش‌آموزان <span class="dj-live">پیشنهاد هوشمند</span></b><small>${fa(total)} نوبت ارزشیابی/پرسش · ${esc(dshort(F.from))} تا ${esc(dshort(F.end))}</small></div>
+ const inner=`<div class="dj-fc" id="djFc"><div class="dj-ph"><small>${fa(total)} نوبت ارزشیابی/پرسش · ${esc(dshort(F.from))} تا ${esc(dshort(F.end))}</small></div>
   <div class="dj-mxbar">${rg('7','۷ روز اخیر')}${rg('14','۱۴ روز اخیر')}${rg('30','۳۰ روز اخیر')}${rg('all','کل سال')}</div>
   <div class="dj-fleg"><i class="j"></i>ارزشیابی دفتر روزانه <i class="c"></i>فعالیت کلاسی (پاسخ به سؤال، ارائه و…) · هر ارزشیابی یا پاسخ = یک نوبت؛ روزهای تعطیل حساب نمی‌شوند</div>
   <div class="dj-fch">${rows}</div>
-  <div class="dj-fsug"><b>💡 پیشنهاد برای معلم: امروز به این دانش‌آموزان فرصت پرسش بدهید</b><ul>${sugH}</ul>${F.sug.length?'<button type="button" class="dj-sm" data-dj="gotoact">↗ ثبت پاسخ در «فعالیت کلاسی»</button>':''}</div>
   ${top.length?`<div class="dj-ftop">🌟 فعال‌ترین‌ها: ${top.map(r=>esc(r.s.name)+' ('+fa(r.t)+')').join('، ')}</div>`:''}
- </div>`}
+ </div>`;
+ return accHtml('fc','🎯 توزیع توجه به دانش‌آموزان',fa(total)+' نوبت',inner,false)}
+/* «پیشنهاد برای معلم» جدا از کرکره‌ی توزیع توجه و در بالای صفحه، کنار جدول فعالیت‌های امروز (cl-v170) */
+function suggCard(){
+ const F=focusStats(st.fc||'14');if(!F.L.length)return'';
+ const sugH=F.sug.length?F.sug.map(r=>`<li><b>${esc(r.s.name)}</b> — ${r.t?fa(r.t)+' نوبت در '+fa(r.pres)+' روز حضور':'در این بازه هیچ نوبتی ثبت نشده'}${r.ago!=null?` · آخرین نوبت: ${r.ago?fa(r.ago)+' روز پیش':'امروز'}`:' · تاکنون نوبتی نداشته'}</li>`).join(''):'<li style="list-style:none">✅ توزیع نوبت‌ها در این بازه متعادل است؛ دانش‌آموزِ مغفول‌مانده‌ای دیده نمی‌شود.</li>';
+ return `<div class="card dj-sugc" id="djSug"><div class="dj-fsug" style="margin:0"><b>💡 پیشنهاد برای معلم: امروز به این دانش‌آموزان فرصت پرسش بدهید</b><ul>${sugH}</ul></div></div>`}
 function mxShift(dir){const a=mxAnchor();
   if(st.mx.m==='month'){
     const p=jparts(a);
@@ -2067,8 +2074,8 @@ function mxEditOpen(key,sid){
   }else if(c.t==='d'){
    body=`<div style="display:flex;gap:6px;flex-wrap:wrap">${btn('mk:1','✓ انجام شد',sv===1?'#1a8f55':'#eef2f7',sv===1?'#fff':'#1e293b')}${btn('mk:0','✗ انجام نشد',sv===0?'#c0262c':'#eef2f7',sv===0?'#fff':'#1e293b')}</div>`;
   }else if(c.t==='p'){
-   const q=(c.pm||{})[sid]||[0,0];
-   body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">هر «مثبت» = یک پاسخ درست/مشارکت، هر «منفی» = یک پاسخ نادرست/نبود آمادگی. فعلاً: <b>＋${fa(q[0])}</b> و <b>−${fa(q[1])}</b></div><div style="display:flex;gap:6px;flex-wrap:wrap">${btn('pn:1:0','＋ مثبت','#0f766e','#fff')}${btn('pn:0:1','− منفی','#b45309','#fff')}${q[0]?btn('pn:-1:0','کم‌کردن یک مثبت'):''}${q[1]?btn('pn:0:-1','کم‌کردن یک منفی'):''}</div>`;
+   const q=pnOne((c.pm||{})[sid]);
+   body=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin-bottom:8px">برای هر دانش‌آموز در هر فعالیت فقط یک وضعیت ثبت می‌شود: «مثبت» (پاسخ درست/مشارکت) یا «منفی» (پاسخ نادرست/نبود آمادگی). دوباره زدنِ همان دکمه آن را برمی‌دارد.</div><div style="display:flex;gap:6px;flex-wrap:wrap">${btn('pn:1:0','＋ مثبت',q[0]?'#0f766e':'#eef2f7',q[0]?'#fff':'#0f766e')}${btn('pn:0:1','− منفی',q[1]?'#c0262c':'#eef2f7',q[1]?'#fff':'#c0262c')}${(q[0]||q[1])?btn('pn:-1:-1','پاک‌کردن'):''}</div>`;
   }else{
    body=`<div style="display:flex;gap:6px;flex-wrap:wrap">${LV.map(l=>btn('mk:'+l.v,l.s,sv===l.v?l.c:'#eef2f7',sv===l.v?'#fff':'#1e293b')).join('')}</div>`;
   }
@@ -2273,7 +2280,7 @@ function summary(sid,from,to){const d=D(),R={};
  Object.keys(d.m).forEach(key=>{const v=d.m[key][sid];if(v==null)return;const p=key.split('|'),k=p[0];if(from&&k<from)return;if(to&&k>to)return;
   const s=d.ses[k+'|'+p[1]];if(!s||!(s.it||{})[p[2]])return;const it=s.it[p[2]],r=R[s.c]=R[s.c]||{c:s.c,g:{1:0,2:0,3:0,4:0},ok:0,no:0,pp:0,pn:0,n:0,last:[]};
   if(it.t==='d'){v===1?r.ok++:r.no++}else if(r.g[v]!=null)r.g[v]++;r.n++;
-  if(it.t==='p'){const q=((d.pm||{})[key]||{})[sid];if(q){r.pp+=q[0];r.pn+=q[1]}}
+  if(it.t==='p'){const q=((d.pm||{})[key]||{})[sid];if(q){const o1=pnOne(q);r.pp+=o1[0];r.pn+=o1[1]}}
   const nt=d.n[key+'|'+sid];if(nt)r.last.push({k,a:it.n,t:nt})});
  Object.values(R).forEach(r=>r.last.sort((a,b)=>b.k.localeCompare(a.k)));return Object.values(R)}
 /* دروس قابل ارزشیابی در «ثبت ارزشیابی یا آزمون»: همان دروس دفتر روزانه (شامل املا و انشا) */
@@ -2302,8 +2309,9 @@ function specialAct(n){n=String(n||'').trim();for(const l of ['املا','انش
 function trackEvents(from,to){const d=D(),out=[];
  Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(k<from||k>to||mxOff(k))return;
   const ses=d.ses[k+'|'+p[1]],it=ses&&(ses.it||{})[p[2]],mk=d.m[key];if(!it||!mk||!Object.keys(mk).length)return;
-  if(it.t==='d')return;
-  out.push({k,b:p[1],c:ses.c,sub:specialKind(k,p[1])||specialAct(it.n)||cname(ses.c),act:String(it.n||'').trim()||'فعالیت',mk})});
+  let mk2=mk;
+  if(it.t==='d'){mk2={};Object.keys(mk).forEach(sid=>{if(mk[sid]!=null)mk2[sid]=mk[sid]===1?4:1})}   /* «انجام شد» = خیلی خوب، «نشد» = نیاز به تلاش */
+  out.push({k,b:p[1],c:ses.c,t:it.t||'g',sub:specialKind(k,p[1])||specialAct(it.n)||cname(ses.c),act:String(it.n||'').trim()||'فعالیت',mk:mk2})});
  return out}
 window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+(specialKind(k,x.b)||((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+'))})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def),tk:{events:trackEvents,jparts,jiso,JMN,fa,addD,dow}};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};

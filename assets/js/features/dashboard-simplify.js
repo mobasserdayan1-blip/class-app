@@ -71,13 +71,15 @@ function homeInit(){try{qa();foldHome();moreBtn();arrangeHome()}catch(e){console
 /* چیدمان نهایی صفحه‌ی خانه (ترتیب واقعی باکس‌ها، بدون ساخت نسخه‌ی تکراری):
    ۱) خوش‌آمدگویی (#tdHero) ۲) برنامه‌ی امروز (#wsToday) ۳) یادآور آزمون‌ها (#exRem) ۴) پنج کارت (#qa) ۵) دفتر روزانه (#djHome)
    هر باکس را ماژول خودش می‌سازد؛ این تابع فقط جای آن‌ها را زیر سرتیتر صفحه مرتب می‌کند. */
-const HOME_ORDER=['tdHero','wsToday','exRem','qa','djHome','asxHome'];
+const HOME_ORDER=['tdHero','wsToday','exRem','qa','djHome'];
 function arrangeHome(){
  const h=$('home');if(!h)return;
  let prev=$('hsub');if(!prev||prev.parentNode!==h)prev=h.querySelector(':scope>h1');
  HOME_ORDER.forEach(id=>{const el=$(id);if(!el||el.parentNode!==h)return;
   if(prev){if(prev.nextElementSibling!==el)prev.after(el)}else if(h.firstElementChild!==el)h.prepend(el);
   prev=el});
+ /* «وضعیت تحصیلی کلاس» (کرکره) همیشه بعد از «رده‌بندی و افزودن دانش‌آموز» */
+ const hm=$('homeMore'),ax=$('asxHome');if(hm&&ax&&hm.parentNode===h&&ax.parentNode===h&&hm.nextElementSibling!==ax)hm.after(ax);
 }
 const homeStyle=document.createElement('style');
 homeStyle.textContent='#home>#tdHero,#home>#wsToday,#home>#exRem,#home>#qa,#home>#djHome{margin:0 0 12px}.ws-today{scroll-margin-top:12px}';

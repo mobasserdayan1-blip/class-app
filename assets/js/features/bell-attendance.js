@@ -45,18 +45,17 @@ window.exOutAt=outAtExam;
 
 /* ───── رابط کاربری: یک کارت داخل صفحه‌ی «دفتر روزانه‌ی معلم» (نه صفحه‌ی جدا) ─────
    تاریخ همان تاریخِ دفتر است و با «📅 تقویم شمسی» دفتر عوض می‌شود. */
-let open_=true;
 function summaryOf(k,sid){let o=0;bellsOf(k).forEach(x=>{if(isOut(k,x.b,sid))o++});return o}
 function bs(bg,fg){return`border:0;border-radius:10px;padding:7px 13px;background:${bg||'#eef2f7'};color:${fg||'#1e293b'};font:800 12.5px Vazirmatn,Tahoma,sans-serif;cursor:pointer`}
 function cardHtml(k){try{
  const K=kit();if(!K)return'';
  const B=bellsOf(k),stu=K.students();
- let h=`<div class="card dj-bat" id="djBat" style="border:1.5px solid #fcd9b6;background:var(--card,#fff)">
- <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><b style="font-size:14.5px">🔔 حضور و غیاب زنگ‌به‌زنگ <small style="font-weight:600;color:#64748b">· ${esc(K.dlab(k))}</small></b><button type="button" data-bt="toggle" style="${bs()}">${open_?'▾ بستن':'▸ باز کردن'}</button></div>`;
- if(!open_)return h+'</div>';
- h+=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin:6px 0 8px">اگر دانش‌آموزی با دلیل موجه در طول روز از کلاس بیرون رفت، روی خانه‌ی او در همان زنگ بزنید و وضعیت را ثبت کنید (حضور اولِ روز دست‌نخورده می‌ماند). «خروج» هیچ فعالیت یا آزمونِ قبلی را حذف نمی‌کند؛ فعالیت/آزمونِ زنگ خروج برای او «انجام‌نشده به علت خروج» می‌شود، نه صفر و نه منفی. تاریخ را با «📅 تقویم شمسی» بالای صفحه عوض کنید.</div>`;
- if(!B.length)return h+`<div style="padding:12px;text-align:center;color:#64748b;background:#f8fafc;border-radius:10px">برای این روز هنوز زنگی ثبت نشده است. با «➕ ثبت فعالیت آموزشی جدید» (یا برنامه‌ی هفتگی) زنگ‌های روز ساخته می‌شود و اینجا می‌آید.</div></div>`;
- h+=`<div style="overflow:auto;border:1px solid #e2e8f0;border-radius:12px"><table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="position:sticky;right:0;background:#f1f5f9;padding:8px;text-align:right;min-width:120px">دانش‌آموز</th>${B.map(x=>`<th style="background:#f1f5f9;padding:6px 4px;min-width:62px;font-size:11.5px;line-height:1.5">${esc(x.short)}</th>`).join('')}<th style="background:#f1f5f9;padding:6px;font-size:11.5px">زنگ‌های بیرون</th></tr></thead><tbody>`;
+ const bad=B.length?stu.filter(s=>!dayAbs(k,s.id)&&summaryOf(k,s.id)>0).length:0;
+ const open=K.acc?K.acc('bat',false):false;
+ let h=`<details class="card dj-acc dj-bat" id="djBat" data-acc="bat"${open?' open':''} style="border:1.5px solid #fcd9b6"><summary><span>🔔 حضور و غیاب زنگ‌به‌زنگ</span><em${bad?' class="warn"':''}>${B.length?(bad?FA(bad)+' نفر بیرون رفته':'همه سرکلاس'):'بدون زنگ'}</em></summary><div class="dj-acc-b">`;
+ h+=`<div style="font-size:12.5px;color:#475569;line-height:1.9;margin:0 0 8px">${esc(K.dlab(k))} — اگر دانش‌آموزی با دلیل موجه در طول روز بیرون رفت، روی خانه‌ی او در همان زنگ بزنید (حضور اولِ روز دست‌نخورده می‌ماند). «خروج» هیچ فعالیت یا آزمونِ قبلی را حذف نمی‌کند؛ فعالیت/آزمونِ زنگ خروج برای او «انجام‌نشده به علت خروج» می‌شود، نه صفر و نه منفی. تاریخ را با «📅 تقویم شمسی» بالای صفحه عوض کنید.</div>`;
+ if(!B.length)return h+`<div style="padding:12px;text-align:center;color:#64748b;background:#f8fafc;border-radius:10px">برای این روز هنوز زنگی ثبت نشده است. با «➕ ثبت فعالیت آموزشی جدید» (یا برنامه‌ی هفتگی) زنگ‌های روز ساخته می‌شود و اینجا می‌آید.</div></div></details>`;
+ h+=`<div style="overflow:auto;border:1px solid #e2e8f0;border-radius:12px"><table style="border-collapse:collapse;width:100%;font-size:13px"><thead><tr><th style="position:sticky;right:0;background:#f1f5f9;padding:8px;text-align:right;min-width:104px">دانش‌آموز</th>${B.map(x=>`<th style="background:#f1f5f9;padding:6px 4px;min-width:56px;font-size:11.5px;line-height:1.5">${esc(x.short)}</th>`).join('')}<th style="background:#f1f5f9;padding:6px;font-size:11.5px">بیرون</th></tr></thead><tbody>`;
  h+=stu.map(s=>{const da=dayAbs(k,s.id);
   const tds=B.map(x=>{if(da)return`<td style="padding:3px;text-align:center;background:#f8fafc;color:#94a3b8;font-size:11px" title="غایب در کل روز (از صفحه‌ی حضور و غیاب)">غ</td>`;
    const v=get(k,x.b,s.id),m=ST[v];
@@ -64,18 +63,16 @@ function cardHtml(k){try{
   const n=da?0:summaryOf(k,s.id);
   return`<tr><td style="position:sticky;right:0;background:var(--card,#fff);padding:5px 8px;font-weight:700;border-top:1px solid #f1f5f9">${esc(s.name)}${da?' <small style="color:#c0262c">(غایب کل روز)</small>':''}</td>${tds}<td style="text-align:center;border-top:1px solid #f1f5f9;font-weight:800;color:${n?'#b45309':'#94a3b8'}">${n?FA(n):'—'}</td></tr>`}).join('');
  h+=`</tbody></table></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;font-size:12px">${['p','a','o','r'].map(q=>`<span style="padding:3px 9px;border-radius:8px;background:${ST[q].bg};color:${ST[q].c};font-weight:800">${ST[q].t} = ${ST[q].n}</span>`).join('')}</div>`;
- /* سابقه‌ی زمان‌دارِ همین روز */
  const lg=(S.batLog&&S.batLog[k])||[];
  if(lg.length){const nm=id=>((stu.find(q=>String(q.id)===String(id)))||{}).name||'؟';
   h+=`<div style="margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:8px"><b style="font-size:13px">🕒 سابقه‌ی حضور و غیاب زنگ‌ها در این روز</b><div style="margin-top:4px;font-size:12.5px;line-height:2">${lg.map(r=>{const bl=B.find(x=>x.b===r.b);return`<div><span style="color:#64748b;font-variant-numeric:tabular-nums">${FA(r.t)}</span> · <b>${esc(nm(r.sid))}</b> · <span style="color:${(ST[r.s]||ST.p).c};font-weight:800">${(ST[r.s]||ST.p).n}</span> · از ${esc(bl?bl.short:'زنگ')}${r.e?' تا پایان روز':''}</div>`}).join('')}</div></div>`}
- /* زنگ آزمون‌های همین روز */
  const exs=(Array.isArray(S.exams)?S.exams:[]).filter(e=>e&&e.date===k);
  if(exs.length){
   h+=`<div style="margin-top:10px;border-top:1px dashed #e2e8f0;padding-top:8px"><b style="font-size:13px">📝 زنگ آزمون‌های این روز</b><div style="font-size:12px;color:#64748b;margin:3px 0 6px">برای تشخیص درستِ «خروج هنگام آزمون»، زنگ آزمون را مشخص کنید؛ اگر خودکار بماند، زنگِ همان درس در دفتر/برنامه حساب می‌شود.</div>`;
   h+=exs.map(e=>{const cur=e.bell!=null&&e.bell!==''?String(e.bell):'',auto=K.examBell(Object.assign({},e,{bell:''}));
    const cn=((S.courses||[]).find(c=>c.id===e.course)||{}).name||'';
    return`<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0"><span style="font-weight:700;min-width:160px">${esc(cn)} — ${esc(e.title||e.type||'آزمون')}</span><select data-bt-ex="${e.id}" style="padding:6px;border:1px solid #cbd5e1;border-radius:9px;font:700 12.5px Vazirmatn,Tahoma,sans-serif"><option value=""${cur===''?' selected':''}>خودکار${auto!=null?' ('+esc((B.find(x=>x.b===auto)||{}).short||'')+')':' (نامشخص)'}</option>${B.map(x=>`<option value="${esc(x.b)}"${cur===x.b?' selected':''}>${esc(x.short)}</option>`).join('')}</select></div>`}).join('')+`</div>`}
- return h+'</div>'}catch(e){console.error('bell-attendance card',e);return''}}
+ return h+'</div></details>'}catch(e){console.error('bell-attendance card',e);return''}}
 function refresh(){try{kit().refresh()}catch(e){}}
 function closePick(){const c=$('batPick');if(c)c.remove();document.removeEventListener('keydown',onKey,true)}
 function onKey(e){if(e.key==='Escape'){e.stopPropagation();closePick()}}
@@ -95,8 +92,7 @@ function pick(b,sid,k){
   if(v!==cur||toEnd)set(k,sid,b,v,toEnd);refresh()});
  document.body.appendChild(o);document.addEventListener('keydown',onKey,true)}
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#djBat [data-bt]');if(!t)return;const a=t.dataset.bt.split(':');
- if(a[0]==='toggle'){open_=!open_;refresh()}
- else if(a[0]==='cell')pick(a[1],a[2],a[3])});
+ if(a[0]==='cell')pick(a[1],a[2],a[3])});
 document.addEventListener('change',e=>{const s=e.target.closest&&e.target.closest('#djBat [data-bt-ex]');if(!s)return;
  const x=(S.exams||[]).find(q=>String(q.id)===s.dataset.btEx);if(!x)return;if(s.value==='')delete x.bell;else x.bell=s.value;save();refresh()});
 

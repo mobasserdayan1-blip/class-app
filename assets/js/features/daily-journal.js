@@ -250,7 +250,7 @@ function getCourseSubs(cnameStr){
   return found?COURSE_SUBS[found]:['عمومی','تمرین','ارزشیابی'];
 }
 
-let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null,reportPeriod:'week',mx:{m:'week',k:null,c:'all'},pendAll:false,pendRange:7,pendFilter:'all',actModal:null,repModal:null};
+let st={k:todayK(),b:null,item:null,sel:false,pick:new Set(),note:null,tpl:false,keep:false,cal:null,reportPeriod:'week',mx:{m:'week',k:null,c:'all'},cp:{m:'month',k:null},pendAll:false,pendRange:7,pendFilter:'all',actModal:null,repModal:null};
 const dshort=k=>{try{const p=jparts(k);if(p&&JMN[p.m-1])return WDN[dow(k)]+' '+fa(p.d)+' '+JMN[p.m-1]}catch(e){}return fmtP(k,{weekday:'short',day:'numeric',month:'long'})};
 function viewSes(k,b){const s=getSes(k,b);if(s)return s;const bl=bells(k).find(x=>x.i===String(b));return bl?{c:bl.cids[0],tp:'',nt:''}:null}
 function flash(msg){let t=$('djFl');if(t)t.remove();t=document.createElement('div');t.id='djFl';t.className='dj-fl';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{if(t.parentNode)t.remove()},2300)}
@@ -1272,7 +1272,7 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
      <span aria-hidden="true">·</span>
      <span>تاریخ: <b>${esc(dlab(k))}</b>${k===t?' <small style="color:#1d4ed8;font-weight:800">(امروز)</small>':''}</span>
      <span aria-hidden="true">·</span>
-     <span>وضعیت روز: <b style="color:${todayStatus.color}">${todayStatus.badge}</b></span>
+     <span>وضعیت روز: <b style="color:${todayStatus.off===false?'#1d4ed8':todayStatus.color}">${todayStatus.off===false?'📘 روز آموزشی':todayStatus.badge}</b></span>
    </div>
   </div>
   <div class="dj-hd" style="margin:0">
@@ -1288,7 +1288,7 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
  if(isOff(k)){const hi=hinfo(k),nrec=todayActsCount;if(hi&&hi.official)h+=`<div class="dj-ho" id="djHol">🎉 <b>تعطیل رسمی:</b> ${esc(hi.label)}<br><small>این روز «دفتر ثبت‌نشده» یا ناقص حساب نمی‌شود. ${nrec?`سوابق این روز: <b>${fa(nrec)}</b> فعالیت ثبت‌شده در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ اگر کلاسی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</small></div>`;else if(hi&&hi.custom)h+=`<div class="dj-cu" id="djCu">🏫 <b>تعطیلی اختصاصی مدرسه${hi.emergency?' (اضطراری 🚨)':''}:</b> ${esc(hi.label)}${hi.reason?`<br><small>علت: ${esc(hi.reason)}</small>`:''}<br><small>${nrec?`سوابق ثبت‌شده‌ی این روز: <b>${fa(nrec)}</b> فعالیت در زیر است.`:'سابقه‌ای در این روز ثبت نشده؛ ثبت فعالیت در روز تعطیل نیاز به تأیید شما دارد.'}</small></div>`;else h+=`<div class="dj-warn">این روز تعطیل است${hi&&hi.label?' ('+esc(hi.label)+')':''}. ${nrec?`سوابق ثبت‌شده‌ی این روز: ${fa(nrec)} فعالیت.`:'اگر فعالیتی برگزار شده، با «➕ ثبت فعالیت آموزشی جدید» ثبت کنید.'}</div>`}
 
 
- h+=schedCard(k);
+ /* cl-v169: هشدار «ناهماهنگی با برنامه‌ی هفتگی» به درخواست آموزگار حذف شد؛ درس ثبت‌شده در دفتر لازم نیست با زنگ برنامه‌ی هفتگی یکی باشد. */
 
  // ۲) کارت‌های آماری ۴گانه پویا (بخش چهارم - بند ۲)
  h+=`<div class="dj-stat-cards">
@@ -1306,11 +1306,6 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
    <small>👥 دانش‌آموزان دارای ارزشیابی</small>
    <b>${fa(todayStudentsEvaluated)} نفر</b>
    <span>از مجموع ${fa(pn)} حاضرین کلاس</span>
-  </div>
-  <div class="dj-stat-c" style="border-right:3px solid ${todayStatus.color}">
-   <small>🎯 وضعیت دفتر روزانه امروز</small>
-   <b style="color:${todayStatus.color}">${todayStatus.badge}</b>
-   <span title="${esc(todayStatus.reason)}">${esc(todayStatus.reason.length>34?todayStatus.reason.slice(0,32)+'…':todayStatus.reason)}</span>
   </div>
  </div>`;
 
@@ -1343,6 +1338,7 @@ function render(){const s=$('dj');if(!s)return;wscTrack();
 
  h+=fuCard(k);
  h+=(window.BellAtt&&window.BellAtt.cardHtml?window.BellAtt.cardHtml(k):'');
+ h+=(window.SubjTrack&&window.SubjTrack.cardHtml?window.SubjTrack.cardHtml(k):'');
  // ۳) ابزارهای گزارش رسمی
  const repBody=`<div class="dj-nt" style="margin-top:8px;flex-wrap:wrap">
     <button type="button" class="big on" style="background:#1d4ed8;color:#fff;font-size:13px;padding:9px 15px;border-radius:12px;border:0;cursor:pointer;font-weight:800" data-dj="teacherreport">📋 گزارش دفتر روزانه معلم (A4 افقی / عمودی با حضور و غیاب)</button>
@@ -1495,6 +1491,15 @@ function yearCourseStats(){const Y=schoolYearOf(),cols=mxCols(Y.from,Y.to,'all',
  cols.forEach(c=>{if(c.kind==='att')return;const cNm=cname(c.c)||'سایر';
   Object.keys(c.mk||{}).forEach(sid=>{if(c.mk[sid]==null||(absent(c.k,+sid)&&!c.mkc))return;const r=R[sid]=R[sid]||{tot:0,by:{}};r.tot++;r.by[cNm]=(r.by[cNm]||0)+1})});
  return{Y,R}}
+/* بازه‌ی نمودار حجم فعالیت‌ها (cl-v169): ماه شمسی، نیم‌سال اول (مهر تا دی) یا نیم‌سال دوم (بهمن تا خرداد)؛ نه روزانه و نه هفتگی */
+function chartRange(){const cp=st.cp||(st.cp={m:'month',k:null}),a=cp.k||mxAnchor(),p=jparts(a)||{};
+ if(cp.m==='h1'||cp.m==='h2'){const Y=schoolYearOf(a).y;
+  if(cp.m==='h1')return{m:'h1',from:jiso(Y,7,1)||'1900-01-01',to:jiso(Y,10,jlen(Y,10))||'2999-12-31',title:'نیم‌سال اول '+fa(Y)+'–'+fa(Y+1)+' (مهر تا دی)'};
+  return{m:'h2',from:jiso(Y,11,1)||'1900-01-01',to:jiso(Y+1,3,jlen(Y+1,3))||'2999-12-31',title:'نیم‌سال دوم '+fa(Y)+'–'+fa(Y+1)+' (بهمن تا خرداد)'}}
+ return{m:'month',from:jiso(p.y,p.m,1)||'1900-01-01',to:jiso(p.y,p.m,jlen(p.y,p.m))||'2999-12-31',title:'ماه '+JMN[p.m-1]+' '+fa(p.y)}}
+function chartShift(dir){const cp=st.cp||(st.cp={m:'month',k:null}),a=cp.k||mxAnchor(),p=jparts(a);if(!p)return;
+ if(cp.m==='month'){let y=p.y,m=p.m+dir;if(m>12){m=1;y++}else if(m<1){m=12;y--}cp.k=jiso(y,m,1)||cp.k}
+ else{const Y=schoolYearOf(a).y+dir;cp.k=jiso(Y,cp.m==='h1'?7:11,1)||cp.k}}
 function classAnalyticsDashboard(B){
   const cols = B.cols || [];
   const students = sts();
@@ -1534,8 +1539,10 @@ function classAnalyticsDashboard(B){
   });
 
   const classTotals = { l4: 0, l3: 0, l2: 0, l1: 0, ok: 0, no: 0, tot: 0 };
+  /* نمودار حجم فعالیت‌ها: بازه‌ی مستقل از جدول (ماه، نیم‌سال اول یا نیم‌سال دوم) و همه‌ی درس‌ها */
+  const CP = chartRange();
   const courseActivityCounts = {};
-  cols.forEach(c => {
+  mxCols(CP.from, CP.to, 'all', false).forEach(c => {
     if(c.kind === 'att') return;
     const cNm = cname(c.c) || 'سایر';
     const evalCount = Object.keys(c.mk || {}).length;
@@ -1599,7 +1606,15 @@ function classAnalyticsDashboard(B){
   <!-- بخش نمودار میزان فعالیت دروس -->
   <div class="dj-course-chart">
     <div class="dj-chart-title">📊 نمودار مقایسه‌ای حجم فعالیت‌های ثبت‌شده در هر درس</div>
-    <p class="sub" style="margin:2px 0 10px;font-size:11.5px">مشخص‌کننده‌ی این‌که کدام درس‌ها بیشترین فعالیت و ارزشیابی کلاسی را در این بازه داشته‌اند:</p>
+    <div class="dj-cp-btns" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0">
+      <button type="button" class="dj-sm ${CP.m==='month'?'on':''}" data-dj="cpmode:month">ماهانه</button>
+      <button type="button" class="dj-sm ${CP.m==='h1'?'on':''}" data-dj="cpmode:h1">نیم‌سال اول</button>
+      <button type="button" class="dj-sm ${CP.m==='h2'?'on':''}" data-dj="cpmode:h2">نیم‌سال دوم</button>
+      <span style="flex:1"></span>
+      <button type="button" class="dj-sm" data-dj="cpprev" aria-label="قبلی">‹ قبلی</button>
+      <button type="button" class="dj-sm" data-dj="cpnext" aria-label="بعدی">بعدی ›</button>
+    </div>
+    <p class="sub" style="margin:2px 0 10px;font-size:11.5px">بازه: <b>${esc(CP.title)}</b> — مشخص‌کننده‌ی این‌که کدام درس‌ها بیشترین فعالیت و ارزشیابی کلاسی را در این بازه داشته‌اند:</p>
     ${sortedCourses.length ? sortedCourses.map(([cname, count], idx) => {
       const pct = Math.round((count / maxCourseCount) * 100);
       const colors = ['#2563eb', '#1a8f55', '#7c3aed', '#059669', '#d97706', '#dc2626', '#0891b2', '#4b5563'];
@@ -1780,6 +1795,7 @@ function printDashboardReport(){
   const clone = dashEl.cloneNode(true);
   const btn = clone.querySelector('button[data-dj="printdash"]');
   if(btn) btn.remove();
+  clone.querySelectorAll('.dj-cp-btns').forEach(e => e.remove());
 
   win.document.open();
   win.document.write(`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
@@ -2188,6 +2204,8 @@ function act(a){const [c,x,y]=a.split(':'),k=st.k;
  else if(c==='mxmode')st.mx.m=x==='month'?'month':'week';
  else if(c==='mxprev'||c==='mxnext')mxShift(c==='mxnext'?1:-1);
  else if(c==='mxnow')st.mx.k=null;
+ else if(c==='cpmode'){const cp=st.cp||(st.cp={m:'month',k:null}),a=cp.k||mxAnchor();cp.m=(x==='h1'||x==='h2')?x:'month';cp.k=a}
+ else if(c==='cpprev'||c==='cpnext')chartShift(c==='cpnext'?1:-1);
  else if(c==='mxedit'){let key='';try{key=decodeURIComponent(x||'')}catch(e){}mxEditOpen(key,isNaN(+y)?y:+y);return}
  else if(c==='attcyc'){if(!/^\d{4}-\d{2}-\d{2}$/.test(x||'')||mxOff(x))return;if(typeof window.cyc==='function'){window.cyc(isNaN(+y)?y:+y,x);try{save()}catch(e){}}}
  else if(c==='examgo'){try{show('crs');setTimeout(()=>{try{window.openExNow&&window.openExNow(isNaN(+x)?x:+x)}catch(e){}},60)}catch(e){}return}
@@ -2278,7 +2296,16 @@ function levels(sid,cid,o){o=o||{};const d=D(),out=[],cn=cid==null?null:cname(ci
 function examBell(e){try{if(!e||!e.date)return null;if(e.bell!=null&&e.bell!=='')return String(e.bell);
  const hit=dayBells(e.date).find(x=>{const q=getSes(e.date,x.b);return q?String(q.c)===String(e.course):(x.cids||[]).map(String).indexOf(String(e.course))>=0});
  return hit?String(hit.b):null}catch(x){return null}}
-window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+(specialKind(k,x.b)||((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+'))})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def)};
+/* داده‌ی فقط‌خواندنی برای «پیگیری و مقایسه‌ی پیشرفت هر درس» (subject-tracking.js): ارزشیابی‌های ۴سطحی/مثبت‌منفی بین دو تاریخ */
+/* «املا» یا «انشا/نگارش» که به‌جای زنگ ویژه، به‌صورت فعالیتِ درس فارسی ثبت شده، در پیگیری هم با همان درس گروه می‌شود */
+function specialAct(n){n=String(n||'').trim();for(const l of ['املا','انشا','نگارش']){if(n===l||n.indexOf(l+' ')===0)return l}return''}
+function trackEvents(from,to){const d=D(),out=[];
+ Object.keys(d.m).forEach(key=>{const p=key.split('|'),k=p[0];if(k<from||k>to||mxOff(k))return;
+  const ses=d.ses[k+'|'+p[1]],it=ses&&(ses.it||{})[p[2]],mk=d.m[key];if(!it||!mk||!Object.keys(mk).length)return;
+  if(it.t==='d')return;
+  out.push({k,b:p[1],c:ses.c,sub:specialKind(k,p[1])||specialAct(it.n)||cname(ses.c),act:String(it.n||'').trim()||'فعالیت',mk})});
+ return out}
+window.djKit={students:()=>sts(),bellsOf:k=>dayBells(k).map(x=>({b:String(x.b),name:bellName(k,x),short:(String(x.b).charAt(0)==='m'?'زنگ دستی':'زنگ '+(ORD[+x.b]||x.b))+' · '+(specialKind(k,x.b)||((getSes(k,x.b)?[getSes(k,x.b).c]:x.cids)||[]).map(cname).join('+'))})),dlab:k=>dlab(k),addD:(k,n)=>addD(k,n),todayK:()=>todayK(),examBell,isOff:k=>mxOff(k),cur:()=>st.k,refresh:()=>render(),acc:(key,def)=>accOpen(key,def),tk:{events:trackEvents,jparts,jiso,JMN,fa,addD,dow}};
 window.djApi={levels,examCourses,materialize,subsOf,evalTypes:cgOptions,oralOf,summary,pending,pendingDays:journalPendingDays,dayStatus:dayJournalStatus,open:(k,b)=>{st.keep=true;if(k)st.k=k;st.b=b!=null?String(b):null;st.item=null;st.note=null;st.pick=new Set();show('dj')}};
 
 function sfCard(){const sb=$('sfb');if(!sb||!window.__sfid||$('djSf'))return;const R=summary(window.__sfid);if(!R.length)return;

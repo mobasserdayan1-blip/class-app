@@ -13,7 +13,7 @@ const nowM=()=>{const n=new Date();return n.getHours()*60+n.getMinutes()};
 const todayIdx=()=>(new Date().getDay()+1)%7;
 const todayISO=()=>{const n=new Date();return new Date(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate(),12)).toISOString().slice(0,10)};
 const isOff=()=>todayIdx()>4||!!(S.closed&&S.closed[todayISO()]);
-const persist=()=>{try{save()}catch(e){console.warn('wsc save',e)}};
+const persist=()=>{try{try{window.djWscTrack&&window.djWscTrack()}catch(x){}save()}catch(e){console.warn('wsc save',e)}};
 const courseBy=id=>(S.courses||[]).find(c=>c.id===id);
 
 function recalc(w){let m=tm(w.start);w.per=Array.from({length:w.n},(_,i)=>{const s=tstr(m);m+=w.dur+(+w.gaps[i]||0);return{s}})}

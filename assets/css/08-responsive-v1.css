@@ -45,5 +45,6 @@ table.rt-fit th:first-child,table.rt-fit td:first-child{width:26%}
   .dj-calsel select{font-size:12px!important;padding:5px 2px!important}
   .dj-profile-header{padding:10px!important}
   .dj-stat-cards{grid-template-columns:repeat(2,1fr)!important}
+  .dj-stat-cards>.dj-stat-c:last-child:nth-child(odd){grid-column:1/-1}
   .dj-mxbar{gap:4px!important}
 }

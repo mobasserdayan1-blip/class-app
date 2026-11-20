@@ -107,7 +107,7 @@ S.attx=S.attx||{};function isX(k,id){return((S.attx||{})[k]||{})[id]!==undefined
 S.students.forEach(s=>{if(s.att){const k=iso(tdy());(S.att[k]=S.att[k]||{})[s.id]=s.att}delete s.att});
 let cur=tdy(),mode='d';
 const SEL={d:$('selD'),m:$('selM'),y:$('selY')},SYM={p:'ح',a:'غ',l:'ت',e:'م'},COL={'ح':'#1a8f55','غ':'#d12f35','ت':'#d98600','م':'#2f80ed'};
-const SM=[7,8,9,10,11,12,1,2,3];
+const SM=[7,8,9,10,11,12,1,2,3];window.SCHOOL_MONTHS=SM.slice();/* [v171] تنها منبع ماه‌های سال تحصیلی: مهر تا خرداد */
 const schoolRange=d=>{const p=jp(d),Y=p.m>=7?p.y:p.y-1;return{Y,a:fromJ(Y,7,1),b:fromJ(Y+1,3,31)}};
 let SY=schoolRange(tdy()).Y;
 const rangeY=()=>({Y:SY,a:fromJ(SY,7,1),b:fromJ(SY+1,3,31)});
@@ -428,7 +428,7 @@ async function xbook(o){
  mrg(1,o.title,16,true,'FF222222');mrg(2,o.sub,11,false,'FF555555');const il=[].concat(o.info||[]);il.forEach((t,i)=>mrg(3+i,t,11,false,'FF444444'));const H=3+Math.max(1,il.length),H2=H+(o.head2?1:0);
  const hr=ws.getRow(H);o.head.forEach((h,i)=>{const c=hr.getCell(i+1);c.value=h;c.font={name:'Tahoma',bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}};c.alignment=i===o.nameCol?{horizontal:'right',vertical:'middle',readingOrder:'rtl'}:(o.rot&&o.rot[i]?{...ctr,textRotation:90}:ctr);c.border=B});hr.height=o.rot?66:24;
  if(o.head2){const h2=ws.getRow(H+1);o.head2.forEach((h,i)=>{const c=h2.getCell(i+1);c.value=h===''?null:h;c.font={name:'Tahoma',bold:true,color:{argb:'FFFFFFFF'}};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF7E57C2'}};c.alignment=ctr;c.border=B});h2.height=22;o.head2.forEach((h,i)=>{if(h==='')ws.mergeCells(`${L(i+1)}${H}:${L(i+1)}${H+1}`)})}
- o.rows.forEach((r,j)=>{const row=ws.getRow(H2+1+j);r.forEach((v,i)=>{const c=row.getCell(i+1),mk=typeof v==='string'&&COL[v];c.value=v;c.border=B;c.alignment=i===o.nameCol?{horizontal:'right',vertical:'middle',readingOrder:'rtl'}:ctr;c.font={name:'Tahoma',size:11,bold:!!mk,color:{argb:mk?'FF'+COL[v].slice(1).toUpperCase():'FF222222'}};const cs=o.cellStyle&&o.cellStyle(i,v,r);if(cs){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+cs.bg.slice(1).toUpperCase()}};c.font={name:'Tahoma',size:11,bold:true,color:{argb:'FF'+cs.fg.slice(1).toUpperCase()}}}});row.height=20});
+ o.rows.forEach((r,j)=>{const row=ws.getRow(H2+1+j);r.forEach((v,i)=>{const c=row.getCell(i+1),mk=typeof v==='string'&&COL[v];c.value=v;c.border=B;c.alignment=o.vcols&&o.vcols[i]?{...ctr,textRotation:90,wrapText:true}:(o.wrap&&o.wrap[i]?{horizontal:'right',vertical:'top',readingOrder:'rtl',wrapText:true}:(i===o.nameCol?{horizontal:'right',vertical:'middle',readingOrder:'rtl'}:ctr));c.font={name:'Tahoma',size:11,bold:!!mk,color:{argb:mk?'FF'+COL[v].slice(1).toUpperCase():'FF222222'}};const cs=o.cellStyle&&o.cellStyle(i,v,r);if(cs){c.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF'+cs.bg.slice(1).toUpperCase()}};c.font={name:'Tahoma',size:11,bold:true,color:{argb:'FF'+cs.fg.slice(1).toUpperCase()}}}});row.height=o.rowH?o.rowH(r,j):20});
  let r0=H2+1+o.rows.length+1;
  if(o.notes&&o.notes.length){const TW=o.widths.reduce((x,y)=>x+y,0),nr=(t,bold,bg,fg)=>{ws.mergeCells(`A${r0}:${L(n)}${r0}`);for(let j=1;j<=n;j++)ws.getCell(L(j)+r0).border=B;const c=ws.getCell(`A${r0}`);c.value=t;c.font={name:'Tahoma',size:11,bold:!!bold,color:{argb:fg||'FF222222'}};c.alignment={horizontal:'right',vertical:'middle',readingOrder:'rtl',wrapText:true};if(bg)c.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};ws.getRow(r0).height=Math.max(22,Math.ceil(String(t).length*1.25/TW)*17+6);r0++};
   nr(o.notesTitle||'توضیحات',true,'FFE3EEFD','FF1F5FBF');o.notes.forEach(t=>nr(t));r0++}
@@ -668,7 +668,7 @@ function resData(sid){
  if(sid){const s=S.students.find(x=>x.id===sid),o=classTable().rk.findIndex(r=>r.s.id===sid)+1,ov=overall(sid);
   return{title:'گزارش عملکرد فردی — '+s.name+' — '+mt,sub,info:infoLines([t,'میانگین کل: '+f1(ov)+(ov!=null?' ('+LVW[lvl(ov)]+')':''),'رتبه: '+fa(o)+' از '+fa(S.students.length)]),sid,land:false,head:['ردیف','تاریخ آزمون/پرسش','درس','نوع','محدوده‌ی پرسش/آزمون','امتیاز','ارزیابی توصیفی','میانگین کلاس'],rows,nameCol:-1,widths:[5,13,14,15,26,8,13,10],cellStyle:CS2}}
  return{title:'گزارش نتایج کلاس — '+mt,sub,info:infoLines([t]),land:true,head:['ردیف','تاریخ آزمون/پرسش','اسامی دانش‌آموزان','درس','نوع','محدوده‌ی پرسش/آزمون','امتیاز','ارزیابی توصیفی'],rows,nameCol:2,widths:[6,15,22,14,16,26,8,14],cellStyle:CS}}
-const MRM=[7,8,9,10,11,12,1,2,3,4,5,6],mrY=m=>m>=7?SY:SY+1;
+const MRM=SM.slice(),mrY=m=>m>=7?SY:SY+1;
 const MRL=[null,{n:'نیاز به تلاش بیشتر',c:'#d12f35',b:'#fde4e4'},{n:'قابل قبول',c:'#d98600',b:'#fff0d9'},{n:'خوب',c:'#3f9a63',b:'#e3f3e8'},{n:'خیلی خوب',c:'#1a8f55',b:'#d8f0e1'}];
 const MRH={n:{n:'اصلا',c:'#d12f35',b:'#fde4e4'},p:{n:'ناقص',c:'#d98600',b:'#fff0d9'},c:{n:'کامل',c:'#1a8f55',b:'#d8f0e1'}};
 function mrSel(){const c=$('mr_c'),m=$('mr_m');if(!c||!m)return null;const cid=+c.value,co=S.courses.find(x=>x.id===cid);return co?{co,m:+m.value}:null}
@@ -696,7 +696,7 @@ function mrFoot(R,i,n){return `<div style="position:absolute;bottom:56px;left:30
 function mrFile(R){return ('گزارش-ماهانه-'+R.co.name+'-'+MN[R.m-1]+'-'+R.y).replace(/\s+/g,'-').replace(/[\\/:*?"<>|]/g,'')}
 function renderMr(){const c=$('mr_c'),m=$('mr_m');if(!c)return;const keep=c.value;
  c.innerHTML=S.courses.length?S.courses.map(x=>`<option value="${x.id}">${esc2(x.name)}</option>`).join(''):'<option value="">ابتدا درسی بسازید</option>';if(keep&&S.courses.some(x=>String(x.id)===keep))c.value=keep;
- if(!m.options.length){m.innerHTML=MRM.map(k=>`<option value="${k}">${MN[k-1]} ${fa(mrY(k))}</option>`).join('');m.value=String(jp(tdy()).m)}
+ if(!m.options.length){m.innerHTML=MRM.map(k=>`<option value="${k}">${MN[k-1]} ${fa(mrY(k))}</option>`).join('');{const cm=jp(tdy()).m;m.value=String(MRM.includes(cm)?cm:MRM[MRM.length-1])}}
  const q=mrSel(),pv=$('mr_pv'),inf=$('mr_i');if(!q){pv.innerHTML='<p class="sub" style="padding:14px">درسی برای گزارش وجود ندارد.</p>';inf.textContent='';return}
  const R=mrCalc(q.co,q.m);inf.textContent=S.students.length?`${fa(R.nEx)} ارزیابی و ${fa(R.nHw)} تکلیف ثبت‌شده در این ماه برای این درس${R.nEx+R.nHw?'':' — هنوز داده‌ای ثبت نشده'}`:'دانش‌آموزی ثبت نشده است';
  pv.innerHTML=S.students.length?mrTable(R,0,S.students.length):''}
@@ -1202,3 +1202,28 @@ $('mk').addEventListener('click',e=>{
  save();rm()});
 window.renderMk=rm;
 })();
+
+/* ═══ [v171] ابزار مشترک جدول‌های A4: ماه‌های سال تحصیلی (مهر تا خرداد) + سلول‌های عمودی ═══
+   window.SCHOOL_MONTHS  → [7..12,1,2,3]
+   window.schoolMonths(keep)         → همان ماه‌ها (+ ماهِ keep اگر بیرون از بازه بود، برای حفظ داده‌های قدیمی)
+   window.schoolMonthOpts(sel,keep)  → گزینه‌های <option> برای فهرست‌های ماه
+   window.vt.*                       → ساخت و اندازه‌گیری متن عمودی (۹۰ درجه، خواندن از بالا به پایین) برای PDF/چاپ */
+(function(){try{
+const NM=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
+window.SCHOOL_MONTHS=window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3];
+window.schoolMonths=function(keep){const a=window.SCHOOL_MONTHS.slice();[].concat(keep==null?[]:keep).forEach(m=>{m=+m;if(m>=1&&m<=12&&!a.includes(m))a.push(m)});return a};
+window.schoolMonthOpts=function(sel,keep){return window.schoolMonths(keep).map(m=>`<option value="${m}"${m===+sel?' selected':''}>${NM[m-1]}</option>`).join('')};
+const meas=()=>{let m=document.getElementById('vtMeas');if(!m){m=document.createElement('div');m.id='vtMeas';m.setAttribute('aria-hidden','true');m.style.cssText='position:fixed;left:-99999px;top:0;visibility:hidden;pointer-events:none;direction:rtl;font-family:Vazirmatn,Tahoma,sans-serif';document.body.appendChild(m)}return m};
+const css=o=>`font-size:${o.fs||11.5}px;line-height:${o.lh||1.5};${o.b?'font-weight:800;':''}`;
+/* طول یک‌خطیِ متن (پیکسل) */
+function natural(html,o){o=o||{};const m=meas();m.innerHTML=`<span style="display:inline-block;white-space:nowrap;${css(o)}">${html}</span>`;const w=m.firstChild.offsetWidth;m.innerHTML='';return w}
+/* کمترین ارتفاع H (بر حسب پیکسل) که متن در پهنای W (ستون) جا شود؛ th = ارتفاع واقعی متن بعد از چرخش (پهنای اشغالی) */
+function need(html,W,H0,o){o=o||{};const m=meas(),lim=W-4;let H=Math.max(H0||0,20),th=0,k=0;
+ const w1=natural(html,o),lines=Math.max(1,Math.floor(lim/((o.fs||11.5)*(o.lh||1.5))));H=Math.max(H,Math.ceil(w1/lines)+6);
+ for(;k<80;k++){m.innerHTML=`<div style="width:${H}px;text-align:center;white-space:pre-wrap;word-break:break-word;${css(o)}">${html}</div>`;th=m.firstChild.offsetHeight;if(th<=lim)break;H+=8}
+ m.innerHTML='';return{H,th}}
+/* سلول عمودی: متن ۹۰ درجه خلاف عقربه‌های ساعت (از بالا به پایین برای فارسی)، دقیقاً در کادر W×H */
+function cell(html,W,H,o){o=o||{};const n=need(html,W,H,o),th=Math.min(n.th,W),pt=Math.max(0,Math.round((W-th)/2));
+ return `<div class="vtw" style="position:relative;margin:0 auto;width:${W}px;height:${H}px"><div class="vti" style="position:absolute;left:${(W-H)/2}px;top:${(H-W)/2}px;width:${H}px;height:${W}px;transform:rotate(-90deg);transform-origin:50% 50%;box-sizing:border-box;padding-top:${pt}px;text-align:center;direction:rtl;white-space:pre-wrap;word-break:break-word;${css(o)}">${html}</div></div>`}
+window.vt={need,cell,natural};
+}catch(e){console.error('v171-core-helpers',e)}})();

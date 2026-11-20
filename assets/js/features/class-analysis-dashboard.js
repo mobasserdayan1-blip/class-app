@@ -379,7 +379,7 @@ $('lk_u').onkeydown=e=>{if(e.key==='Enter')$('lk_p').focus()};syncU();
 nav.addEventListener('toggle',e=>{const d=e.target;if(d.tagName==='DETAILS'&&d.open)nav.querySelectorAll('details').forEach(x=>{if(x!==d)x.open=false})},true);
 const SEMD={1:[7,1,10,30],2:[11,1,3,31]};
 window.semGet=n=>{const v=S.sem&&S.sem[n];return Array.isArray(v)&&v.length===4?v:SEMD[n]};
-const mo=(i,sel)=>MN.map((n,k)=>`<option value="${k+1}"${k+1===sel?' selected':''}>${n}</option>`).join(''),dy=sel=>Array.from({length:31},(_,k)=>`<option value="${k+1}"${k+1===sel?' selected':''}>${fa(k+1)}</option>`).join('');
+const mo=(i,sel)=>window.schoolMonthOpts(sel,sel),dy=sel=>Array.from({length:31},(_,k)=>`<option value="${k+1}"${k+1===sel?' selected':''}>${fa(k+1)}</option>`).join('');
 function renderSet(){const h=has=>has,u=localStorage.getItem(UN)||'',on=!!localStorage.getItem(K);
  const acc=on?`<p class="sub" style="text-align:right">وضعیت: ✅ ورود فعال است${u?' · نام کاربری: <b>'+E(u)+'</b>':' · نام کاربری ندارد (فقط رمز)'}</p>
  <label class="sum">رمز فعلی (لازم)</label><input id="st_o" type="password" autocomplete="current-password" placeholder="رمز فعلی">

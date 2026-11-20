@@ -115,14 +115,14 @@ const setD=i=>{const p=jp(new Date(i+'T12:00:00Z'));ed.y=p.y;ed.m=p.m;ed.d=p.d};
 const avHtml=()=>{const a=ed.sc.filter(okSc).length,m=avgOf(ed.sc);return `<span>میانگین فعلی: <b>${a?f2(m):'—'}</b>${a?` <small>(${LV[lvIdx(m)]})</small>`:''}</span><small>${fa(a)} از ${fa(N)} شاخص امتیاز دارد</small>`};
 function formHtml(){const y0=jp(tdy()).y,ys=[];for(let y=y0-2;y<=y0+1;y++)ys.push(y);if(!ys.includes(ed.y))ys.push(ed.y);ys.sort((a,b)=>a-b);
  return `<h3>${ed.id?'✏️ ویرایش فرم خودآگاهی':'📝 فرم خودآگاهی آموزگار — جدول ۱۴'}</h3>
- <label>تاریخ تکمیل (شمسی)</label><div class="pmt-dr"><select id="tsaD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="tsaM">${MN.map((n,i)=>`<option value="${i+1}"${ed.m===i+1?' selected':''}>${n}</option>`).join('')}</select><select id="tsaY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-ts="today">امروز</button></div>
+ <label>تاریخ تکمیل (شمسی)</label><div class="pmt-dr"><select id="tsaD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="tsaM">${window.schoolMonthOpts(ed.m,ed.m)}</select><select id="tsaY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-ts="today">امروز</button></div>
  <div class="tsa-av" id="tsaAv">${avHtml()}</div>
  ${ITEMS.map((t,i)=>`<div class="tsa-it" data-i="${i}"><div class="tsa-q"><i>${fa(i+1)}</i><span>${E(t)}</span></div><div class="tsa-sc">${LV.map((l,k)=>`<button type="button" data-v="${k+1}" class="${ed.sc[i]===k+1?'on':''}"><b>${fa(k+1)}</b>${l}</button>`).join('')}</div></div>`).join('')}
  <label>یادداشت (اختیاری)</label><textarea id="tsaN" placeholder="مثلاً: برنامه‌ی بهبود برای شاخص‌هایی که امتیاز پایین گرفتند…">${E(ed.note)}</textarea>
  <div class="pmt-er" id="tsaEr"></div>
  <div class="pmt-fa"><button class="go" type="button" data-ts="save">💾 ${ed.id?'ذخیره‌ی تغییرات':'ثبت فرم'}</button><button type="button" data-ts="cancel">انصراف</button></div>`}
 function openForm(id){ed={id:id||0,sc:Array(N).fill(0),note:''};
- if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.sc=Array.from({length:N},(_,i)=>okSc(x.sc&&x.sc[i])?x.sc[i]:0);ed.note=x.note||'';setD(x.date||todayIso())}else setD(todayIso());
+ if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.sc=Array.from({length:N},(_,i)=>okSc(x.sc&&x.sc[i])?x.sc[i]:0);ed.note=x.note||'';setD(x.date||todayIso())}else{setD(todayIso());if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(ed.m))ed.m=3}
  ov.firstElementChild.innerHTML=formHtml();ov.firstElementChild.scrollTop=0;ov.classList.add('on')}
 const closeForm=()=>{ov.classList.remove('on');ed=null};
 function saveForm(){const y=+$('tsaY').value,m=+$('tsaM').value,d=+$('tsaD').value,er=t=>{$('tsaEr').textContent=t};
@@ -138,7 +138,7 @@ ov.addEventListener('click',e=>{const t=e.target;if(t===ov){closeForm();return}
  const sb=t.closest('.tsa-sc button');if(sb&&ed){const it=sb.closest('.tsa-it'),i=+it.dataset.i,v=+sb.dataset.v;ed.sc[i]=ed.sc[i]===v?0:v;
   it.querySelectorAll('.tsa-sc button').forEach(b=>b.classList.toggle('on',+b.dataset.v===ed.sc[i]));it.classList.remove('miss');$('tsaAv').innerHTML=avHtml();return}
  const a=t.closest('[data-ts]');if(!a||!ed)return;const k=a.dataset.ts;
- if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());$('tsaY').value=ed.y;$('tsaM').value=ed.m;$('tsaD').value=ed.d}});
+ if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(ed.m)){ed.m=3;$('tsaM').innerHTML=window.schoolMonthOpts(ed.m,ed.m)}$('tsaY').value=ed.y;$('tsaM').value=ed.m;$('tsaD').value=ed.d}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))closeForm()});
 sec.addEventListener('click',e=>{const b=e.target.closest('[data-ts]');if(!b)return;const k=b.dataset.ts,id=+b.dataset.i;
  if(k==='new')openForm();else if(k==='edit')openForm(id);

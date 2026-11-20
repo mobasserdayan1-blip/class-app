@@ -34,7 +34,7 @@ function agg(rows){if(!rows.length)return null;const o={n:rows.length,a:rows.red
 /* ───── ۲) دوره‌ها (هفته از شنبه، ماه شمسی) ───── */
 function periods(ev){
  const wk=new Map(),mo=new Map(),T=todayIso();
- ev.forEach(e=>{const w=wkS(e.k);if(!wk.has(w))wk.set(w,[]);wk.get(w).push(e);const m=jm(e.k),mk=m.y*100+m.m;if(!mo.has(mk))mo.set(mk,{y:m.y,m:m.m,r:[]});mo.get(mk).r.push(e)});
+ ev.forEach(e=>{const w=wkS(e.k);if(!wk.has(w))wk.set(w,[]);wk.get(w).push(e);const m=jm(e.k),mk=m.y*100+m.m;if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(m.m))return;if(!mo.has(mk))mo.set(mk,{y:m.y,m:m.m,r:[]});mo.get(mk).r.push(e)});
  const mk=(type,label,from,to,rows)=>{const days=[...new Set(rows.map(r=>r.k))].sort(),S={};
   const by={};rows.forEach(r=>{(by[r.sid]=by[r.sid]||[]).push(r)});
   Object.keys(by).forEach(sid=>{const base=ev.filter(r=>r.sid===sid&&r.k<from);S[sid]={c:agg(by[sid]),b:base.length?{n:base.length,a:agg(base).a}:null}});

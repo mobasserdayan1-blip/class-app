@@ -168,8 +168,8 @@ function build(){
   <div class="ex-note">⚠️ سطح ۱ می‌شود ۲۵٪ و ممکن است اولیا را نگران کند، و ارزشیابی توصیفی رسمی درصد نمی‌دهد. برچسب توصیفی (مثل «خوب») همیشه کنار نمره می‌ماند.<br>🔔 یادآورها فقط وقتی برنامه باز است نمایش داده می‌شوند؛ اعلان خودکار روی دستگاه نیاز به نسخه‌ی نصب‌شده با Push دارد.</div></div>`;
  const cy=jp(today()).y;
  $('exY').innerHTML=[cy-1,cy,cy+1].map(y=>`<option value="${y}">${fa(y)}</option>`).join('');
- $('exM').innerHTML=MN.map((n,i)=>`<option value="${i+1}">${n}</option>`).join('');
- setISO(iso(addD(today(),1)));
+ $('exM').innerHTML=window.schoolMonthOpts(0,0);/* [v171] فقط مهر تا خرداد */
+ {const k0=iso(addD(today(),1)),p0=jp(dt(k0));setISO((window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(p0.m)?k0:iso(fromJ(p0.y,3,31)))}
  const ev=(id,f)=>$(id).addEventListener('change',f);
  ev('exC',()=>{fillTp();upd()});ev('exT',()=>{fillTp();upd()});
  ev('exY',()=>{D.y=+$('exY').value;fixDay()});ev('exM',()=>{D.m=+$('exM').value;fixDay()});ev('exD',()=>{D.d=+$('exD').value;upd()});
@@ -181,7 +181,7 @@ function build(){
   const a=e.target.closest('[data-a]');if(a)act(a.dataset.a,+a.dataset.id,a)});
  built=true;
 }
-function setISO(k){const p=jp(dt(k));D={y:p.y,m:p.m,d:p.d};$('exY').value=D.y;$('exM').value=D.m;fillDays();upd()}
+function setISO(k){const p=jp(dt(k));D={y:p.y,m:p.m,d:p.d};if(!(window.SCHOOL_MONTHS||[]).includes(D.m)&&!$('exM').querySelector('[value="'+D.m+'"]'))$('exM').insertAdjacentHTML('beforeend','<option value="'+D.m+'">'+MN[D.m-1]+'</option>');/* آزمونِ قدیمیِ بیرون از بازه حفظ می‌شود */$('exY').value=D.y;$('exM').value=D.m;fillDays();upd()}
 function fillDays(){const n=dim(D.y,D.m);if(D.d>n)D.d=n;$('exD').innerHTML=Array.from({length:n},(_,i)=>`<option value="${i+1}">${fa(i+1)}</option>`).join('');$('exD').value=D.d}
 function fixDay(){fillDays();upd()}
 function fillCourses(){const sel=$('exC'),v=sel.value,cs=(S.courses||[]).filter(c=>c.name!=='هنر'&&c.name!=='تربیت بدنی');

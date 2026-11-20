@@ -72,7 +72,7 @@ function classStudents(c){const T=TOF(c);if(!T)return[];const I=T.info||{};retur
 const hasScores=id=>(S.exams||[]).some(e=>e.scores&&e.scores[id]!=null&&e.scores[id]!=='');
 const hasAtt=id=>Object.keys(S.att||{}).some(d=>(S.att[d]||{})[id]);
 const mkey=d=>{const q=jp(new Date(d+'T12:00:00Z'));return q.y*100+q.m};
-function monthsOf(id){const s=new Set();(S.exams||[]).forEach(e=>{if(e.scores&&e.scores[id]!=null&&e.scores[id]!=='')s.add(mkey(e.date))});Object.keys(S.att||{}).forEach(d=>{if((S.att[d]||{})[id])s.add(mkey(d))});return[...s].sort((a,b)=>b-a)}
+function monthsOf(id){const s=new Set();(S.exams||[]).forEach(e=>{if(e.scores&&e.scores[id]!=null&&e.scores[id]!=='')s.add(mkey(e.date))});Object.keys(S.att||{}).forEach(d=>{if((S.att[d]||{})[id])s.add(mkey(d))});return[...s].filter(k=>(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(k%100)).sort((a,b)=>b-a)}
 
 const CT=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
 const crc32=u=>{let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CT[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0};

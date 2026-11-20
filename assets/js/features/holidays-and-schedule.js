@@ -133,6 +133,7 @@ document.addEventListener('click',e=>{const t=e.target.closest('[data-hl]');if(!
   else if(a==='em'){const n=new Date(),c=pp(PF,new Date(Date.UTC(n.getFullYear(),n.getMonth(),n.getDate(),12)));ED=null;PRE={y:c.y,m:c.m,d:c.d,t:'تعطیلی اضطراری',r:'',em:1}}
  else if(a==='e'){const [y,m,d]=t.dataset.k.split('-');ED={k:t.dataset.k,v:{y,m,d,t:t.dataset.t}}}
  else if(a==='a'){const y=+f($('hl_y').value),m=+f($('hl_m').value),d=+f($('hl_d').value),ti=$('hl_t').value.trim(),rs=($('hl_r')?$('hl_r').value.trim():''),em=!!($('hl_e')&&$('hl_e').checked);if(!ti||!(window.JDate?JDate.isValid(y,m,d):(y>1300&&m>=1&&m<=12&&d>=1&&d<=31))){$('hl_x').textContent=(!ti?'عنوان تعطیلی را بنویسید':'این تاریخ شمسی وجود ندارد (مثلاً ۳۰ اسفند فقط در سال کبیسه است)');return}
+  if(window.SCHOOL_MONTHS&&!window.SCHOOL_MONTHS.includes(m)){$('hl_x').textContent='تعطیلی مدرسه فقط در ماه‌های سال تحصیلی (مهر تا خرداد) ثبت می‌شود';return}
   if(ED&&ED.custom){o.add=o.add.filter(x=>x.k!==ED.k);ED=null}else if(ED){o.add=o.add.filter(x=>x.k!==ED.k);if(!o.skip.includes(ED.k))o.skip.push(ED.k);ED=null}PRE=null;
   const nk=y+'-'+m+'-'+d;o.skip=o.skip.filter(x=>x!==nk);o.add=o.add.filter(x=>x.k!==nk);{const ne={k:nk,t:ti};if(rs)ne.r=rs;if(em)ne.em=1;o.add.push(ne)}}
  hw(o);const c=$('hlCard');if(c)c.remove();holCard()});

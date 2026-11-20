@@ -32,6 +32,27 @@ st.textContent=`
 .pmg-ab button.on{border-color:#d9534f;background:#fdeceb;color:#b52b27}
 #pmgPrintRoot{position:fixed;left:-99999px;top:0}
 @media print{body.pmg-printing>*:not(#pmgPrintRoot){display:none!important}body.pmg-printing #pmgPrintRoot{position:static!important;left:auto!important;display:block!important}body.pmg-printing .pmtA4{break-after:page;page-break-after:always}body.pmg-printing .pmtA4:last-child{break-after:auto;page-break-after:auto}}
+
+/* [v171] فرم ثبت/ویرایش جلسه: بزرگ، تمام‌صفحه روی موبایل و دو ستونه روی لپ‌تاپ */
+#pmgOv{align-items:center;justify-content:center;padding:max(8px,1.5vh) max(8px,1.5vw)}
+#pmgOv .pmt-bx{width:min(1240px,97vw);max-width:none;height:min(96vh,980px);max-height:96dvh;border-radius:20px;padding:16px 20px 14px;display:flex;flex-direction:column;overflow:hidden}
+#pmgOv .pmt-bx h3{font-size:18px;margin:0 0 6px;flex:none}
+#pmgOv .pmg-bd{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto minmax(0,1fr) auto;gap:6px 18px;padding:0 2px 4px}
+#pmgOv .pmg-f{display:flex;flex-direction:column;min-width:0;min-height:0}
+#pmgOv .pmg-f label{margin:6px 0 4px;font-size:14px}
+#pmgOv .pmg-f textarea{flex:1;min-height:90px;width:100%;resize:vertical;font-size:16px;line-height:2;padding:12px 14px;border-radius:14px}
+#pmgOv .pmg-f.sb textarea{min-height:72px;flex:none;height:72px}
+#pmgOv .pmg-f.ab{grid-column:1/-1}
+#pmgOv .pmg-ab{max-height:26vh;overflow:auto;padding:2px}
+#pmgOv .pmg-ab button{padding:8px 14px;font-size:13.5px}
+#pmgOv .pmt-dr select{padding:12px 8px;font-size:15px}
+#pmgOv .pmt-dr button{padding:0 16px;font-size:14px}
+#pmgOv .pmt-er{flex:none;min-height:18px;margin-top:4px}
+#pmgOv .pmt-fa{flex:none;margin-top:4px}
+#pmgOv .pmt-fa button{padding:14px;font-size:16px}
+@media(max-width:820px){#pmgOv{padding:0}#pmgOv .pmt-bx{width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding:12px 12px 10px}
+ #pmgOv .pmg-bd{grid-template-columns:1fr;grid-template-rows:none;gap:2px}#pmgOv .pmg-f textarea{flex:none;min-height:24vh;font-size:16px}#pmgOv .pmg-f.sb textarea{min-height:64px;height:64px}
+ #pmgOv .pmg-ab{max-height:none}}
 `;
 document.head.appendChild(st);
 
@@ -55,17 +76,21 @@ const setD=i=>{const p=jp(new Date(i+'T12:00:00Z'));ed.y=p.y;ed.m=p.m;ed.d=p.d};
 function formHtml(){const y0=jp(tdy()).y,ys=[];for(let y=y0-2;y<=y0+1;y++)ys.push(y);if(!ys.includes(ed.y))ys.push(ed.y);ys.sort((a,b)=>a-b);
  const S0=(S.students||[]).slice().sort((a,b)=>a.name.localeCompare(b.name,'fa'));
  return `<h3>${ed.id?'✏️ ویرایش جلسه':'👪 ثبت جلسه‌ی عمومی با اولیا'}</h3>
- <label>تاریخ برگزاری (شمسی)</label><div class="pmt-dr"><select id="pmgD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="pmgM">${MN.map((n,i)=>`<option value="${i+1}"${ed.m===i+1?' selected':''}>${n}</option>`).join('')}</select><select id="pmgY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-pg="today">امروز</button></div>
- <label>موضوع</label><textarea id="pmgS" style="min-height:56px" placeholder="مثلاً: اولین جلسه‌ی دیدار با اولیا و یادآوری قوانین کلاس">${E(ed.sub)}</textarea>
- <label>خلاصه‌ی مباحث</label><textarea id="pmgU" placeholder="مهم‌ترین نکته‌هایی که در جلسه مطرح شد…">${E(ed.sum)}</textarea>
- <label>تصمیمات نهایی</label><textarea id="pmgC" placeholder="مثلاً: انتخاب نماینده‌ی اولیا برای همکاری بهتر">${E(ed.dec)}</textarea>
- <label>اسامی غایبان <small style="color:var(--mut)">(روی نام لمس کنید؛ دانش‌آموزی که ولی‌اش غایب بود)</small></label>
+ <div class="pmg-bd">
+ <div class="pmg-f"><label>تاریخ برگزاری (شمسی)</label><div class="pmt-dr"><select id="pmgD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="pmgM">${window.schoolMonthOpts(ed.m,ed.m)}</select><select id="pmgY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-pg="today">امروز</button></div></div>
+ <div class="pmg-f sb"><label>موضوع</label><textarea id="pmgS" placeholder="مثلاً: اولین جلسه‌ی دیدار با اولیا و یادآوری قوانین کلاس">${E(ed.sub)}</textarea></div>
+ <div class="pmg-f"><label>خلاصه‌ی مباحث</label><textarea id="pmgU" placeholder="مهم‌ترین نکته‌هایی که در جلسه مطرح شد…">${E(ed.sum)}</textarea></div>
+ <div class="pmg-f"><label>تصمیمات نهایی</label><textarea id="pmgC" placeholder="مثلاً: انتخاب نماینده‌ی اولیا برای همکاری بهتر">${E(ed.dec)}</textarea></div>
+ <div class="pmg-f ab"><label>اسامی غایبان <small style="color:var(--mut)">(روی نام لمس کنید؛ دانش‌آموزی که ولی‌اش غایب بود)</small></label>
  <div class="pmg-ab">${S0.map(s=>`<button type="button" data-ab="${s.id}" class="${ed.abs.includes(s.id)?'on':''}">${E(s.name)}</button>`).join('')||'<span class="sub">دانش‌آموزی ثبت نشده است.</span>'}</div>
- <input id="pmgX" style="margin-top:8px" placeholder="غایبان دیگر (اختیاری؛ با ویرگول جدا کنید)" value="${E(ed.ax)}">
+ <input id="pmgX" style="margin-top:8px" placeholder="غایبان دیگر (اختیاری؛ با ویرگول جدا کنید)" value="${E(ed.ax)}"></div>
+ </div>
  <div class="pmt-er" id="pmgEr"></div>
  <div class="pmt-fa"><button class="go" type="button" data-pg="save">💾 ${ed.id?'ذخیره‌ی تغییرات':'ثبت در دفتر'}</button><button type="button" data-pg="cancel">انصراف</button></div>`}
+/* ماه‌ها فقط مهر تا خرداد است؛ اگر امروز بیرون از سال تحصیلی بود، خرداد انتخاب می‌شود */
+const fitM=()=>{if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(ed.m)){ed.m=3;ed.d=Math.min(ed.d,31)}};
 function openForm(id){ed={id:id||0,sub:'',sum:'',dec:'',abs:[],ax:''};
- if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.sub=x.sub||'';ed.sum=x.sum||'';ed.dec=x.dec||'';ed.abs=(x.abs||[]).slice();ed.ax=x.ax||'';setD(x.date||todayIso())}else setD(todayIso());
+ if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.sub=x.sub||'';ed.sum=x.sum||'';ed.dec=x.dec||'';ed.abs=(x.abs||[]).slice();ed.ax=x.ax||'';setD(x.date||todayIso())}else{setD(todayIso());fitM()}
  ov.firstElementChild.innerHTML=formHtml();ov.classList.add('on')}
 const closeForm=()=>{ov.classList.remove('on');ed=null};
 function saveForm(){const y=+$('pmgY').value,m=+$('pmgM').value,d=+$('pmgD').value,er=t=>{$('pmgEr').textContent=t};
@@ -79,32 +104,49 @@ function saveForm(){const y=+$('pmgY').value,m=+$('pmgM').value,d=+$('pmgD').val
 ov.addEventListener('click',e=>{const t=e.target;if(t===ov){closeForm();return}
  const ab=t.closest('[data-ab]');if(ab){const id=+ab.dataset.ab,i=ed.abs.indexOf(id);if(i<0)ed.abs.push(id);else ed.abs.splice(i,1);ab.classList.toggle('on',i<0);return}
  const a=t.closest('[data-pg]');if(!a)return;const k=a.dataset.pg;
- if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());$('pmgY').value=ed.y;$('pmgM').value=ed.m;$('pmgD').value=ed.d}});
+ if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());fitM();$('pmgY').value=ed.y;$('pmgM').value=ed.m;$('pmgD').value=ed.d}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))closeForm()});
 sec.addEventListener('click',e=>{const b=e.target.closest('[data-pg]');if(!b)return;const k=b.dataset.pg;
  if(k==='new')openForm();else if(k==='edit')openForm(+b.dataset.i);
  else if(k==='del'){if(!confirm('این جلسه از دفتر حذف شود؟'))return;S.pmm=list().filter(x=>x.id!==+b.dataset.i);save();render()}
  else if(k==='print')doPrint();else if(k==='pdf')doPdf();else if(k==='xls')doXls()});
 
-/* خروجی: ردیف‌های ماه‌های سال تحصیلی (مهر…اردیبهشت) حتی بدون جلسه، مثل دفتر کاغذی */
+/* خروجی: ردیف‌های مهر تا خرداد (ماه‌های سال تحصیلی) حتی بدون جلسه، مثل دفتر کاغذی.
+   [v171] ستون‌های ماه / تاریخ / موضوع / غایبین عمودی و باریک؛ خلاصه‌ی مباحث و تصمیمات نهایی تا حد امکان پهن */
 const msg=t=>{const m=$('pmgMsg');if(m)m.textContent=t||''};
-function ledger(){const A=all(),rows=[];const ms=[7,8,9,10,11,12,1,2];A.forEach(x=>{const m=mOf(x.date);if(m&&!ms.includes(m))ms.push(m)});
+function ledger(){const A=all(),rows=[],ms=(window.schoolMonths?window.schoolMonths():[7,8,9,10,11,12,1,2,3]);A.forEach(x=>{const m=mOf(x.date);if(m&&!ms.includes(m))ms.push(m)});/* جلسه‌ی قدیمیِ بیرون از مهر تا خرداد گم نمی‌شود */
  ms.sort((a,b)=>mi(a)-mi(b)).forEach(m=>{const xs=A.filter(x=>mOf(x.date)===m);if(!xs.length)rows.push({m,blank:true});else xs.forEach((x,i)=>rows.push({m,first:i===0,x}))});return rows}
-const W=[72,86,146,164,144,106],H=['ماه','تاریخ برگزاری','موضوع','خلاصه مباحث','تصمیمات نهایی','اسامی غایبین'];
-const thead=`<thead><tr>${H.map(h=>`<th>${h}</th>`).join('')}</tr></thead>`,cg=`<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>`;
-function rowHtml(r){const mn=`<td class="c"><b>${MN[r.m-1]}</b></td>`;if(r.blank)return `<tr class="bl">${mn}<td></td><td></td><td></td><td></td><td></td></tr>`;const x=r.x;
- return `<tr>${mn}<td class="c">${wdOf(x.date)}<br>${dIso(x.date)}</td><td>${E(x.sub)}</td><td>${E(x.sum)}</td><td>${E(x.dec)}</td><td>${E(absNames(x).join('، '))}</td></tr>`}
+const W=[28,32,38,312,276,56],H=['ماه','تاریخ برگزاری','موضوع','خلاصه مباحث','تصمیمات نهایی','اسامی غایبین'],VT=[0,1,2,5],VP=3,cg=`<colgroup>${W.map(w=>`<col style="width:${w}px">`).join('')}</colgroup>`;/* جمع ستون‌ها = ۷۴۲ پیکسل */
+const VO={fs:11.5,lh:1.5};
+const vparts=r=>r.blank?[[0,'<b>'+MN[r.m-1]+'</b>',{...VO,b:1}]]:[[0,'<b>'+MN[r.m-1]+'</b>',{...VO,b:1}],[1,E(wdOf(r.x.date)+' '+dIso(r.x.date)),VO],[2,E(r.x.sub),VO],[5,E(absNames(r.x).join('، ')),{fs:10.5,lh:1.45}]];
+const vtd=(html,i,R,o)=>`<td class="v">${window.vt.cell(html,W[i]-3,Math.max(10,R-2*VP-2),o)}</td>`;
+function rowHtml(r,R){/* R=null → فقط برای اندازه‌گیری ارتفاع طبیعی ستون‌های افقی */
+ const vp={};vparts(r).forEach(([i,h,o])=>{vp[i]=[h,o]});const V=i=>R==null?`<td class="v"><div style="height:1px"></div></td>`:(vp[i]?vtd(vp[i][0],i,R,vp[i][1]):`<td class="v"></td>`);
+ const st=R==null?'':` style="height:${R}px"`;
+ if(r.blank)return `<tr class="bl"${st}>${V(0)}<td class="v"></td><td class="v"></td><td></td><td></td><td class="v"></td></tr>`;
+ const x=r.x;return `<tr${st}>${V(0)}${V(1)}${V(2)}<td class="tx">${E(x.sum)}</td><td class="tx">${E(x.dec)}</td>${V(5)}</tr>`}
 function headHtml(){let l='';try{l=typeof profLine==='function'?profLine():''}catch(e){}return `<div class="pmt-hd"><b>جدول ۱۳ / ثبت جلسات عمومی ماهانه آموزگار با اولیا</b>${l?`<span>${E(l)}</span>`:''}</div>`}
 function mount(){let r=$('pmgPrintRoot');if(r)r.remove();r=document.createElement('div');r.id='pmgPrintRoot';document.body.appendChild(r);return r}
-function build(rows){const root=mount(),pr=document.createElement('div');pr.className='pmtA4';
- pr.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${rows.map(rowHtml).join('')}</tbody></table></div>`;root.appendChild(pr);
- const hh=pr.querySelector('.pmt-hd').offsetHeight+10,th=pr.querySelector('thead').offsetHeight,hs=[...pr.querySelectorAll('tbody tr')].map((t,i)=>rows[i].blank?Math.max(t.offsetHeight,62):t.offsetHeight);
- const avail=1123-30-26-34-hh-th-6,pg=[];let cur=[],u=0;
- rows.forEach((r,i)=>{const h=Math.min(hs[i],avail);if(cur.length&&u+h>avail){pg.push(cur);cur=[];u=0}cur.push(r);u+=h});pg.push(cur);
- root.innerHTML='';const tot=pg.length,stamp=fmt(tdy());
- pg.forEach((p,i)=>{const d=document.createElement('div');d.className='pmtA4';
-  d.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${p.map(rowHtml).join('')}</tbody></table><div class="pmt-ft"><span>تاریخ تهیه: ${stamp}</span><span>صفحه ${fa(i+1)} از ${fa(tot)}</span></div></div>`;root.appendChild(d)});
- root.querySelectorAll('tr.bl td').forEach(td=>td.style.height='62px');return root}
+function build(rows){const root=mount(),vt=window.vt;
+ const THH=Math.max(86,Math.ceil(Math.max(...VT.map(i=>vt.natural(H[i],{fs:12,b:1})))+14));
+ const thead=`<thead><tr>${H.map((h,i)=>VT.includes(i)?`<th class="v" style="height:${THH}px">${vt.cell(h,W[i]-3,THH-6,{fs:12,lh:1.4,b:1})}</th>`:`<th>${h}</th>`).join('')}</tr></thead>`;
+ const mk=body=>{const d=document.createElement('div');d.className='pmtA4 wide';d.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${body}</tbody></table></div>`;return d};
+ /* ۱) ارتفاع طبیعی هر ردیف از روی ستون‌های افقی  ۲) بالا بردن ارتفاع تا متن عمودی جا شود */
+ const p1=mk(rows.map(r=>rowHtml(r,null)).join(''));root.appendChild(p1);
+ const nh=[...p1.querySelectorAll('tbody tr')].map(t=>t.offsetHeight),hh=p1.querySelector('.pmt-hd').offsetHeight+10,th=p1.querySelector('thead').offsetHeight;
+ const R=rows.map((r,i)=>{let h=Math.max(nh[i],r.blank?30:70);vparts(r).forEach(([c,html,o])=>{h=Math.max(h,vt.need(html,W[c]-3,20,o).H+2*VP+2)});return Math.ceil(h)});
+ root.innerHTML='';
+ const p2=mk(rows.map((r,i)=>rowHtml(r,R[i])).join(''));root.appendChild(p2);
+ const hs=[...p2.querySelectorAll('tbody tr')].map((t,i)=>Math.max(t.offsetHeight,R[i])),SG=118;
+ const avail=1123-24-34-hh-th-8,pg=[];let cur=[],u=0;
+ rows.forEach((r,i)=>{const h=Math.min(hs[i],avail);if(cur.length&&u+h>avail){pg.push({rows:cur,used:u});cur=[];u=0}cur.push(i);u+=h});pg.push({rows:cur,used:u});
+ root.innerHTML='';const stamp=fmt(tdy()),sg=window.sigRow?`<div class="pmt-sg" style="margin-top:28px">${window.sigRow()}</div>`:'';
+ const sigPage=pg[pg.length-1].used+SG>avail;/* امضا هرگز روی جدول نمی‌افتد؛ اگر جا نبود، صفحه‌ی جدا */
+ const tot=pg.length+(sigPage&&sg?1:0);
+ pg.forEach((p,k)=>{const d=document.createElement('div');d.className='pmtA4 wide';
+  d.innerHTML=`<div class="pmt-in">${headHtml()}<table>${cg}${thead}<tbody>${p.rows.map(i=>rowHtml(rows[i],R[i])).join('')}</tbody></table>${k===pg.length-1&&!sigPage?sg:''}<div class="pmt-ft"><span>تاریخ تهیه: ${stamp}</span><span>صفحه ${fa(k+1)} از ${fa(tot)}</span></div></div>`;root.appendChild(d)});
+ if(sigPage&&sg){const d=document.createElement('div');d.className='pmtA4 wide';d.innerHTML=`<div class="pmt-in">${headHtml()}${sg}<div class="pmt-ft"><span>تاریخ تهیه: ${stamp}</span><span>صفحه ${fa(tot)} از ${fa(tot)}</span></div></div>`;root.appendChild(d)}
+ return root}
 const clean=()=>{document.body.classList.remove('pmg-printing');const r=$('pmgPrintRoot');if(r)r.remove()};
 window.addEventListener('afterprint',clean);
 const need=()=>{if(!list().length){msg('ابتدا دست‌کم یک جلسه ثبت کنید.');return false}return true};
@@ -119,8 +161,11 @@ async function doPdf(){if(!need())return;msg('⏳ در حال ساخت فایل�
  catch(x){clean();msg('⚠️ ساخت PDF ناموفق بود: '+(x&&x.message?x.message:x))}}
 async function doXls(){if(!need())return;msg('⏳ در حال ساخت فایل…');
  try{if(typeof xbook!=='function')throw new Error('ابزار اکسل آماده نیست');
+  const L=ledger(),XW=[7,17,13,56,46,15],est=(s,w)=>String(s||'').split('\n').reduce((n,l)=>n+Math.max(1,Math.ceil(l.length*1.05/w)),0);
   const buf=await xbook({sheet:'جدول ۱۳',title:'جدول ۱۳ / ثبت جلسات عمومی ماهانه آموزگار با اولیا',sub:'جلسات عمومی اولیا',info:typeof profLine==='function'?profLine():'',head:H,
-   rows:ledger().map(r=>r.blank?[MN[r.m-1],'','','','','']:[MN[r.m-1],wdOf(r.x.date)+' '+dIso(r.x.date),r.x.sub||'',r.x.sum||'',r.x.dec||'',absNames(r.x).join('، ')]),nameCol:2,widths:[10,16,30,36,30,26],sign:true});
+   rows:L.map(r=>r.blank?[MN[r.m-1],'','','','','']:[MN[r.m-1],wdOf(r.x.date)+' '+dIso(r.x.date),r.x.sub||'',r.x.sum||'',r.x.dec||'',absNames(r.x).join('، ')]),
+   nameCol:3,widths:XW,rot:[1,1,1,0,0,1],vcols:[1,1,1,0,0,1],wrap:[0,0,0,1,1,0],
+   rowH:(row)=>row[3]||row[4]||row[2]||row[5]?Math.max(80,est(row[3],XW[3])*15+10,est(row[4],XW[4])*15+10,Math.ceil(Math.max(String(row[1]).length,String(row[2]).length/2,String(row[5]).length/3)*7.4)+12):56,sign:true});
   await window.dlFile('جلسات-عمومی-اولیا-جدول-۱۳-'+stampN()+'.xlsx',buf);
   msg(window.__dlok?'✅ فایل آماده شد':'⚠️ فایل ساخته شد ولی این محیط اجازه‌ی دانلود نمی‌دهد.')}
  catch(x){msg('⚠️ ساخت اکسل ناموفق بود: '+(x&&x.message?x.message:x))}}

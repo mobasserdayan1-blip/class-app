@@ -172,7 +172,7 @@ const spark=v=>{if(v.length<2)return '<div style="font-size:12px;color:#888">ب�
     g.strokeStyle='#d9cdee';g.lineWidth=1;g.beginPath();g.moveTo(MX,PH-38);g.lineTo(W-MX,PH-38);g.stroke();g.textAlign='center';g.fillStyle='#6b5f84';g.font='11px Vazirmatn,Tahoma,sans-serif';g.fillText('صفحه '+fa(n+1)+' از '+fa(pg.length),W/2,PH-20)}
    if(n)doc.addPage();doc.addImage(c.toDataURL('image/jpeg',.92),'JPEG',0,0,210,297)});
   await dl(name,doc.output('arraybuffer'))}
- function openRep(id,kind){const old=$('rpOv');if(old)old.remove();const ms=[...new Set([...S.exams.map(e=>mon(e.date)),...Object.keys(S.att).map(mon)])].sort().reverse();let m=ms[0]||mon(iso(tdy())),k=['o','p','po'].includes(kind)?kind:'c';
+ function openRep(id,kind){const old=$('rpOv');if(old)old.remove();const ms=[...new Set([...S.exams.map(e=>mon(e.date)),...Object.keys(S.att).map(mon)])].filter(x=>(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(x%100)).sort().reverse();let m=ms[0]||mon(iso(tdy())),k=['o','p','po'].includes(kind)?kind:'c';
   const o=document.createElement('div');o.className='rp-ov';o.id='rpOv';const fam=()=>k==='p'||k==='po'?'p':'c';
   const lab=()=>k==='p'?'📄 دریافت گزارش ماهانه گرافیکی (PDF)':k==='po'?'📄 دریافت گزارش ماهانه رسمی (PDF)':k==='o'?'📄 دریافت کارنامه رسمی (PDF)':'📄 دریافت کارنامه گرافیکی (PDF)';
   const segH=()=>fam()==='p'?`<button data-k="p" class="${k==='p'?'on':''}">🎓 گزارش ماهانه گرافیکی</button><button data-k="po" class="${k==='po'?'on':''}">🏛 گزارش ماهانه رسمی</button>`:`<button data-k="c" class="${k==='c'?'on':''}">🎓 کارنامه گرافیکی</button><button data-k="o" class="${k==='o'?'on':''}">🏛 کارنامه رسمی</button>`;

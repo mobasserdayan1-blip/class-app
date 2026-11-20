@@ -55,11 +55,11 @@ function formHtml(){const y0=jp(tdy()).y,ys=[];for(let y=y0-2;y<=y0+1;y++)ys.pus
  return `<h3>${ed.id?'✏️ ویرایش تجربه / ایده':'💡 ثبت تجربه / ایده‌ی جدید'}</h3>
  <label>عنوان کار</label><input id="texT" value="${E(ed.ttl)}">
  <label>روایت تجربه - طرح ایده</label><textarea id="texN" style="min-height:140px">${E(ed.nar)}</textarea>
- <label>تاریخ (شمسی)</label><div class="pmt-dr"><select id="texD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="texM">${MN.map((n,i)=>`<option value="${i+1}"${ed.m===i+1?' selected':''}>${n}</option>`).join('')}</select><select id="texY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-tx="today">امروز</button></div>
+ <label>تاریخ (شمسی)</label><div class="pmt-dr"><select id="texD">${Array.from({length:31},(_,i)=>`<option value="${i+1}"${ed.d===i+1?' selected':''}>${fa(i+1)}</option>`).join('')}</select><select id="texM">${window.schoolMonthOpts(ed.m,ed.m)}</select><select id="texY">${ys.map(y=>`<option value="${y}"${ed.y===y?' selected':''}>${fa(y)}</option>`).join('')}</select><button type="button" data-tx="today">امروز</button></div>
  <div class="pmt-er" id="texEr"></div>
  <div class="pmt-fa"><button class="go" type="button" data-tx="save">💾 ${ed.id?'ذخیره‌ی تغییرات':'ثبت در دفتر'}</button><button type="button" data-tx="cancel">انصراف</button></div>`}
 function openForm(id){ed={id:id||0,ttl:'',nar:''};
- if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.ttl=x.ttl||'';ed.nar=x.nar||'';setD(x.date||todayIso())}else setD(todayIso());
+ if(id){const x=list().find(q=>q.id===id);if(!x)return;ed.ttl=x.ttl||'';ed.nar=x.nar||'';setD(x.date||todayIso())}else{setD(todayIso());if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(ed.m))ed.m=3}
  ov.firstElementChild.innerHTML=formHtml();ov.classList.add('on')}
 const closeForm=()=>{ov.classList.remove('on');ed=null};
 function saveForm(){const y=+$('texY').value,m=+$('texM').value,d=+$('texD').value,er=t=>{$('texEr').textContent=t};
@@ -73,7 +73,7 @@ function saveForm(){const y=+$('texY').value,m=+$('texM').value,d=+$('texD').val
  save();closeForm();render()}
 ov.addEventListener('click',e=>{const t=e.target;if(t===ov){closeForm();return}
  const a=t.closest('[data-tx]');if(!a)return;const k=a.dataset.tx;
- if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());$('texY').value=ed.y;$('texM').value=ed.m;$('texD').value=ed.d}});
+ if(k==='cancel')closeForm();else if(k==='save')saveForm();else if(k==='today'){setD(todayIso());if(!(window.SCHOOL_MONTHS||[7,8,9,10,11,12,1,2,3]).includes(ed.m)){ed.m=3;$('texM').innerHTML=window.schoolMonthOpts(ed.m,ed.m)}$('texY').value=ed.y;$('texM').value=ed.m;$('texD').value=ed.d}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&ov.classList.contains('on'))closeForm()});
 sec.addEventListener('click',e=>{const b=e.target.closest('[data-tx]');if(!b)return;const k=b.dataset.tx;
  if(k==='new')openForm();else if(k==='edit')openForm(+b.dataset.i);
